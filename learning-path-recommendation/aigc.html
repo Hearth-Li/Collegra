@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">生成式模型学习路径</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .path-container {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .node {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px;
+            width: 180px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .node.active {
+            display: block;
+        }
+        .node.selected {
+            background-color: #e0f0ff;
+            border-color: #0066cc;
+        }
+        .node h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .vertical-arrow {
+            width: 180px; /* Matches single node width */
+            height: 30px;
+            position: relative;
+        }
+        .vertical-arrow svg {
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            left: 75px; /* Centers arrow: 90px - 15px (half SVG width) */
+        }
+        .dual-arrow {
+            width: 380px; /* Matches dual-node width */
+            height: 60px;
+            position: relative;
+        }
+        .dual-arrow svg {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .diffusion-to-flow-arrow {
+            width: 380px;
+            height: 30px;
+            position: relative;
+        }
+        .diffusion-to-flow-arrow svg {
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            left: 85px; /* Aligns with Diffusion node center */
+        }
+        .dual-node {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            width: 380px;
+        }
+        .flow-container {
+            width: 380px;
+            display: flex;
+            justify-content: flex-start;
+        }
+        .sidebar {
+            flex: 1;
+            background-color: white;
+            border-left: 1px solid #ccc;
+            padding: 20px;
+            position: fixed;
+            right: 0;
+            top: 100px;
+            width: 300px;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-top: 0;
+        }
+        .sidebar h3 {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .sidebar li {
+            margin: 5px 0;
+        }
+        .sidebar a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            text-decoration: underline;
+        }
+        .language-toggle {
+            margin-bottom: 20px;
+        }
+        .language-toggle select {
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="page-title">生成式模型学习路径</h1>
+    <div class="language-toggle">
+        <select id="languageSelect" onchange="toggleLanguage()">
+            <option value="Chinese">中文</option>
+            <option value="English">English</option>
+        </select>
+    </div>
+    <div class="container">
+        <div class="path-container">
+            <!-- DL Node -->
+            <div class="node Chinese" id="DL_Chinese" onclick="showDetails('DL', 'Chinese')">
+                <h3>深度学习基础</h3>
+            </div>
+            <div class="node English" id="DL_English" onclick="showDetails('DL', 'English')">
+                <h3>Deep Learning Basics</h3>
+            </div>
+            <div class="vertical-arrow">
+                <svg viewBox="0 0 30 30">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="black"/>
+                        </marker>
+                    </defs>
+                    <line x1="15" y1="0" x2="15" y2="30" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+                </svg>
+            </div>
+            <!-- VAE Node -->
+            <div class="node Chinese" id="VAE_Chinese" onclick="showDetails('VAE', 'Chinese')">
+                <h3>变分自编码器</h3>
+            </div>
+            <div class="node English" id="VAE_English" onclick="showDetails('VAE', 'English')">
+                <h3>Variational Autoencoders</h3>
+            </div>
+            <div class="vertical-arrow">
+                <svg viewBox="0 0 30 30">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="black"/>
+                        </marker>
+                    </defs>
+                    <line x1="15" y1="0" x2="15" y2="30" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+                </svg>
+            </div>
+            <!-- GAN Node -->
+            <div class="node Chinese" id="GAN_Chinese" onclick="showDetails('GAN', 'Chinese')">
+                <h3>生成对抗网络</h3>
+            </div>
+            <div class="node English" id="GAN_English" onclick="showDetails('GAN', 'English')">
+                <h3>Generative Adversarial Networks</h3>
+            </div>
+            <div class="dual-arrow">
+                <svg viewBox="0 0 380 60">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="black"/>
+                        </marker>
+                    </defs>
+                    <line x1="190" y1="0" x2="90" y2="60" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="190" y1="0" x2="290" y2="60" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+                </svg>
+            </div>
+            <!-- Diffusion and Autoregressive Nodes -->
+            <div class="dual-node">
+                <div class="node Chinese" id="diffusion_Chinese" onclick="showDetails('diffusion', 'Chinese')">
+                    <h3>扩散模型</h3>
+                </div>
+                <div class="node English" id="diffusion_English" onclick="showDetails('diffusion', 'English')">
+                    <h3>Diffusion Models</h3>
+                </div>
+                <div class="node Chinese" id="autoregressive_Chinese" onclick="showDetails('autoregressive', 'Chinese')">
+                    <h3>自回归模型</h3>
+                </div>
+                <div class="node English" id="autoregressive_English" onclick="showDetails('autoregressive', 'English')">
+                    <h3>Autoregressive Models</h3>
+                </div>
+            </div>
+            <div class="diffusion-to-flow-arrow">
+                <svg viewBox="0 0 30 30">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="black"/>
+                        </marker>
+                    </defs>
+                    <line x1="15" y1="0" x2="15" y2="30" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+                </svg>
+            </div>
+            <!-- Flow Node -->
+            <div class="flow-container">
+                <div class="node Chinese" id="flow_Chinese" onclick="showDetails('flow', 'Chinese')">
+                    <h3>流匹配</h3>
+                </div>
+                <div class="node English" id="flow_English" onclick="showDetails('flow', 'English')">
+                    <h3>Flow Matching</h3>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar" id="sidebar">
+            <h2>节点详情</h2>
+            <p>点击一个节点以查看详情</p>
+        </div>
+    </div>
+
+    <script>
+        const nodesData = {
+            DL: {
+                Chinese: {
+                    name: "深度学习基础",
+                    resources: {
+                        "线上课程": [
+                            { title: "斯坦福大学 CS299 '机器学习'", url: "https://cs229.stanford.edu/" },
+                            { title: "麻省理工学院 6.S191 '深度学习简介'", url: "https://introtodeeplearning.com/" }
+                        ]
+                    }
+                },
+                English: {
+                    name: "Deep Learning Basics",
+                    resources: {
+                        "Online Courses": [
+                            { title: "Stanford University CS299 'Machine Learning'", url: "https://cs229.stanford.edu/" },
+                            { title: "MIT 6.S191 'Introduction to Deep Learning'", url: "https://introtodeeplearning.com/" }
+                        ]
+                    }
+                }
+            },
+            VAE: {
+                Chinese: {
+                    name: "变分自编码器",
+                    resources: {
+                        "": [
+                            { title: "原论文", url: "https://arxiv.org/abs/1312.6114" },
+                            { title: "扩展论文", url: "https://openreview.net/forum?id=Sy2fzU9gl" },
+                            { title: "实践教程", url: "https://github.com/AntixK/PyTorch-VAE" }
+                        ]
+                    }
+                },
+                English: {
+                    name: "Variational Autoencoders",
+                    resources: {
+                        "": [
+                            { title: "Original Paper", url: "https://arxiv.org/abs/1312.6114" },
+                            { title: "Extended Paper", url: "https://openreview.net/forum?id=Sy2fzU9gl" },
+                            { title: "Practical Tutorial", url: "https://github.com/AntixK/PyTorch-VAE" }
+                        ]
+                    }
+                }
+            },
+            GAN: {
+                Chinese: {
+                    name: "生成对抗网络",
+                    resources: {
+                        "": [
+                            { title: "原论文", url: "https://arxiv.org/abs/1406.2661" },
+                            { title: "扩展论文 1", url: "https://arxiv.org/abs/1912.04958" },
+                            { title: "扩展论文 2", url: "https://arxiv.org/abs/1701.07875" },
+                            { title: "视频讲解", url: "https://www.youtube.com/watch?v=HGYYEUSm-0Q" }
+                        ]
+                    }
+                },
+                English: {
+                    name: "Generative Adversarial Networks",
+                    resources: {
+                        "": [
+                            { title: "Original Paper", url: "https://arxiv.org/abs/1406.2661" },
+                            { title: "Extended Paper 1", url: "https://arxiv.org/abs/1912.04958" },
+                            { title: "Extended Paper 2", url: "https://arxiv.org/abs/1701.07875" },
+                            { title: "Video Explanation", url: "https://www.youtube.com/watch?v=HGYYEUSm-0Q" }
+                        ]
+                    }
+                }
+            },
+            diffusion: {
+                Chinese: {
+                    name: "扩散模型",
+                    resources: {
+                        "": [
+                            { title: "领域论文梳理", url: "https://www.zhihu.com/question/658056360/answer/3526228476" },
+                            { title: "实践教程", url: "https://hf-mirror.com/docs/diffusers" }
+                        ]
+                    }
+                },
+                English: {
+                    name: "Diffusion Models",
+                    resources: {
+                        "": [
+                            { title: "Papers Overview", url: "https://www.zhihu.com/question/658056360/answer/3526228476" },
+                            { title: "Practical Tutorial", url: "https://hf-mirror.com/docs/diffusers" }
+                        ]
+                    }
+                }
+            },
+            autoregressive: {
+                Chinese: {
+                    name: "自回归模型",
+                    resources: {
+                        "": [
+                            { title: "经典论文 1", url: "https://arxiv.org/abs/1601.06759" },
+                            { title: "经典论文 2", url: "https://arxiv.org/abs/1601.06759" }
+                        ]
+                    }
+                },
+                English: {
+                    name: "Autoregressive Models",
+                    resources: {
+                        "": [
+                            { title: "Classic Paper 1", url: "https://arxiv.org/abs/1601.06759" },
+                            { title: "Classic Paper 2", url: "https://arxiv.org/abs/1601.06759" }
+                        ]
+                    }
+                }
+            },
+            flow: {
+                Chinese: {
+                    name: "流匹配",
+                    resources: {
+                        "": [
+                            { title: "原论文", url: "https://arxiv.org/abs/2210.02747" },
+                            { title: "教程", url: "https://arxiv.org/abs/2412.06264" }
+                        ]
+                    }
+                },
+                English: {
+                    name: "Flow Matching",
+                    resources: {
+                        "": [
+                            { title: "Original Paper", url: "https://arxiv.org/abs/2210.02747" },
+                            { title: "Guide", url: "https://arxiv.org/abs/2412.06264" }
+                        ]
+                    }
+                }
+            }
+        };
+
+        function toggleLanguage() {
+            const selectedLang = document.getElementById('languageSelect').value;
+            const nodes = document.querySelectorAll('.node');
+            nodes.forEach(node => {
+                if (node.classList.contains(selectedLang)) {
+                    node.classList.add('active');
+                } else {
+                    node.classList.remove('active');
+                }
+            });
+            const pageTitle = document.getElementById('pageTitle');
+            const pageTitleText = document.getElementById('page-title');
+            const sidebar = document.getElementById('sidebar');
+            if (selectedLang === 'Chinese') {
+                pageTitle.textContent = '生成式模型学习路径';
+                pageTitleText.textContent = '生成式模型学习路径';
+                sidebar.innerHTML = `
+                    <h2>节点详情</h2>
+                    <p>点击一个节点以查看详情</p>
+                `;
+            } else {
+                pageTitle.textContent = 'Generative Models Learning Path';
+                pageTitleText.textContent = 'Generative Models Learning Path';
+                sidebar.innerHTML = `
+                    <h2>Node Details</h2>
+                    <p>Click a node to view details</p>
+                `;
+            }
+            nodes.forEach(node => node.classList.remove('selected'));
+        }
+
+        function showDetails(nodeId, lang) {
+            const data = nodesData[nodeId][lang];
+            const sidebar = document.getElementById('sidebar');
+            let html = `<h2>${data.name}</h2>`;
+            for (const [category, links] of Object.entries(data.resources)) {
+                if (category) {
+                    html += `<h3>${category}</h3>`;
+                }
+                html += '<ul>';
+                links.forEach(link => {
+                    html += `<li><a href="${link.url}" target="_blank">${link.title}</a></li>`;
+                });
+                html += '</ul>';
+            }
+            sidebar.innerHTML = html;
+
+            document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
+            document.getElementById(`${nodeId}_${lang}`).classList.add('selected');
+        }
+
+        toggleLanguage();
+    </script>
+</body>
+</html>
+
+
+     
+
+
+
+
+
+
+
+
+
