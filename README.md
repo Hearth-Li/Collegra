@@ -1,5 +1,6 @@
 # Collegra 
 [中文版](readme_ch.md)
+
 Collegra (College + Agora) is a lightweight software platform that integrates multiple useful features to support college students in their studies, career pursuits, and daily life.
 
 ## What has been done? 

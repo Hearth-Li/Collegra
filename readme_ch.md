@@ -1,5 +1,6 @@
 # Collegra
 [English version](README.md)
+
 Collegra（由 College 和 Agora 组成）是一个轻量级的软件平台，集成了多种实用功能，旨在支持大学生的学习、职业发展和日常生活。
 
 ## 已完成的内容
