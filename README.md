@@ -9,6 +9,8 @@ The basic functionality of the following modules has been implemented:
 * LearningPath-Recommentator: This module recommends learning paths for students interested in specific areas. Various resources such as online courses, blogs, and research papers are suggested.
 * Timetable-Generator: This module helps students schedule their classes efficiently.
 
+By the way, two versions of logo are completed, under the directory `./assets`.
+
 ## Conduct codes for contribution
 To contribute new modules that you believe will benefit college students in their studies, career pursuits, or daily life, simply:
 1. Integrate your implementation into a new directory.
