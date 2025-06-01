@@ -23,6 +23,7 @@ To contribute new modules that you believe will benefit college students in thei
 
 ##### resume generator
 - [x] main source codes
+- [x] entire I/O stream line 
 - [ ] guide for installing `pdflatex` locally
 - [ ] online compilation method?
 

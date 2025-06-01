@@ -1,5 +1,3 @@
-import requests
-import urllib.parse
 import subprocess
 """
 Here is a example for the input:
