@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Paths</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(
+                135deg,
+                #d6e4ff 0%,
+                #c3dafe 25%,
+                #e0d2ff 50%,
+                #f4d2e0 75%,
+                #e0f0ff 100%
+            );
+            background-size: 200% 200%;
+            animation: gradientShift 15s ease-in-out infinite;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .language-toggle {
+            margin-top: 8px;
+        }
+        .language-toggle select {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        .language-toggle select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+        }
+        .card {
+            background: linear-gradient(45deg, #ffffff, #f8fafc);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 24px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .card:not(.disabled):hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-color: #8b5cf6;
+            cursor: pointer;
+        }
+        .card.disabled {
+            background: linear-gradient(45deg, #f1f5f9, #e5e7eb);
+            opacity: 0.7;
+        }
+        .card h3 {
+            margin: 0 0 12px;
+            font-size: 1.6em;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .card p {
+            font-size: 1em;
+            color: #6b7280;
+            margin: 0 0 16px;
+            line-height: 1.5;
+        }
+        .card a {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        .card a:hover {
+            background-color: #1d4ed8;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .card {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="text-3xl font-bold text-gray-800 lang-en hidden">Learning Paths recommendations</h1>
+        <h1 class="text-3xl font-bold text-gray-800 lang-zh">学习路径推荐</h1>
+        <div class="language-toggle">
+            <select id="languageSelect" onchange="toggleLanguage()">
+                <option value="Chinese" selected>中文</option>
+                <option value="English">English</option>
+            </select>
+        </div>
+    </div>
+    <div class="container">
+        <div class="card-container">
+            <div class="card">
+                <h3 class="lang-en hidden">Large Language Models</h3>
+                <h3 class="lang-zh">大语言模型</h3>
+                <p class="lang-en hidden">Master the fundamentals and advanced concepts of large language models, from basics to deployment.</p>
+                <p class="lang-zh">掌握大语言模型的基础和高级概念，从基础到部署。</p>
+                <a href="./llm/main.html">
+                    <span class="lang-en hidden">Explore LLM Path</span>
+                    <span class="lang-zh">探索大语言模型路径</span>
+                </a>
+            </div>
+            <div class="card">
+                <h3 class="lang-en hidden">Generative models</h3>
+                <h3 class="lang-zh">生成式模型</h3>
+                <p class="lang-en hidden">Learn the techniques behind AI-generated content, including generative models and applications.</p>
+                <p class="lang-zh">学习人工智能生成内容的技术，包括生成模型和应用。</p>
+                <a href="./aigc/main.html">
+                    <span class="lang-en hidden">Explore Generative Models Path</span>
+                    <span class="lang-zh">探索生成式模型路径</span>
+                </a>
+            </div>
+            <div class="card">
+                <h3 class="lang-en hidden">Embodied Intelligence</h3>
+                <h3 class="lang-zh">具身智能</h3>
+                <p class="lang-en hidden">Dive into embodied AI, focusing on robotics and intelligent systems interacting with the physical world.</p>
+                <p class="lang-zh">深入了解具身人工智能，聚焦于机器人和与物理世界交互的智能系统。</p>
+                <a href="./embodied/main.html">
+                    <span class="lang-en hidden">Explore Embodied Intelligence Path</span>
+                    <span class="lang-zh">探索具身智能路径</span>
+                </a>
+            </div>
+            <div class="card disabled">
+                <h3 class="lang-en hidden">More Paths Coming Soon</h3>
+                <h3 class="lang-zh">更多路径即将推出</h3>
+                <p class="lang-en hidden">Waiting for more learning paths to be completed. Stay tuned for updates!</p>
+                <p class="lang-zh">等待更多学习路径完成。请继续关注更新！</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleLanguage() {
+            const selectedLang = document.getElementById('languageSelect').value;
+            const enElements = document.querySelectorAll('.lang-en');
+            const zhElements = document.querySelectorAll('.lang-zh');
+            if (selectedLang === 'English') {
+                enElements.forEach(el => el.classList.remove('hidden'));
+                zhElements.forEach(el => el.classList.add('hidden'));
+            } else {
+                enElements.forEach(el => el.classList.add('hidden'));
+                zhElements.forEach(el => el.classList.remove('hidden'));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('languageSelect').value = 'Chinese';
+            toggleLanguage();
+        });
+    </script>
+</body>
+</html>
