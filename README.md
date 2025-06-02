@@ -6,7 +6,7 @@ Collegra (College + Agora) is a lightweight software platform that integrates mu
 ## What has been done? 
 The basic functionality of the following modules has been implemented:
 * Resume-Generator: Students provide their information, and the generator automatically returns a LaTeX (.tex) file or a PDF version of their resume.
-* LearningPath-Recommentator: This module recommends learning paths for students interested in specific areas. Various resources such as online courses, blogs, and research papers are suggested.
+* LearningPath-Recommendator: This module recommends learning paths for students interested in specific areas. Various resources such as online courses, blogs, and research papers are suggested.
 * Timetable-Generator: This module helps students schedule their classes efficiently.
 
 By the way, two versions of logo are completed, under the directory `./assets`.
@@ -27,7 +27,7 @@ To contribute new modules that you believe will benefit college students in thei
 - [ ] guide for installing `pdflatex` locally
 - [ ] online compilation method?
 
-##### learning path recommentor
+##### learning path recommender
 - [x] Add more details to each node to the aigc learning path
 - [x] Improve the design of user interface 
-- [ ] Other paths design  
+- [x] Other paths design  
