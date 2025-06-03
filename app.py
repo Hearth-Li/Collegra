@@ -45,6 +45,10 @@ def modern_algorithm_architecture():
 def resume():
     return render_template('resume.html')
 
+@app.route('/MiKTeX_installation.html')
+def MiKTeX_installation():
+    return render_template('MiKTeX_installation.html')
+
 # Route to handle CV generation
 @app.route('/generate_cv', methods=['POST'])
 def generate_cv_route():

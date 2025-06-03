@@ -104,6 +104,13 @@
             margin: 120px auto 20px;
         }
 
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -130,6 +137,7 @@
                 <div class="dropdown-content">
                     <a href="{{ url_for('index') }}"><span class="lang-en hidden">Home</span><span class="lang-zh">首页</span></a>
                     <a href="{{ url_for('recommender') }}"><span class="lang-en hidden">Learning Path Recommendations</span><span class="lang-zh">学习路径推荐</span></a>
+                    <a href="{{ url_for('resume') }}"><span class="lang-en hidden">Resume Generator</span><span class="lang-zh">简历生成器</span></a>
                     <a href="#"><span class="lang-en hidden">More Coming Soon</span><span class="lang-zh">更多即将推出</span></a>
                 </div>
             </div>
