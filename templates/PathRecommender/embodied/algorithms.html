@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <span class="lang-zh">算法</span>
+    <span class="lang-en hidden">Algorithms</span>
+{% endblock %}
+
+{% block head %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Center the title */
+        h1 {
+            text-align: center;
+            width: 100%;
+        }
+        .path-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 16px;
+        }
+        .node-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+        .node {
+            background: linear-gradient(45deg, #ffffff, #f8fafc);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 12px;
+            width: 180px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            animation: fadeIn 0.5s ease-in-out;
+            position: relative;
+        }
+        .node.lang-zh {
+            display: block;
+        }
+        .node.lang-en {
+            display: none;
+        }
+        .node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-color: #8b5cf6;
+        }
+        .node.selected {
+            background: linear-gradient(45deg, #dbeafe, #e0f0ff);
+            border-color: #3b82f6;
+        }
+        .node.completed {
+            border-color: #10b981;
+            background: linear-gradient(45deg, #d1fae5, #ecfdf5);
+        }
+        .node h3 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .completion-checkbox {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #ffffff, #f1f5f9);
+            border-left: 1px solid #e5e7eb;
+            padding: 20px;
+            position: fixed;
+            right: 10px;
+            top: 120px;
+            width: 280px;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            animation: slideIn 0.4s ease-out;
+        }
+        .sidebar h2 {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 0;
+        }
+        .sidebar h3 {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 12px;
+        }
+        .sidebar p {
+            font-size: 0.95em;
+            color: #6b7280;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .sidebar li {
+            margin: 8px 0;
+        }
+        .sidebar a {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .sidebar a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        .progress-container {
+            width: 100%;
+            margin-bottom: 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            transition: width 0.5s ease-in-out;
+        }
+        .progress-text {
+            font-size: 0.95em;
+            color: #1f2937;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .completion-button {
+            background-color: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95em;
+            margin-bottom: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .completion-button:hover {
+            background-color: #059669;
+        }
+        .completion-button.completed {
+            background-color: #6b7280;
+        }
+        @media (max-width: 768px) {
+            .path-container {
+                width: 100%;
+            }
+            .sidebar {
+                position: static;
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                margin-top: 20px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            .node {
+                width: 160px;
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 lang-zh">算法</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 lang-en hidden">Algorithms</h1>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">
+            <span class="lang-zh">进度: 0%</span>
+            <span class="lang-en hidden">Progress: 0%</span>
+        </div>
+    </div>
+    <div class="path-container">
+        <div class="node-row">
+            <div class="node lang-zh" id="common-tools_Chinese" data-node="common-tools" onclick="showDetails('common-tools', 'Chinese', event)">
+                <h3>常用工具</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('common-tools', 'Chinese')">
+            </div>
+            <div class="node lang-en hidden" id="common-tools_English" data-node="common-tools" onclick="showDetails('common-tools', 'English', event)">
+                <h3>Common Tools</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('common-tools', 'English')">
+            </div>
+            <div class="node lang-zh" id="vision-fusion_Chinese" data-node="vision-fusion" onclick="showDetails('vision-fusion', 'Chinese', event)">
+                <h3>视觉基础模型</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('vision-fusion', 'Chinese')">
+            </div>
+            <div class="node lang-en hidden" id="vision-fusion_English" data-node="vision-fusion" onclick="showDetails('vision-fusion', 'English', event)">
+                <h3>Vision Foundation Models</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('vision-fusion', 'English')">
+            </div>
+            <div class="node lang-zh" id="robot-learning_Chinese" data-node="robot-learning" onclick="showDetails('robot-learning', 'Chinese', event)">
+                <h3>机器人学习</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('robot-learning', 'Chinese')">
+            </div>
+            <div class="node lang-en hidden" id="robot-learning_English" data-node="robot-learning" onclick="showDetails('robot-learning', 'English', event)">
+                <h3>Robot Learning</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('robot-learning', 'English')">
+            </div>
+        </div>
+        <div class="node-row">
+            <div class="node lang-zh" id="vla-models_Chinese" data-node="vla-models" onclick="showDetails('vla-models', 'Chinese', event)">
+                <h3>视觉-语言-动作模型</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('vla-models', 'Chinese')">
+            </div>
+            <div class="node lang-en hidden" id="vla-models_English" data-node="vla-models" onclick="showDetails('vla-models', 'English', event)">
+                <h3>Vision-Language-Action Models</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('vla-models', 'English')">
+            </div>
+            <div class="node lang-zh" id="computer-vision_Chinese" data-node="computer-vision" onclick="showDetails('computer-vision', 'Chinese', event)">
+                <h3>计算机视觉</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('computer-vision', 'Chinese')">
+            </div>
+            <div class="node lang-en hidden" id="computer-vision_English" data-node="computer-vision" onclick="showDetails('computer-vision', 'English', event)">
+                <h3>Computer Vision</h3>
+                <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('computer-vision', 'English')">
+            </div>
+        </div>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <h2 class="lang-zh">节点详情</h2>
+        <h2 class="lang-en hidden">Node Details</h2>
+        <p class="lang-zh">点击一个节点以查看详情</p>
+        <p class="lang-en hidden">Click a node to view details</p>
+    </div>
+
+    <script>
+        const nodesData = {
+            'common-tools': {
+                English: {
+                    name: 'Common Tools',
+                    content: `
+                        <h3>Point Cloud Downsampling</h3>
+                        <p>Includes random downsampling, farthest point downsampling, etc.</p>
+                        <p><a href="https://zhuanlan.zhihu.com/p/558683732" target="_blank">Zhihu Blog</a></p>
+                        <h3>Hand-Eye Calibration</h3>
+                        <p>Determines the relative positions between cameras and robotic arms, as well as between cameras.</p>
+                        <p><a href="https://github.com/fishros/handeye-calib" target="_blank">GitHub Guideline</a></p>
+                    `
+                },
+                Chinese: {
+                    name: '常用工具',
+                    content: `
+                        <h3>点云降采样</h3>
+                        <p>包括随机降采样、最远点降采样等。</p>
+                        <p><a href="https://zhuanlan.zhihu.com/p/558683732" target="_blank">知乎博客</a></p>
+                        <h3>手眼标定</h3>
+                        <p>确定相机和机械臂之间以及相机与相机之间的相对位置。</p>
+                        <p><a href="https://github.com/fishros/handeye-calib" target="_blank">GitHub 教程</a></p>
+                    `
+                }
+            },
+            'vision-fusion': {
+                English: {
+                    name: 'Vision Foundation Models',
+                    content: `
+                        <p>Commonly used foundation models in embodied intelligence. Well-developed tools in computer vision can directly empower downstream applications in embodied AI.</p>
+                        <h3><a href="https://github.com/openai/CLIP" target="_blank">CLIP</a></h3>
+                        <p>Computes similarity between images and language descriptions.</p>
+                        <h3><a href="https://github.com/facebookresearch/dino" target="_blank">DINO</a> [<a href="https://github.com/facebookresearch/dinov2" target="_blank">v2</a>]</h3>
+                        <p>Provides high-level visual features for images.</p>
+                        <h3><a href="https://github.com/facebookresearch/segment-anything" target="_blank">SAM</a> [<a href="https://ai.meta.com/sam2/" target="_blank">v2</a>]</h3>
+                        <p>Segments objects in images based on prompt points or boxes.</p>
+                        <h3><a href="https://github.com/IDEA-Research/GroundingDINO" target="_blank">GroundingDINO</a></h3>
+                        <p>Integrated image object detection framework.</p>
+                        <h3><a href="https://ommer-lab.com/research/latent-diffusion-models/" target="_blank">Stable Diffusion</a></h3>
+                        <p>Text-to-image model.</p>
+                        <h3><a href="https://github.com/LiheYoung/Depth-Anything" target="_blank">Depth Anything</a> [<a href="https://github.com/DepthAnything/Depth-Anything-V2" target="_blank">v2</a>]</h3>
+                        <p>Monocular depth estimation model.</p>
+                        <h3><a href="https://github.com/Pointcept/PointTransformerV3" target="_blank">PointTransformerV3</a></h3>
+                        <p>Point cloud feature extraction model.</p>
+                    `
+                },
+                Chinese: {
+                    name: '视觉基础模型',
+                    content: `
+                        <p>具身智能中常用的基础模型。计算机视觉中发展成熟的工具可以直接赋能具身智能的下游应用。</p>
+                        <h3><a href="https://github.com/openai/CLIP" target="_blank">CLIP</a></h3>
+                        <p>计算图像与语言描述的相似度。</p>
+                        <h3><a href="https://github.com/facebookresearch/dino" target="_blank">DINO</a> [<a href="https://github.com/facebookresearch/dinov2" target="_blank">v2</a>]</h3>
+                        <p>提供图像的高层视觉特征。</p>
+                        <h3><a href="https://github.com/facebookresearch/segment-anything" target="_blank">SAM</a> [<a href="https://ai.meta.com/sam2/" target="_blank">v2</a>]</h3>
+                        <p>基于提示点或框对图像的物体进行分割。</p>
+                        <h3><a href="https://github.com/IDEA-Research/GroundingDINO" target="_blank">GroundingDINO</a></h3>
+                        <p>集成的图像目标检测框架。</p>
+                        <h3><a href="https://ommer-lab.com/research/latent-diffusion-models/" target="_blank">Stable Diffusion</a></h3>
+                        <p>文生图模型。</p>
+                        <h3><a href="https://github.com/LiheYoung/Depth-Anything" target="_blank">Depth Anything</a> [<a href="https://github.com/DepthAnything/Depth-Anything-V2" target="_blank">v2</a>]</h3>
+                        <p>单目深度估计模型。</p>
+                        <h3><a href="https://github.com/Pointcept/PointTransformerV3" target="_blank">PointTransformerV3</a></h3>
+                        <p>点云特征提取模型。</p>
+                    `
+                }
+            },
+            'robot-learning': {
+                English: {
+                    name: 'Robot Learning',
+                    content: `
+                        <h3>Development of Robot Learning</h3>
+                        <p><a href="https://zhuanlan.com/p/26988866" target="_blank">Zhihu Blog</a></p>
+                        <h3>Model Predictive Control (MPC)</h3>
+                        <p><a href="https://www.bilibili.com/video/BV1U54y1J7wh/" target="_blank">Introductory Video</a></p>
+                        <h3>Reinforcement Learning</h3>
+                        <p><a href="https://space.bilibili.com/2044042934/channel/collectiondetail?sid=748665" target="_blank">Introductory Course</a></p>
+                        <h3>Deep Reinforcement Learning</h3>
+                        <p><a href="https://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank">UC Berkeley CS285 Deep Reinforcement Learning Course</a></p>
+                        <h3>Imitation Learning</h3>
+                        <p><a href="https://www.lamda.nju.edu.cn/xut/Imitation_Learning.pdf" target="_blank">Concise Tutorial from Nanjing University</a></p>
+                    `
+                },
+                Chinese: {
+                    name: '机器人学习',
+                    content: `
+                        <h3>机器人学习发展</h3>
+                        <p><a href="https://zhuanlan.com/p/26988866" target="_blank">知乎博客</a></p>
+                        <h3>模型预测控制（MPC）</h3>
+                        <p><a href="https://www.bilibili.com/video/BV1U54y1J7wh/" target="_blank">入门视频</a></p>
+                        <h3>强化学习</h3>
+                        <p><a href="https://space.bilibili.com/2044042934/channel/collectiondetail?sid=748665" target="_blank">入门课程</a></p>
+                        <h3>深度强化学习</h3>
+                        <p><a href="https://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank">加州大学伯克利分校 CS285 深度强化学习课程</a></p>
+                        <h3>模仿学习</h3>
+                        <p><a href="https://www.lamda.nju.edu.cn/xut/Imitation_Learning.pdf" target="_blank">南京大学简洁教程</a></p>
+                    `
+                }
+            },
+            'vla-models': {
+                English: {
+                    name: 'Vision-Language-Action Models',
+                    content: `
+                        <p>Vision-Language-Action (VLA) models integrate Vision Language Models (VLM) with robot control, applying pretrained VLMs to generate robot actions.</p>
+                        <h3><a href="https://zhuanlan.zhihu.com/p/880769870" target="_blank">Reference Blog</a></h3>
+                        <h3><a href="https://arxiv.org/abs/2405.14093" target="_blank">Literature Review</a></h3>
+                        <h3>Classic Works</h3>
+                        <ul>
+                            <li><a href="https://robotics-transformer2.github.io/" target="_blank">RT-2</a></li>
+                            <li><a href="https://octo-models.github.io/" target="_blank">Octo</a></li>
+                            <li><a href="https://arxiv.org/abs/2406.09246" target="_blank">OpenVLA</a></li>
+                            <li><a href="https://arxiv.org/abs/2403.09631" target="_blank">3D-VLA</a></li>
+                        </ul>
+                    `
+                },
+                Chinese: {
+                    name: '视觉-语言-动作模型',
+                    content: `
+                        <p>视觉-语言-动作模型（VLA）结合视觉语言模型（VLM）与机器人控制，将预训练的VLM用于生成机器人动作。</p>
+                        <h3><a href="https://zhuanlan.zhihu.com/p/880769870" target="_blank">参考博客</a></h3>
+                        <h3><a href="https://arxiv.org/abs/2405.14093" target="_blank">文献综述</a></h3>
+                        <h3>经典作品</h3>
+                        <ul>
+                            <li><a href="https://robotics-transformer2.github.io/" target="_blank">RT-2</a></li>
+                            <li><a href="https://octo-models.github.io/" target="_blank">Octo</a></li>
+                            <li><a href="https://arxiv.org/abs/2406.09246" target="_blank">OpenVLA</a></li>
+                            <li><a href="https://arxiv.org/abs/2403.09631" target="_blank">3D-VLA</a></li>
+                        </ul>
+                    `
+                }
+            },
+            'computer-vision': {
+                English: {
+                    name: 'Computer Vision',
+                    content: `
+                        <h3>Online Course</h3>
+                        <p><a href="https://cs231n.stanford.edu/schedule.html" target="_blank">Stanford University CS231n</a></p>
+                        <h3>2D Vision Classics</h3>
+                        <ul>
+                            <li><a href="https://easyai.tech/en/ai-definition/cnn/" target="_blank">Convolutional Neural Networks (CNN)</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV1P3411y7nn/" target="_blank">Residual Networks (ResNet)</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV15P4y137jb/" target="_blank">Vision Transformer (ViT)</a></li>
+                        </ul>
+                        <h3><a href="https://uni-tuebingen.de/en/faculties/faculty-of-science/departments/computer-science/lehrstuehle/autonomous-vision/lectures/computer-vision/" target="_blank">Introduction to 3D Vision</a></h3>
+                    `
+                },
+                Chinese: {
+                    name: '计算机视觉',
+                    content: `
+                        <h3>在线课程</h3>
+                        <p><a href="https://cs231n.stanford.edu/schedule.html" target="_blank">斯坦福大学 CS231n</a></p>
+                        <h3>二维视觉经典之作</h3>
+                        <ul>
+                            <li><a href="https://easyai.biz/ai-definition/cnn/" target="_blank">卷积神经网络（CNN）</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV1P3411y7nn/" target="_blank">残差网络（ResNet）</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV15P4y137jb/" target="_blank">视觉变换器（ViT）</a></li>
+                        </ul>
+                        <h3><a href="https://uni-tuebingen.de/en/faculties/faculty-of-science/departments/computer-science/lehrstuehle/autonomous-vision/lectures/computer-vision/" target="_blank">三维视觉介绍</a></h3>
+                    `
+                }
+            }
+        };
+
+        const completableNodes = ['common-tools', 'vision-fusion', 'robot-learning', 'vla-models', 'computer-vision'];
+
+        function updateProgress() {
+            const selectedLang = document.getElementById('languageSelect').value;
+            const completedCount = completableNodes.filter(id => 
+                localStorage.getItem(`completion_${id}_${selectedLang}`) === 'true'
+            ).length;
+            const totalNodes = completableNodes.length;
+            const progressPercentage = Math.round((completedCount / totalNodes) * 100);
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            progressFill.style.width = `${progressPercentage}%`;
+            progressText.querySelector('.lang-zh').textContent = `进度: ${progressPercentage}%`;
+            progressText.querySelector('.lang-en').textContent = `Progress: ${progressPercentage}%`;
+        }
+
+        function syncNodesWithParent(lang) {
+            const parentCompleted = localStorage.getItem(`completion_algorithms_${lang}`) === 'true';
+            if (!parentCompleted) {
+                completableNodes.forEach(nodeId => {
+                    localStorage.setItem(`completion_${nodeId}_${lang}`, false);
+                    const node = document.getElementById(`${nodeId}_${lang}`);
+                    if (node) {
+                        node.classList.remove('completed');
+                        const checkbox = node.querySelector('.completion-checkbox');
+                        if (checkbox) checkbox.checked = false;
+                    }
+                });
+            }
+        }
+
+        function updateParentNodeCompletion(lang) {
+            const allCompleted = completableNodes.every(id => localStorage.getItem(`completion_${id}_${lang}`) === 'true');
+            localStorage.setItem(`completion_algorithms_${lang}`, allCompleted);
+        }
+
+        function showDetails(nodeId, lang, event) {
+            const data = nodesData[nodeId][lang];
+            const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
+            const sidebar = document.getElementById('sidebar');
+            const buttonText = isCompleted ? (lang === 'Chinese' ? '已完成' : 'Completed') : (lang === 'Chinese' ? '标记为完成' : 'Mark as Completed');
+            sidebar.innerHTML = `
+                <h2 class="${lang === 'Chinese' ? 'lang-zh' : 'lang-en'}">${data.name}</h2>
+                <button class="completion-button${isCompleted ? ' completed' : ''}" onclick="toggleCompletion('${nodeId}', '${lang}')">${buttonText}</button>
+                ${data.content}
+            `;
+            sidebar.style.animation = 'none';
+            sidebar.offsetHeight;
+            sidebar.style.animation = 'slideIn 0.4s ease-out';
+            document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
+            if (event && event.target.tagName !== 'INPUT') {
+                document.getElementById(`${nodeId}_${lang}`).classList.add('selected');
+            }
+        }
+
+        function toggleCompletion(nodeId, lang) {
+            const node = document.getElementById(`${nodeId}_${lang}`);
+            const isCompleted = !node.classList.contains('completed');
+            node.classList.toggle('completed', isCompleted);
+            node.querySelector('.completion-checkbox').checked = isCompleted;
+            localStorage.setItem(`completion_${nodeId}_${lang}`, isCompleted);
+            if (document.querySelector('.sidebar').innerHTML.includes(nodesData[nodeId][lang].name)) {
+                showDetails(nodeId, lang, { target: node });
+            }
+            updateProgress();
+            updateParentNodeCompletion(lang);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            syncNodesWithParent('Chinese');
+            syncNodesWithParent('English');
+            document.querySelectorAll('.node[data-node]').forEach(node => {
+                const nodeId = node.dataset.node;
+                const lang = node.id.split('_')[1];
+                const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
+                node.classList.toggle('completed', isCompleted);
+                const checkbox = node.querySelector('.completion-checkbox');
+                if (checkbox) checkbox.checked = isCompleted;
+            });
+            updateProgress();
+        });
+    </script>
+{% endblock %}

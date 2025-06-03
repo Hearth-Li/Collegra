@@ -14,8 +14,10 @@ By the way, two versions of logo are completed, under the directory `./assets`.
 ## Conduct codes for contribution
 To contribute new modules that you believe will benefit college students in their studies, career pursuits, or daily life, simply:
 1. Integrate your implementation into a new directory.
-2. Include a main.html file as the main interface under that directory.
-3. Submit a pull request.
+2. All your `html` file should be derived from the `base.html` file for consistent theme.
+3. Include a `main.html` or `index.html` file as the main interface under that directory.
+4. Submit a pull request.
+5. You are highly recommended to implement both Chinese and English version. The `base.html` file has implemented the language toggle buttom. 
 
 ## TODO
 ##### timetable generator 

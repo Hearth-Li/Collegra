@@ -1,0 +1,600 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <span class="lang-zh">现代算法架构</span>
+    <span class="lang-en hidden">Modern Algorithm Architecture</span>
+{% endblock %}
+
+{% block head %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Center the title */
+        h1 {
+            text-align: center;
+            width: 100%;
+        }
+        .path-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+        }
+        .node {
+            background: linear-gradient(45deg, #ffffff, #f8fafc);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 12px;
+            width: 240px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            animation: fadeIn 0.5s ease-in-out;
+            position: relative;
+        }
+        .node.lang-zh {
+            display: block;
+        }
+        .node.lang-en {
+            display: none;
+        }
+        .node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-color: #8b5cf6;
+        }
+        .node.selected {
+            background: linear-gradient(45deg, #dbeafe, #e0f0ff);
+            border-color: #3b82f6;
+        }
+        .node.completed {
+            border-color: #10b981;
+            background: linear-gradient(45deg, #d1fae5, #ecfdf5);
+        }
+        .node h3 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .completion-checkbox {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .vertical-arrow {
+            width: 240px;
+            height: 40px;
+            position: relative;
+        }
+        .vertical-arrow svg {
+            width: 30px;
+            height: 30px;
+            position: absolute;
+            left: 105px;
+            top: 5px;
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #ffffff, #f1f5f9);
+            border-left: 1px solid #e5e7eb;
+            padding: 20px;
+            position: fixed;
+            right: 10px;
+            top: 120px;
+            width: 280px;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            animation: slideIn 0.4s ease-out;
+        }
+        .sidebar h2 {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #1f2937;
+            margin-top: 0;
+        }
+        .sidebar h3 {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 12px;
+        }
+        .sidebar p {
+            font-size: 0.95em;
+            color: #6b7280;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .sidebar li {
+            margin: 8px 0;
+        }
+        .sidebar a {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .sidebar a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+        .progress-container {
+            width: 100%;
+            margin-bottom: 16px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            transition: width 0.5s ease-in-out;
+        }
+        .progress-text {
+            font-size: 0.95em;
+            color: #1f2937;
+            margin-top: 8px;
+            text-align: center;
+        }
+        .completion-button {
+            background-color: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95em;
+            margin-bottom: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .completion-button:hover {
+            background-color: #059669;
+        }
+        .completion-button.completed {
+            background-color: #6b7280;
+        }
+        @media (max-width: 768px) {
+            .path-container {
+                width: 100%;
+            }
+            .sidebar {
+                position: static;
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                margin-top: 20px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            .node {
+                width: 220px;
+            }
+            .vertical-arrow {
+                width: 220px;
+            }
+            .vertical-arrow svg {
+                left: 95px;
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 lang-zh">现代算法架构</h1>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 lang-en hidden">Modern Algorithm Architecture</h1>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">
+            <span class="lang-zh">进度: 0%</span>
+            <span class="lang-en hidden">Progress: 0%</span>
+        </div>
+    </div>
+    <div class="path-container">
+        <!-- Backbone Node -->
+        <div class="node lang-zh" id="backbone_Chinese" data-node="backbone" onclick="showDetails('backbone', 'Chinese', event)">
+            <h3>大语言模型架构</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('backbone', 'Chinese')">
+        </div>
+        <div class="node lang-en hidden" id="backbone_English" data-node="backbone" onclick="showDetails('backbone', 'English', event)">
+            <h3>LLM Architectures</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('backbone', 'English')">
+        </div>
+        <div class="vertical-arrow">
+            <svg viewBox="0 0 30 30">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                    </marker>
+                </defs>
+                <line x1="15" y1="0" x2="15" y2="30" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+            </svg>
+        </div>
+        <!-- Promptdata Node -->
+        <div class="node lang-zh" id="promptdata_Chinese" data-node="promptdata" onclick="showDetails('promptdata', 'Chinese', event)">
+            <h3>构建指令数据集</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('promptdata', 'Chinese')">
+        </div>
+        <div class="node lang-en hidden" id="promptdata_English" data-node="promptdata" onclick="showDetails('promptdata', 'English', event)">
+            <h3>Instruction Datasets</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('promptdata', 'English')">
+        </div>
+        <div class="vertical-arrow">
+            <svg viewBox="0 0 30 30">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                    </marker>
+                </defs>
+                <line x1="15" y1="0" x2="15" y2="30" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+            </svg>
+        </div>
+        <!-- Pretrain Node -->
+        <div class="node lang-zh" id="pretrain_Chinese" data-node="pretrain" onclick="showDetails('pretrain', 'Chinese', event)">
+            <h3>大模型预训练</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('pretrain', 'Chinese')">
+        </div>
+        <div class="node lang-en hidden" id="pretrain_English" data-node="pretrain" onclick="showDetails('pretrain', 'English', event)">
+            <h3>Pre-training</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('pretrain', 'English')">
+        </div>
+        <div class="vertical-arrow">
+            <svg viewBox="0 0 30 30">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                    </marker>
+                </defs>
+                <line x1="15" y1="0" x2="15" y2="30" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+            </svg>
+        </div>
+        <!-- Finetune Node -->
+        <div class="node lang-zh" id="finetune_Chinese" data-node="finetune" onclick="showDetails('finetune', 'Chinese', event)">
+            <h3>监督式微调</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('finetune', 'Chinese')">
+        </div>
+        <div class="node lang-en hidden" id="finetune_English" data-node="finetune" onclick="showDetails('finetune', 'English', event)">
+            <h3>Supervised Fine-tuning</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('finetune', 'English')">
+        </div>
+        <div class="vertical-arrow">
+            <svg viewBox="0 0 30 30">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                    </marker>
+                </defs>
+                <line x1="15" y1="0" x2="15" y2="30" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+            </svg>
+        </div>
+        <!-- RLHF Node -->
+        <div class="node lang-zh" id="rlhf_Chinese" data-node="rlhf" onclick="showDetails('rlhf', 'Chinese', event)">
+            <h3>通过人类反馈强化学习</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('rlhf', 'Chinese')">
+        </div>
+        <div class="node lang-en hidden" id="rlhf_English" data-node="rlhf" onclick="showDetails('rlhf', 'English', event)">
+            <h3>RLHF</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('rlhf', 'English')">
+        </div>
+        <div class="vertical-arrow">
+            <svg viewBox="0 0 30 30">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                    </marker>
+                </defs>
+                <line x1="15" y1="0" x2="15" y2="30" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+            </svg>
+        </div>
+        <!-- Eval Node -->
+        <div class="node lang-zh" id="eval_Chinese" data-node="eval" onclick="showDetails('eval', 'Chinese', event)">
+            <h3>大语言模型评估</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('eval', 'Chinese')">
+        </div>
+        <div class="node lang-en hidden" id="eval_English" data-node="eval" onclick="showDetails('eval', 'English', event)">
+            <h3>LLM Evaluation</h3>
+            <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('eval', 'English')">
+        </div>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <h2 class="lang-zh">节点详情</h2>
+        <h2 class="lang-en hidden">Node Details</h2>
+        <p class="lang-zh">点击一个节点以查看详情</p>
+        <p class="lang-en hidden">Click a node to view details</p>
+    </div>
+
+    <script>
+        const nodesData = {
+            'backbone': {
+                English: {
+                    name: 'Large Language Model Architectures',
+                    content: `
+                        <p>Large language models are based on a series of deep learning architectures, from the macro encoder-decoder to the attention mechanism in each block. The design and implementation of these cutting-edge architectures are one of the reasons for the rapid development of large models.</p>
+                        <h3>Related Papers</h3>
+                        <ul>
+                            <li><a href="https://arxiv.org/abs/1706.03762" target="_blank">Transformer Architecture</a></li>
+                            <li><a href="https://arxiv.org/abs/1810.04805" target="_blank">BERT Model</a></li>
+                            <li><a href="https://arxiv.org/abs/2005.14165" target="_blank">GPT-3 Model</a></li>
+                        </ul>
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="https://jalammar.github.io/illustrated-transformer/" target="_blank">Illustrated Transformer</a></li>
+                            <li><a href="https://jalammar.github.io/illustrated-gpt2/" target="_blank">Illustrated GPT-2</a></li>
+                            <li><a href="https://lilianweng.github.io/posts/2018-06-24-attention/" target="_blank">Attention? Attention!</a></li>
+                        </ul>
+                    `
+                },
+                Chinese: {
+                    name: '大语言模型架构',
+                    content: `
+                        <p>大语言模型基于一系列深度学习架构，从宏观的编码器-解码器到每个模块的注意力机制。这些前沿架构的设计与实现是大模型迅猛发展的原因之一。</p>
+                        <h3>相关论文</h3>
+                        <ul>
+                            <li><a href="https://arxiv.org/abs/1706.03762" target="_blank">Transformer架构</a></li>
+                            <li><a href="https://arxiv.org/abs/1810.04805" target="_blank">BERT模型</a></li>
+                            <li><a href="https://arxiv.org/abs/2005.14165" target="_blank">GPT-3模型</a></li>
+                        </ul>
+                        <h3>参考资料</h3>
+                        <ul>
+                            <li><a href="https://jalammar.github.io/illustrated-transformer/" target="_blank">图解Transformer</a></li>
+                            <li><a href="https://jalammar.github.io/illustrated-gpt2/" target="_blank">图解GPT-2</a></li>
+                            <li><a href="https://lilianweng.github.io/posts/2018-06-24-attention/" target="_blank">注意力机制详解</a></li>
+                        </ul>
+                    `
+                }
+            },
+            'promptdata': {
+                English: {
+                    name: 'Building Instruction Datasets',
+                    content: `
+                        <p>In the current development of large models, data quantity is the biggest limiting factor. Constructing a clean and sufficiently large instruction dataset is key to training large models.</p>
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="https://wandb.ai/capecape/alpaca_ft/reports/How-to-Fine-Tune-an-LLM-Part-1-Preparing-a-Dataset-for-Instruction-Tuning--Vmlldzo1NTcxNzE2" target="_blank">Preparing a Dataset for Instruction Tuning</a></li>
+                            <li><a href="https://colab.research.google.com/drive/1GH8PW9-zAe4cXEZyOIE-T9uHXblIldAg?usp=sharing" target="_blank">Creating a Dataset for Fine-Tuning Large Models</a></li>
+                            <li><a href="https://huggingface.co/blog/chat-templates" target="_blank">HuggingFace Chat Templates</a></li>
+                        </ul>
+                    `
+                },
+                Chinese: {
+                    name: '构建指令数据集',
+                    content: `
+                        <p>在当前大模型发展中，数据量是最大的限制因素。构建干净且数量充足的指令数据集是大模型训练的关键。</p>
+                        <h3>参考资料</h3>
+                        <ul>
+                            <li><a href="https://wandb.ai/capecape/alpaca_ft/reports/How-to-Fine-Tune-an-LLM-Part-1-Preparing-a-Dataset-for-Instruction-Tuning--Vmlldzo1NTcxNzE2" target="_blank">为指令调优准备数据集</a></li>
+                            <li><a href="https://colab.research.google.com/drive/1GH8PW9-zAe4cXEZyOIE-T9uHXblIldAg?usp=sharing" target="_blank">为大模型微调创建数据集</a></li>
+                            <li><a href="https://huggingface.co/blog/chat-templates" target="_blank">HuggingFace聊天模板</a></li>
+                        </ul>
+                    `
+                }
+            },
+            'pretrain': {
+                English: {
+                    name: 'Large Language Model Pre-training',
+                    content: `
+                        <p>Pre-training is the first step in training large language models, aiming to enable the model to learn basic language rules. Methods include self-supervised learning, contrastive learning, and more.</p>
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="https://huggingface.co/learn/llm-course/chapter7/6?fw=pt" target="_blank">HuggingFace: Training Causal Language Models from Scratch</a></li>
+                            <li><a href="https://github.com/Zjh-819/LLMDataHub" target="_blank">LLMDataHub Pre-training Dataset List</a></li>
+                        </ul>
+                    `
+                },
+                Chinese: {
+                    name: '大模型预训练',
+                    content: `
+                        <p>预训练是大模型训练的第一步，目标是让模型学习语言的基本规律，方法包括自监督学习、对比学习等。</p>
+                        <h3>参考资料</h3>
+                        <ul>
+                            <li><a href="https://huggingface.co/learn/llm-course/chapter7/6?fw=pt" target="_blank">HuggingFace：从头训练因果语言模型</a></li>
+                            <li><a href="https://github.com/Zjh-819/LLMDataHub" target="_blank">LLMDataHub预训练数据集列表</a></li>
+                        </ul>
+                    `
+                }
+            },
+            'finetune': {
+                English: {
+                    name: 'Supervised Fine-tuning',
+                    content: `
+                        <p>Supervised fine-tuning is the second step in training large models, enabling the model to learn specific tasks like text classification, question answering, and more.</p>
+                        <h3>Related Papers</h3>
+                        <ul>
+                            <li><a href="https://arxiv.org/abs/2106.09685" target="_blank">LoRA</a></li>
+                            <li><a href="https://arxiv.org/abs/2305.14314" target="_blank">QLoRA</a></li>
+                        </ul>
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="https://lightning.ai/pages/community/lora-insights/" target="_blank">Fine-tuning Large Models with LoRA and QLoRA</a></li>
+                            <li><a href="https://rentry.org/llm-training" target="_blank">The Novice's LLM Training Guide</a></li>
+                            <li><a href="https://mlabonne.github.io/blog/posts/Fine_Tune_Your_Own_Llama_2_Model_in_a_Colab_Notebook.html" target="_blank">Fine-tune Your Own Llama-2</a></li>
+                        </ul>
+                    `
+                },
+                Chinese: {
+                    name: '监督式微调',
+                    content: `
+                        <p>监督式微调是大模型训练的第二步，使模型能够学习特定任务，如文本分类、问答等。</p>
+                        <h3>相关论文</h3>
+                        <ul>
+                            <li><a href="https://arxiv.org/abs/2106.09685" target="_blank">LoRA</a></li>
+                            <li><a href="https://arxiv.org/abs/2305.14314" target="_blank">QLoRA</a></li>
+                        </ul>
+                        <h3>参考资料</h3>
+                        <ul>
+                            <li><a href="https://lightning.ai/pages/community/lora-insights/" target="_blank">使用LoRA和QLoRA微调大模型</a></li>
+                            <li><a href="https://rentry.org/llm-training" target="_blank">大语言模型训练新手指南</a></li>
+                            <li><a href="https://mlabonne.github.io/blog/posts/Fine_Tune_Your_Own_Llama_2_Model_in_a_Colab_Notebook.html" target="_blank">微调Llama-2模型</a></li>
+                        </ul>
+                    `
+                }
+            },
+            'rlhf': {
+                English: {
+                    name: 'Reinforcement Learning from Human Feedback',
+                    content: `
+                        <p>Reinforcement Learning from Human Feedback (RLHF) aligns large model outputs with human-like responses by learning from human preferences.</p>
+                        <h3>Related Papers</h3>
+                        <ul>
+                            <li><a href="https://arxiv.org/abs/1707.06347" target="_blank">PPO</a></li>
+                            <li><a href="https://arxiv.org/abs/2305.18290" target="_blank">DPO</a></li>
+                        </ul>
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="https://wandb.ai/ayush-thakur/Intro-RLAIF/reports/An-Introduction-to-Training-LLMs-Using-Reinforcement-Learning-From-Human-Feedback-RLHF---VmlldzozMzYyNjcy" target="_blank">Training LLMs with RLHF</a></li>
+                            <li><a href="https://huggingface.co/blog/dpo-trl" target="_blank">Fine-tuning Llama-2 with DPO</a></li>
+                        </ul>
+                    `
+                },
+                Chinese: {
+                    name: '通过人类反馈强化学习',
+                    content: `
+                        <p>通过人类反馈的强化学习（RLHF）使大模型生成接近人类回答的输出，核心是从人类偏好中学习。</p>
+                        <h3>相关论文</h3>
+                        <ul>
+                            <li><a href="https://arxiv.org/abs/1707.06347" target="_blank">PPO</a></li>
+                            <li><a href="https://arxiv.org/abs/2305.18290" target="_blank">DPO</a></li>
+                        </ul>
+                        <h3>参考资料</h3>
+                        <ul>
+                            <li><a href="https://wandb.ai/ayush-thakur/Intro-RLAIF/reports/An-Introduction-to-Training-LLMs-Using-Reinforcement-Learning-From-Human-Feedback-RLHF---VmlldzozMzYyNjcy" target="_blank">使用RLHF训练大语言模型</a></li>
+                            <li><a href="https://huggingface.co/blog/dpo-trl" target="_blank">使用DPO微调Llama-2</a></li>
+                        </ul>
+                    `
+                }
+            },
+            'eval': {
+                English: {
+                    name: 'Large Language Model Evaluation',
+                    content: `
+                        <p>Evaluating large language models is critical for identifying issues and improving performance.</p>
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="https://arxiv.org/abs/2307.03109" target="_blank">Survey of Large Language Model Evaluation</a></li>
+                            <li><a href="https://huggingface.co/docs/transformers/perplexity" target="_blank">Perplexity Metric for Fixed-Length Models</a></li>
+                        </ul>
+                    `
+                },
+                Chinese: {
+                    name: '大语言模型评估',
+                    content: `
+                        <p>评估大语言模型是发现问题和提升性能的重要环节。</p>
+                        <h3>参考资料</h3>
+                        <ul>
+                            <li><a href="https://arxiv.org/abs/2307.03109" target="_blank">大语言模型评估综述</a></li>
+                            <li><a href="https://huggingface.co/docs/transformers/perplexity" target="_blank">固定长度模型困惑度指标</a></li>
+                        </ul>
+                    `
+                }
+            }
+        };
+
+        const completableNodes = ['backbone', 'promptdata', 'pretrain', 'finetune', 'rlhf', 'eval'];
+
+        function updateProgress() {
+            const selectedLang = document.getElementById('languageSelect').value;
+            const completedCount = completableNodes.filter(id => 
+                localStorage.getItem(`completion_${id}_${selectedLang}`) === 'true'
+            ).length;
+            const totalNodes = completableNodes.length;
+            const progressPercentage = Math.round((completedCount / totalNodes) * 100);
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            progressFill.style.width = `${progressPercentage}%`;
+            progressText.querySelector('.lang-zh').textContent = `进度: ${progressPercentage}%`;
+            progressText.querySelector('.lang-en').textContent = `Progress: ${progressPercentage}%`;
+        }
+
+        function syncNodesWithParent(lang) {
+            const parentCompleted = localStorage.getItem(`completion_modern-algorithm-architecture_${lang}`) === 'true';
+            if (!parentCompleted) {
+                completableNodes.forEach(nodeId => {
+                    localStorage.setItem(`completion_${nodeId}_${lang}`, false);
+                    const node = document.getElementById(`${nodeId}_${lang}`);
+                    if (node) {
+                        node.classList.remove('completed');
+                        const checkbox = node.querySelector('.completion-checkbox');
+                        if (checkbox) checkbox.checked = false;
+                    }
+                });
+            }
+        }
+
+        function updateParentNodeCompletion(lang) {
+            const allCompleted = completableNodes.every(id => localStorage.getItem(`completion_${id}_${lang}`) === 'true');
+            localStorage.setItem(`completion_modern-algorithm-architecture_${lang}`, allCompleted);
+        }
+
+        function showDetails(nodeId, lang, event) {
+            const data = nodesData[nodeId][lang];
+            const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
+            const sidebar = document.getElementById('sidebar');
+            const buttonText = isCompleted ? (lang === 'Chinese' ? '已完成' : 'Completed') : (lang === 'Chinese' ? '标记为完成' : 'Mark as Completed');
+            sidebar.innerHTML = `
+                <h2 class="${lang === 'Chinese' ? 'lang-zh' : 'lang-en'}">${data.name}</h2>
+                <button class="completion-button${isCompleted ? ' completed' : ''}" onclick="toggleCompletion('${nodeId}', '${lang}')">${buttonText}</button>
+                ${data.content}
+            `;
+            sidebar.style.animation = 'none';
+            sidebar.offsetHeight;
+            sidebar.style.animation = 'slideIn 0.4s ease-out';
+            document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
+            if (event && event.target.tagName !== 'INPUT') {
+                document.getElementById(`${nodeId}_${lang}`).classList.add('selected');
+            }
+        }
+
+        function toggleCompletion(nodeId, lang) {
+            const node = document.getElementById(`${nodeId}_${lang}`);
+            if (!node) return;
+            const isCompleted = !node.classList.contains('completed');
+            node.classList.toggle('completed', isCompleted);
+            const checkbox = node.querySelector('.completion-checkbox');
+            if (checkbox) checkbox.checked = isCompleted;
+            localStorage.setItem(`completion_${nodeId}_${lang}`, isCompleted);
+            if (document.querySelector('.sidebar').innerHTML.includes(nodesData[nodeId][lang].name)) {
+                showDetails(nodeId, lang, { target: node });
+            }
+            updateProgress();
+            updateParentNodeCompletion(lang);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            syncNodesWithParent('Chinese');
+            syncNodesWithParent('English');
+            document.querySelectorAll('.node[data-node]').forEach(node => {
+                const nodeId = node.dataset.node;
+                const lang = node.id.split('_')[1];
+                const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
+                node.classList.toggle('completed', isCompleted);
+                const checkbox = node.querySelector('.completion-checkbox');
+                if (checkbox) checkbox.checked = isCompleted;
+            });
+            updateProgress();
+        });
+    </script>
+{% endblock %}
