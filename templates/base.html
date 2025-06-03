@@ -1,29 +1,20 @@
+<!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AI Tools{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@500&family=Noto+Serif+SC:wght@500&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}Collegra{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='logo_background.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(
-                135deg,
-                #d6e4ff 0%,
-                #c3dafe 25%,
-                #e0d2ff 50%,
-                #f4d2e0 75%,
-                #e0f0ff 100%
-            );
+            background: linear-gradient(135deg, #d6e4ff 0%, #c3dafe 25%, #e0d2ff 50%, #f4d2e0 75%, #e0f0ff 100%);
             background-size: 200% 200%;
             animation: gradientShift 15s ease-in-out infinite;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             min-height: 100vh;
             position: relative;
         }
@@ -35,9 +26,7 @@
             padding: 15px 30px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             z-index: 1000;
             height: 100px;
         }
@@ -46,91 +35,65 @@
             align-items: center;
         }
         .top-bar .branding .logo {
-            height: 80px;
-            width: auto;
-            margin-right: 15px;
+            height: 80px; width: auto; margin-right: 15px;
         }
         .top-bar .branding .slogan {
-            font-size: 1.5rem;
-            font-weight: 500;
-            background: linear-gradient(90deg, #6b46c1, #3b82f6); /* Gradient color */
+            font-size: 1.5rem; font-weight: 500;
+            background: linear-gradient(90deg, #6b46c1, #3b82f6);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
             line-height: 1.2;
         }
-        .top-bar .branding .slogan.lang-en {
-            font-family: 'Playfair Display', serif; /* Elegant serif font for English */
-            font-style: italic;
-            letter-spacing: 0.02em;
-        }
-        .top-bar .branding .slogan.lang-zh {
-            font-family: 'Noto Serif SC', serif; /* Elegant serif font for Chinese */
-            font-weight: 500;
-            letter-spacing: 0.05em;
-        }
+        .lang-en { font-family: 'Playfair Display', serif; font-style: italic; letter-spacing: 0.02em; }
+        .lang-zh { font-family: 'Noto Serif SC', serif; font-weight: 500; letter-spacing: 0.05em; }
+
         .top-bar .right-section {
             display: flex;
             align-items: center;
         }
-        .top-bar .nav-dropdown {
+        .nav-dropdown {
             position: relative;
             margin-right: 15px;
         }
-        .top-bar .nav-dropdown .dropdown-btn {
-            background: none;
-            border: none;
-            color: #1f2937;
-            font-weight: 500;
+        .dropdown-btn {
+            background: none; border: none;
+            color: #1f2937; font-weight: 500;
+            padding: 8px 18px; border-radius: 8px;
             cursor: pointer;
-            padding: 8px 18px;
-            border-radius: 8px;
             transition: background-color 0.3s ease;
             font-size: 1.1rem;
         }
-        .top-bar .nav-dropdown .dropdown-btn:hover {
-            background-color: #f3f4f6;
-        }
-        .top-bar .nav-dropdown .dropdown-content {
+        .dropdown-btn:hover { background-color: #f3f4f6; }
+        .dropdown-content {
             display: none;
             position: absolute;
-            background-color: white;
+            background: white;
             min-width: 180px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            top: 100%; right: 0;
             border-radius: 8px;
-            top: 100%;
-            right: 0;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
             z-index: 1001;
         }
-        .top-bar .nav-dropdown:hover .dropdown-content {
-            display: block;
-        }
-        .top-bar .nav-dropdown .dropdown-content a {
+        .nav-dropdown:hover .dropdown-content { display: block; }
+        .dropdown-content a {
             color: #1f2937;
             padding: 12px 16px;
             text-decoration: none;
             display: block;
             font-weight: 500;
-            font-size: 1rem;
         }
-        .top-bar .nav-dropdown .dropdown-content a:hover {
-            background-color: #f3f4f6;
-        }
-        .top-bar .language-toggle select {
+        .dropdown-content a:hover { background-color: #f3f4f6; }
+
+        .language-toggle select {
             padding: 8px 12px;
             font-size: 1rem;
             border-radius: 8px;
             border: 1px solid #d1d5db;
             background: #f9fafb;
-            cursor: pointer;
-            transition: border-color 0.3s ease;
         }
-        .top-bar .language-toggle select:focus {
-            outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-        }
+
         .container {
             width: 100%;
             max-width: 960px;
@@ -140,66 +103,14 @@
             padding: 40px;
             margin: 120px auto 20px;
         }
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-                margin-top: 90px;
-                max-width: 90%;
-            }
-            .top-bar {
-                padding: 10px 15px;
-                height: 70px;
-                flex-wrap: wrap;
-            }
-            .top-bar .branding {
-                flex: 1;
-            }
-            .top-bar .branding .logo {
-                height: 50px;
-            }
-            .top-bar .branding .slogan {
-                font-size: 1rem;
-            }
-            .top-bar .right-section {
-                margin-top: 5px;
-            }
-            .top-bar .nav-dropdown {
-                margin-right: 10px;
-            }
-            .top-bar .nav-dropdown .dropdown-btn {
-                padding: 5px 12px;
-                font-size: 0.9rem;
-            }
-            .top-bar .nav-dropdown .dropdown-content {
-                right: auto;
-                left: 0;
-                min-width: 140px;
-            }
-            .top-bar .language-toggle select {
-                padding: 5px 8px;
-                font-size: 0.8rem;
-            }
-            .slogan {
-                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-                font-weight: 500;
-                font-size: 1.2rem;
-                line-height: 1.4;
-                margin: 10px 0;
-            }
-            .slogan.lang-en {
-                font-family: 'Playfair Display', serif;
-                font-style: italic;
-                letter-spacing: 0.02em;
-            }
-            .slogan.lang-zh {
-                font-family: 'Noto Serif SC', serif;
-                font-weight: 500;
-                letter-spacing: 0.05em;
-            }
-            .hidden {
-                display: none;
-            }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
         }
+
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -212,7 +123,7 @@
     <div class="top-bar">
         <div class="branding">
             <a href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='logo.png') }}" alt="AI Tools Logo" class="logo">
+                <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
             </a>
             <span class="slogan lang-en hidden">Collegra: All You Need to Thrive in College and Beyond.</span>
             <span class="slogan lang-zh">Collegra：成就大学生活，开启精彩未来</span>
@@ -224,19 +135,10 @@
                     <span class="lang-zh">菜单</span>
                 </button>
                 <div class="dropdown-content">
-                    <a href="{{ url_for('index') }}">
-                        <span class="lang-en hidden">Home</span>
-                        <span class="lang-zh">首页</span>
-                    </a>
-                    <a href="{{ url_for('recommender') }}">
-                        <span class="lang-en hidden">Learning Path Recommendations</span>
-                        <span class="lang-zh">学习路径推荐</span>
-                    </a>
-                    <!-- Placeholder for future items -->
-                    <a href="#" class="disabled-link">
-                        <span class="lang-en hidden">More Coming Soon</span>
-                        <span class="lang-zh">更多即将推出</span>
-                    </a>
+                    <a href="{{ url_for('index') }}"><span class="lang-en hidden">Home</span><span class="lang-zh">首页</span></a>
+                    <a href="{{ url_for('recommender') }}"><span class="lang-en hidden">Learning Path Recommendations</span><span class="lang-zh">学习路径推荐</span></a>
+                    <a href="{{ url_for('resume') }}"><span class="lang-en hidden">Resume Generator</span><span class="lang-zh">简历生成器</span></a>
+                    <a href="#"><span class="lang-en hidden">More Coming Soon</span><span class="lang-zh">更多即将推出</span></a>
                 </div>
             </div>
             <div class="language-toggle">
@@ -248,30 +150,16 @@
         </div>
     </div>
     <div class="container">
-        {% block content %}
-            <h1 class="text-3xl font-bold text-center lang-en hidden">Welcome to Collegra</h1>
-            <h1 class="text-3xl font-bold text-center lang-zh">欢迎来到Collegra</h1>
-            <p class="text-center text-gray-600 lang-en hidden">Explore our fantastic functionalities empowering your college life and career pursuits.</p>
-            <p class="text-center text-gray-600 lang-zh">探索我们为您大学生活和职业追求提供的出色功能。</p>
-            <a href="{{ url_for('recommender') }}" class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-en hidden">Learning Paths Recommendations</a>
-            <a href="{{ url_for('recommender') }}" class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-zh">学习路径推荐</a>
-        {% endblock %}
+        {% block content %}{% endblock %}
     </div>
     <script>
         function toggleLanguage() {
-            const selectedLang = document.getElementById('languageSelect').value;
-            const enElements = document.querySelectorAll('.lang-en');
-            const zhElements = document.querySelectorAll('.lang-zh');
-            if (selectedLang === 'English') {
-                enElements.forEach(el => el.classList.remove('hidden'));
-                zhElements.forEach(el => el.classList.add('hidden'));
-            } else {
-                enElements.forEach(el => el.classList.add('hidden'));
-                zhElements.forEach(el => el.classList.remove('hidden'));
-            }
+            const lang = document.getElementById('languageSelect').value;
+            document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('hidden', lang !== 'English'));
+            document.querySelectorAll('.lang-zh').forEach(el => el.classList.toggle('hidden', lang !== 'Chinese'));
         }
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('languageSelect').value = 'Chinese'; // Default to Chinese
+            document.getElementById('languageSelect').value = 'Chinese';
             toggleLanguage();
         });
     </script>

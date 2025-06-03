@@ -1,8 +1,8 @@
+```html
 {% extends 'base.html' %}
 
 {% block title %}
-    <span class="lang-zh">算法</span>
-    <span class="lang-en hidden">Algorithms</span>
+    Collegra | Algorithms for Embodied AI Learning
 {% endblock %}
 
 {% block head %}
@@ -22,7 +22,6 @@
         }
         .node-row {
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
             gap: 16px;
         }
@@ -38,12 +37,6 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
             animation: fadeIn 0.5s ease-in-out;
             position: relative;
-        }
-        .node.lang-zh {
-            display: block;
-        }
-        .node.lang-en {
-            display: none;
         }
         .node:hover {
             transform: scale(1.05);
@@ -98,10 +91,10 @@
             color: #4b5563;
             margin-bottom: 12px;
         }
-        .sidebar p {
+        .sidebar p.description {
             font-size: 0.95em;
             color: #6b7280;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             line-height: 1.5;
         }
         .sidebar ul {
@@ -178,6 +171,10 @@
             .node {
                 width: 160px;
             }
+            .node-row {
+                flex-direction: column;
+                align-items: center;
+            }
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -204,45 +201,45 @@
     </div>
     <div class="path-container">
         <div class="node-row">
-            <div class="node lang-zh" id="common-tools_Chinese" data-node="common-tools" onclick="showDetails('common-tools', 'Chinese', event)">
+            <div class="node lang-zh" id="common-tools_Chinese" data-node="common-tools" onclick="showDetails('common-tools', event)">
                 <h3>常用工具</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('common-tools', 'Chinese')">
             </div>
-            <div class="node lang-en hidden" id="common-tools_English" data-node="common-tools" onclick="showDetails('common-tools', 'English', event)">
+            <div class="node lang-en hidden" id="common-tools_English" data-node="common-tools" onclick="showDetails('common-tools', event)">
                 <h3>Common Tools</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('common-tools', 'English')">
             </div>
-            <div class="node lang-zh" id="vision-fusion_Chinese" data-node="vision-fusion" onclick="showDetails('vision-fusion', 'Chinese', event)">
+            <div class="node lang-zh" id="vision-fusion_Chinese" data-node="vision-fusion" onclick="showDetails('vision-fusion', event)">
                 <h3>视觉基础模型</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('vision-fusion', 'Chinese')">
             </div>
-            <div class="node lang-en hidden" id="vision-fusion_English" data-node="vision-fusion" onclick="showDetails('vision-fusion', 'English', event)">
+            <div class="node lang-en hidden" id="vision-fusion_English" data-node="vision-fusion" onclick="showDetails('vision-fusion', event)">
                 <h3>Vision Foundation Models</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('vision-fusion', 'English')">
             </div>
-            <div class="node lang-zh" id="robot-learning_Chinese" data-node="robot-learning" onclick="showDetails('robot-learning', 'Chinese', event)">
+            <div class="node lang-zh" id="robot-learning_Chinese" data-node="robot-learning" onclick="showDetails('robot-learning', event)">
                 <h3>机器人学习</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('robot-learning', 'Chinese')">
             </div>
-            <div class="node lang-en hidden" id="robot-learning_English" data-node="robot-learning" onclick="showDetails('robot-learning', 'English', event)">
+            <div class="node lang-en hidden" id="robot-learning_English" data-node="robot-learning" onclick="showDetails('robot-learning', event)">
                 <h3>Robot Learning</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('robot-learning', 'English')">
             </div>
         </div>
         <div class="node-row">
-            <div class="node lang-zh" id="vla-models_Chinese" data-node="vla-models" onclick="showDetails('vla-models', 'Chinese', event)">
+            <div class="node lang-zh" id="vla-models_Chinese" data-node="vla-models" onclick="showDetails('vla-models', event)">
                 <h3>视觉-语言-动作模型</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('vla-models', 'Chinese')">
             </div>
-            <div class="node lang-en hidden" id="vla-models_English" data-node="vla-models" onclick="showDetails('vla-models', 'English', event)">
+            <div class="node lang-en hidden" id="vla-models_English" data-node="vla-models" onclick="showDetails('vla-models', event)">
                 <h3>Vision-Language-Action Models</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('vla-models', 'English')">
             </div>
-            <div class="node lang-zh" id="computer-vision_Chinese" data-node="computer-vision" onclick="showDetails('computer-vision', 'Chinese', event)">
+            <div class="node lang-zh" id="computer-vision_Chinese" data-node="computer-vision" onclick="showDetails('computer-vision', event)">
                 <h3>计算机视觉</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('computer-vision', 'Chinese')">
             </div>
-            <div class="node lang-en hidden" id="computer-vision_English" data-node="computer-vision" onclick="showDetails('computer-vision', 'English', event)">
+            <div class="node lang-en hidden" id="computer-vision_English" data-node="computer-vision" onclick="showDetails('computer-vision', event)">
                 <h3>Computer Vision</h3>
                 <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('computer-vision', 'English')">
             </div>
@@ -251,8 +248,8 @@
     <div class="sidebar" id="sidebar">
         <h2 class="lang-zh">节点详情</h2>
         <h2 class="lang-en hidden">Node Details</h2>
-        <p class="lang-zh">点击一个节点以查看详情</p>
-        <p class="lang-en hidden">Click a node to view details</p>
+        <p class="description lang-zh">点击一个节点以查看详情</p>
+        <p class="description lang-en hidden">Click a node to view details</p>
     </div>
 
     <script>
@@ -260,129 +257,181 @@
             'common-tools': {
                 English: {
                     name: 'Common Tools',
+                    description: 'Explore essential tools for processing and calibrating data in embodied AI, including point cloud manipulation and camera-robot calibration.',
                     content: `
                         <h3>Point Cloud Downsampling</h3>
-                        <p>Includes random downsampling, farthest point downsampling, etc.</p>
-                        <p><a href="https://zhuanlan.zhihu.com/p/558683732" target="_blank">Zhihu Blog</a></p>
+                        <p class="description">Techniques like random downsampling and farthest point sampling to reduce point cloud data size.</p>
+                        <ul>
+                            <li><a href="https://zhuanlan.zhihu.com/p/558683732" target="_blank">Point Cloud Downsampling Guide</a></li>
+                        </ul>
                         <h3>Hand-Eye Calibration</h3>
-                        <p>Determines the relative positions between cameras and robotic arms, as well as between cameras.</p>
-                        <p><a href="https://github.com/fishros/handeye-calib" target="_blank">GitHub Guideline</a></p>
+                        <p class="description">Methods to determine the relative positions between cameras and robotic arms or between cameras.</p>
+                        <ul>
+                            <li><a href="https://github.com/fishros/handeye-calib" target="_blank">Hand-Eye Calibration Tutorial</a></li>
+                        </ul>
                     `
                 },
                 Chinese: {
                     name: '常用工具',
+                    description: '学习具身智能中处理和校准数据的基本工具，包括点云处理和相机-机器人校准。',
                     content: `
                         <h3>点云降采样</h3>
-                        <p>包括随机降采样、最远点降采样等。</p>
-                        <p><a href="https://zhuanlan.zhihu.com/p/558683732" target="_blank">知乎博客</a></p>
+                        <p class="description">包括随机降采样和最远点采样等技术，用于减少点云数据量。</p>
+                        <ul>
+                            <li><a href="https://zhuanlan.zhihu.com/p/558683732" target="_blank">点云降采样指南</a></li>
+                        </ul>
                         <h3>手眼标定</h3>
-                        <p>确定相机和机械臂之间以及相机与相机之间的相对位置。</p>
-                        <p><a href="https://github.com/fishros/handeye-calib" target="_blank">GitHub 教程</a></p>
+                        <p class="description">确定相机与机械臂或相机之间的相对位置的方法。</p>
+                        <ul>
+                            <li><a href="https://github.com/fishros/handeye-calib" target="_blank">手眼标定教程</a></li>
+                        </ul>
                     `
                 }
             },
             'vision-fusion': {
                 English: {
                     name: 'Vision Foundation Models',
+                    description: 'Discover foundational models that enhance visual perception in embodied AI, enabling tasks like object detection, segmentation, and depth estimation.',
                     content: `
-                        <p>Commonly used foundation models in embodied intelligence. Well-developed tools in computer vision can directly empower downstream applications in embodied AI.</p>
-                        <h3><a href="https://github.com/openai/CLIP" target="_blank">CLIP</a></h3>
-                        <p>Computes similarity between images and language descriptions.</p>
-                        <h3><a href="https://github.com/facebookresearch/dino" target="_blank">DINO</a> [<a href="https://github.com/facebookresearch/dinov2" target="_blank">v2</a>]</h3>
-                        <p>Provides high-level visual features for images.</p>
-                        <h3><a href="https://github.com/facebookresearch/segment-anything" target="_blank">SAM</a> [<a href="https://ai.meta.com/sam2/" target="_blank">v2</a>]</h3>
-                        <p>Segments objects in images based on prompt points or boxes.</p>
-                        <h3><a href="https://github.com/IDEA-Research/GroundingDINO" target="_blank">GroundingDINO</a></h3>
-                        <p>Integrated image object detection framework.</p>
-                        <h3><a href="https://ommer-lab.com/research/latent-diffusion-models/" target="_blank">Stable Diffusion</a></h3>
-                        <p>Text-to-image model.</p>
-                        <h3><a href="https://github.com/LiheYoung/Depth-Anything" target="_blank">Depth Anything</a> [<a href="https://github.com/DepthAnything/Depth-Anything-V2" target="_blank">v2</a>]</h3>
-                        <p>Monocular depth estimation model.</p>
-                        <h3><a href="https://github.com/Pointcept/PointTransformerV3" target="_blank">PointTransformerV3</a></h3>
-                        <p>Point cloud feature extraction model.</p>
+                        <p class="description">These models provide robust visual features for downstream applications in embodied intelligence.</p>
+                        <h3>Image-Text Alignment</h3>
+                        <ul>
+                            <li><a href="https://github.com/openai/CLIP" target="_blank">CLIP</a>: Computes similarity between images and text descriptions.</li>
+                        </ul>
+                        <h3>Feature Extraction</h3>
+                        <ul>
+                            <li><a href="https://github.com/facebookresearch/dinov2" target="_blank">DINOv2</a>: Extracts high-level visual features from images.</li>
+                            <li><a href="https://github.com/Pointcept/PointTransformerV3" target="_blank">PointTransformerV3</a>: Feature extraction for point clouds.</li>
+                        </ul>
+                        <h3>Segmentation and Detection</h3>
+                        <ul>
+                            <li><a href="https://github.com/facebookresearch/segment-anything" target="_blank">SAM</a> [<a href="https://ai.meta.com/sam2/" target="_blank">v2</a>]: Segments objects based on prompts.</li>
+                            <li><a href="https://github.com/IDEA-Research/GroundingDINO" target="_blank">GroundingDINO</a>: Integrated object detection framework.</li>
+                        </ul>
+                        <h3>Generation and Depth</h3>
+                        <ul>
+                            <li><a href="https://ommer-lab.com/research/latent-diffusion-models/" target="_blank">Stable Diffusion</a>: Text-to-image generation model.</li>
+                            <li><a href="https://github.com/LiheYoung/Depth-Anything" target="_blank">Depth Anything</a> [<a href="https://github.com/DepthAnything/Depth-Anything-V2" target="_blank">v2</a>]: Monocular depth estimation.</li>
+                        </ul>
                     `
                 },
                 Chinese: {
                     name: '视觉基础模型',
+                    description: '探索增强具身智能视觉感知的基础模型，支持目标检测、分割和深度估计等任务。',
                     content: `
-                        <p>具身智能中常用的基础模型。计算机视觉中发展成熟的工具可以直接赋能具身智能的下游应用。</p>
-                        <h3><a href="https://github.com/openai/CLIP" target="_blank">CLIP</a></h3>
-                        <p>计算图像与语言描述的相似度。</p>
-                        <h3><a href="https://github.com/facebookresearch/dino" target="_blank">DINO</a> [<a href="https://github.com/facebookresearch/dinov2" target="_blank">v2</a>]</h3>
-                        <p>提供图像的高层视觉特征。</p>
-                        <h3><a href="https://github.com/facebookresearch/segment-anything" target="_blank">SAM</a> [<a href="https://ai.meta.com/sam2/" target="_blank">v2</a>]</h3>
-                        <p>基于提示点或框对图像的物体进行分割。</p>
-                        <h3><a href="https://github.com/IDEA-Research/GroundingDINO" target="_blank">GroundingDINO</a></h3>
-                        <p>集成的图像目标检测框架。</p>
-                        <h3><a href="https://ommer-lab.com/research/latent-diffusion-models/" target="_blank">Stable Diffusion</a></h3>
-                        <p>文生图模型。</p>
-                        <h3><a href="https://github.com/LiheYoung/Depth-Anything" target="_blank">Depth Anything</a> [<a href="https://github.com/DepthAnything/Depth-Anything-V2" target="_blank">v2</a>]</h3>
-                        <p>单目深度估计模型。</p>
-                        <h3><a href="https://github.com/Pointcept/PointTransformerV3" target="_blank">PointTransformerV3</a></h3>
-                        <p>点云特征提取模型。</p>
+                        <p class="description">这些模型为具身智能的下游应用提供强大的视觉特征。</p>
+                        <h3>图像-文本对齐</h3>
+                        <ul>
+                            <li><a href="https://github.com/openai/CLIP" target="_blank">CLIP</a>：计算图像与文本描述的相似度。</li>
+                        </ul>
+                        <h3>特征提取</h3>
+                        <ul>
+                            <li><a href="https://github.com/facebookresearch/dinov2" target="_blank">DINOv2</a>：提取图像的高层视觉特征。</li>
+                            <li><a href="https://github.com/Pointcept/PointTransformerV3" target="_blank">PointTransformerV3</a>：点云特征提取。</li>
+                        </ul>
+                        <h3>分割与检测</h3>
+                        <ul>
+                            <li><a href="https://github.com/facebookresearch/segment-anything" target="_blank">SAM</a> [<a href="https://ai.meta.com/sam2/" target="_blank">v2</a>]：基于提示进行物体分割。</li>
+                            <li><a href="https://github.com/IDEA-Research/GroundingDINO" target="_blank">GroundingDINO</a>：集成目标检测框架。</li>
+                        </ul>
+                        <h3>生成与深度</h3>
+                        <ul>
+                            <li><a href="https://ommer-lab.com/research/latent-diffusion-models/" target="_blank">Stable Diffusion</a>：文生图模型。</li>
+                            <li><a href="https://github.com/LiheYoung/Depth-Anything" target="_blank">Depth Anything</a> [<a href="https://github.com/DepthAnything/Depth-Anything-V2" target="_blank">v2</a>]：单目深度估计。</li>
+                        </ul>
                     `
                 }
             },
             'robot-learning': {
                 English: {
                     name: 'Robot Learning',
+                    description: 'Learn advanced techniques like reinforcement learning, imitation learning, and model predictive control for autonomous robot behavior.',
                     content: `
-                        <h3>Development of Robot Learning</h3>
-                        <p><a href="https://zhuanlan.com/p/26988866" target="_blank">Zhihu Blog</a></p>
+                        <h3>Overview</h3>
+                        <ul>
+                            <li><a href="https://zhuanlan.zhihu.com/p/627086976" target="_blank">Robot Learning Trends</a></li>
+                        </ul>
                         <h3>Model Predictive Control (MPC)</h3>
-                        <p><a href="https://www.bilibili.com/video/BV1U54y1J7wh/" target="_blank">Introductory Video</a></p>
+                        <ul>
+                            <li><a href="https://www.bilibili.com/video/BV1U54y1J7wh" target="_blank">MPC Tutorial</a></li>
+                        </ul>
                         <h3>Reinforcement Learning</h3>
-                        <p><a href="https://space.bilibili.com/2044042934/channel/collectiondetail?sid=748665" target="_blank">Introductory Course</a></p>
+                        <ul>
+                            <li><a href="https://space.bilibili.com/2044042934/channel/collectiondetail?sid=748665" target="_blank">Reinforcement Learning Course</a></li>
+                        </ul>
                         <h3>Deep Reinforcement Learning</h3>
-                        <p><a href="https://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank">UC Berkeley CS285 Deep Reinforcement Learning Course</a></p>
+                        <ul>
+                            <li><a href="https://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank">UC Berkeley CS285 Deep RL Course</a></li>
+                        </ul>
                         <h3>Imitation Learning</h3>
-                        <p><a href="https://www.lamda.nju.edu.cn/xut/Imitation_Learning.pdf" target="_blank">Concise Tutorial from Nanjing University</a></p>
+                        <ul>
+                            <li><a href="https://www.lamda.nju.edu.cn/xut/Imitation_Learning.pdf" target="_blank">Imitation Learning Tutorial</a></li>
+                        </ul>
                     `
                 },
                 Chinese: {
                     name: '机器人学习',
+                    description: '学习强化学习、模仿学习和模型预测控制等高级技术，用于自主机器人行为。',
                     content: `
-                        <h3>机器人学习发展</h3>
-                        <p><a href="https://zhuanlan.com/p/26988866" target="_blank">知乎博客</a></p>
+                        <h3>概览</h3>
+                        <ul>
+                            <li><a href="https://zhuanlan.zhihu.com/p/627086976" target="_blank">机器人学习趋势</a></li>
+                        </ul>
                         <h3>模型预测控制（MPC）</h3>
-                        <p><a href="https://www.bilibili.com/video/BV1U54y1J7wh/" target="_blank">入门视频</a></p>
+                        <ul>
+                            <li><a href="https://www.bilibili.com/video/BV1U54y1J7wh" target="_blank">MPC教程</a></li>
+                        </ul>
                         <h3>强化学习</h3>
-                        <p><a href="https://space.bilibili.com/2044042934/channel/collectiondetail?sid=748665" target="_blank">入门课程</a></p>
+                        <ul>
+                            <li><a href="https://space.bilibili.com/2044042934/channel/collectiondetail?sid=748665" target="_blank">强化学习课程</a></li>
+                        </ul>
                         <h3>深度强化学习</h3>
-                        <p><a href="https://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank">加州大学伯克利分校 CS285 深度强化学习课程</a></p>
+                        <ul>
+                            <li><a href="https://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank">加州大学伯克利 CS285 深度强化学习课程</a></li>
+                        </ul>
                         <h3>模仿学习</h3>
-                        <p><a href="https://www.lamda.nju.edu.cn/xut/Imitation_Learning.pdf" target="_blank">南京大学简洁教程</a></p>
+                        <ul>
+                            <li><a href="https://www.lamda.nju.edu.cn/xut/Imitation_Learning.pdf" target="_blank">模仿学习教程</a></li>
+                        </ul>
                     `
                 }
             },
             'vla-models': {
                 English: {
                     name: 'Vision-Language-Action Models',
+                    description: 'Study models combining vision, language, and action for integrated robotic control and decision-making.',
                     content: `
-                        <p>Vision-Language-Action (VLA) models integrate Vision Language Models (VLM) with robot control, applying pretrained VLMs to generate robot actions.</p>
-                        <h3><a href="https://zhuanlan.zhihu.com/p/880769870" target="_blank">Reference Blog</a></h3>
-                        <h3><a href="https://arxiv.org/abs/2405.14093" target="_blank">Literature Review</a></h3>
-                        <h3>Classic Works</h3>
+                        <p class="description">VLA models leverage pretrained vision-language models to generate robot actions.</p>
+                        <h3>Resources</h3>
                         <ul>
-                            <li><a href="https://robotics-transformer2.github.io/" target="_blank">RT-2</a></li>
-                            <li><a href="https://octo-models.github.io/" target="_blank">Octo</a></li>
-                            <li><a href="https://arxiv.org/abs/2406.09246" target="_blank">OpenVLA</a></li>
-                            <li><a href="https://arxiv.org/abs/2403.09631" target="_blank">3D-VLA</a></li>
+                            <li><a href="https://zhuanlan.zhihu.com/p/880759870" target="_blank">VLA Overview Blog</a></li>
+                            <li><a href="https://arxiv.org/abs/2405.14093" target="_blank">VLA Literature Review</a></li>
+                        </ul>
+                        <h3>Key Models</h3>
+                        <ul>
+                            <li><a href="https://robotics-transformer2.github.io/" target="_blank">RT-2</a>: Robotics Transformer.</li>
+                            <li><a href="https://octo-models.github.io/" target="_blank">Octo</a>: Open-source VLA model.</li>
+                            <li><a href="https://arxiv.org/abs/2406.09246" target="_blank">OpenVLA</a>: Open vision-language-action framework.</li>
+                            <li><a href="https://arxiv.org/abs/2403.09631" target="_blank">3D-VLA</a>: 3D vision-language-action model.</li>
                         </ul>
                     `
                 },
                 Chinese: {
                     name: '视觉-语言-动作模型',
+                    description: '研究结合视觉、语言和动作的模型，用于集成机器人控制和决策。',
                     content: `
-                        <p>视觉-语言-动作模型（VLA）结合视觉语言模型（VLM）与机器人控制，将预训练的VLM用于生成机器人动作。</p>
-                        <h3><a href="https://zhuanlan.zhihu.com/p/880769870" target="_blank">参考博客</a></h3>
-                        <h3><a href="https://arxiv.org/abs/2405.14093" target="_blank">文献综述</a></h3>
-                        <h3>经典作品</h3>
+                        <p class="description">VLA模型利用预训练的视觉-语言模型生成机器人动作。</p>
+                        <h3>资源</h3>
                         <ul>
-                            <li><a href="https://robotics-transformer2.github.io/" target="_blank">RT-2</a></li>
-                            <li><a href="https://octo-models.github.io/" target="_blank">Octo</a></li>
-                            <li><a href="https://arxiv.org/abs/2406.09246" target="_blank">OpenVLA</a></li>
-                            <li><a href="https://arxiv.org/abs/2403.09631" target="_blank">3D-VLA</a></li>
+                            <li><a href="https://zhuanlan.zhihu.com/p/880759870" target="_blank">VLA概览博客</a></li>
+                            <li><a href="https://arxiv.org/abs/2405.14093" target="_blank">VLA文献综述</a></li>
+                        </ul>
+                        <h3>关键模型</h3>
+                        <ul>
+                            <li><a href="https://robotics-transformer2.github.io/" target="_blank">RT-2</a>：机器人变换器。</li>
+                            <li><a href="https://octo-models.github.io/" target="_blank">Octo</a>：开源VLA模型。</li>
+                            <li><a href="https://arxiv.org/abs/2406.09246" target="_blank">OpenVLA</a>：开放视觉-语言-动作框架。</li>
+                            <li><a href="https://arxiv.org/abs/2403.09631" target="_blank">3D-VLA</a>：三维视觉-语言-动作模型。</li>
                         </ul>
                     `
                 }
@@ -390,30 +439,44 @@
             'computer-vision': {
                 English: {
                     name: 'Computer Vision',
+                    description: 'Master foundational and advanced computer vision techniques, including 2D and 3D vision, for embodied AI applications.',
                     content: `
-                        <h3>Online Course</h3>
-                        <p><a href="https://cs231n.stanford.edu/schedule.html" target="_blank">Stanford University CS231n</a></p>
-                        <h3>2D Vision Classics</h3>
+                        <h3>Courses</h3>
+                        <ul>
+                            <li><a href="https://cs231n.stanford.edu/schedule.html" target="_blank">Stanford CS231n: Deep Learning for Computer Vision</a></li>
+                            <li><a href="https://uni-tuebingen.de/en/faculties/faculty-of-science/departments/computer-science/lehrstuehle/autonomous-vision/lectures/computer-vision/" target="_blank">Tübingen: Introduction to Computer Vision</a></li>
+                        </ul>
+                        <h3>2D Vision Techniques</h3>
                         <ul>
                             <li><a href="https://easyai.tech/en/ai-definition/cnn/" target="_blank">Convolutional Neural Networks (CNN)</a></li>
-                            <li><a href="https://www.bilibili.com/video/BV1P3411y7nn/" target="_blank">Residual Networks (ResNet)</a></li>
-                            <li><a href="https://www.bilibili.com/video/BV15P4y137jb/" target="_blank">Vision Transformer (ViT)</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV1P3411y7nn" target="_blank">Residual Networks (ResNet)</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV15P4y137jb" target="_blank">Vision Transformer (ViT)</a></li>
                         </ul>
-                        <h3><a href="https://uni-tuebingen.de/en/faculties/faculty-of-science/departments/computer-science/lehrstuehle/autonomous-vision/lectures/computer-vision/" target="_blank">Introduction to 3D Vision</a></h3>
+                        <h3>3D Vision</h3>
+                        <ul>
+                            <li><a href="https://www.bilibili.com/video/BV1r3411Y7zJ" target="_blank">3D Computer Vision Tutorial</a></li>
+                        </ul>
                     `
                 },
                 Chinese: {
                     name: '计算机视觉',
+                    description: '掌握用于具身智能应用的基础和高级计算机视觉技术，包括二维和三维视觉。',
                     content: `
-                        <h3>在线课程</h3>
-                        <p><a href="https://cs231n.stanford.edu/schedule.html" target="_blank">斯坦福大学 CS231n</a></p>
-                        <h3>二维视觉经典之作</h3>
+                        <h3>课程</h3>
+                        <ul>
+                            <li><a href="https://cs231n.stanford.edu/schedule.html" target="_blank">斯坦福 CS231n：计算机视觉深度学习</a></li>
+                            <li><a href="https://uni-tuebingen.de/en/faculties/faculty-of-science/departments/computer-science/lehrstuehle/autonomous-vision/lectures/computer-vision/" target="_blank">图宾根：计算机视觉导论</a></li>
+                        </ul>
+                        <h3>二维视觉技术</h3>
                         <ul>
                             <li><a href="https://easyai.biz/ai-definition/cnn/" target="_blank">卷积神经网络（CNN）</a></li>
-                            <li><a href="https://www.bilibili.com/video/BV1P3411y7nn/" target="_blank">残差网络（ResNet）</a></li>
-                            <li><a href="https://www.bilibili.com/video/BV15P4y137jb/" target="_blank">视觉变换器（ViT）</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV1P3411y7nn" target="_blank">残差网络（ResNet）</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV15P4y137jb" target="_blank">视觉变换器（ViT）</a></li>
                         </ul>
-                        <h3><a href="https://uni-tuebingen.de/en/faculties/faculty-of-science/departments/computer-science/lehrstuehle/autonomous-vision/lectures/computer-vision/" target="_blank">三维视觉介绍</a></h3>
+                        <h3>三维视觉</h3>
+                        <ul>
+                            <li><a href="https://www.bilibili.com/video/BV1r3411Y7zJ" target="_blank">三维计算机视觉教程</a></li>
+                        </ul>
                     `
                 }
             }
@@ -421,11 +484,45 @@
 
         const completableNodes = ['common-tools', 'vision-fusion', 'robot-learning', 'vla-models', 'computer-vision'];
 
+        function showDetails(nodeId, event) {
+            const selectedLang = document.getElementById('languageSelect').value;
+            const data = nodesData[nodeId][selectedLang];
+            const isCompleted = localStorage.getItem(`completion_${nodeId}_${selectedLang}`) === 'true';
+            const sidebar = document.getElementById('sidebar');
+            const buttonText = isCompleted ? (selectedLang === 'Chinese' ? '已完成' : 'Completed') : (selectedLang === 'Chinese' ? '标记为完成' : 'Mark as Completed');
+            let html = `<h2 class="${selectedLang === 'Chinese' ? 'lang-zh' : 'lang-en'}">${data.name}</h2>`;
+            html += `<button class="completion-button${isCompleted ? ' completed' : ''}" onclick="toggleCompletion('${nodeId}', '${selectedLang}')">${buttonText}</button>`;
+            html += `<p class="description">${data.description}</p>`;
+            html += data.content;
+            sidebar.innerHTML = html;
+            sidebar.style.animation = 'none';
+            sidebar.offsetHeight;
+            sidebar.style.animation = 'slideIn 0.4s ease-out';
+            document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
+            if (event && event.target.tagName !== 'INPUT') {
+                document.getElementById(`${nodeId}_${selectedLang}`).classList.add('selected');
+            }
+        }
+
+        function toggleCompletion(nodeId, lang) {
+            const node = document.getElementById(`${nodeId}_${lang}`);
+            if (!node) return;
+            const isCompleted = !node.classList.contains('completed');
+            node.classList.toggle('completed', isCompleted);
+            const checkbox = node.querySelector('.completion-checkbox');
+            if (checkbox) checkbox.checked = isCompleted;
+            localStorage.setItem(`completion_${nodeId}_${lang}`, isCompleted);
+            if (document.querySelector('.sidebar').innerHTML.includes(nodesData[nodeId][lang].name)) {
+                showDetails(nodeId, null);
+            }
+            updateProgress();
+            updateParentNodeCompletion(lang);
+        }
+
         function updateProgress() {
             const selectedLang = document.getElementById('languageSelect').value;
             const completedCount = completableNodes.filter(id => 
-                localStorage.getItem(`completion_${id}_${selectedLang}`) === 'true'
-            ).length;
+                localStorage.getItem(`completion_${id}_${selectedLang}`) === 'true').length;
             const totalNodes = completableNodes.length;
             const progressPercentage = Math.round((completedCount / totalNodes) * 100);
             const progressFill = document.getElementById('progressFill');
@@ -433,6 +530,12 @@
             progressFill.style.width = `${progressPercentage}%`;
             progressText.querySelector('.lang-zh').textContent = `进度: ${progressPercentage}%`;
             progressText.querySelector('.lang-en').textContent = `Progress: ${progressPercentage}%`;
+        }
+
+        function updateParentNodeCompletion(lang) {
+            const allCompleted = completableNodes.every(id => 
+                localStorage.getItem(`completion_${id}_${lang}`) === 'true');
+            localStorage.setItem(`completion_algorithms_${lang}`, allCompleted);
         }
 
         function syncNodesWithParent(lang) {
@@ -450,43 +553,6 @@
             }
         }
 
-        function updateParentNodeCompletion(lang) {
-            const allCompleted = completableNodes.every(id => localStorage.getItem(`completion_${id}_${lang}`) === 'true');
-            localStorage.setItem(`completion_algorithms_${lang}`, allCompleted);
-        }
-
-        function showDetails(nodeId, lang, event) {
-            const data = nodesData[nodeId][lang];
-            const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
-            const sidebar = document.getElementById('sidebar');
-            const buttonText = isCompleted ? (lang === 'Chinese' ? '已完成' : 'Completed') : (lang === 'Chinese' ? '标记为完成' : 'Mark as Completed');
-            sidebar.innerHTML = `
-                <h2 class="${lang === 'Chinese' ? 'lang-zh' : 'lang-en'}">${data.name}</h2>
-                <button class="completion-button${isCompleted ? ' completed' : ''}" onclick="toggleCompletion('${nodeId}', '${lang}')">${buttonText}</button>
-                ${data.content}
-            `;
-            sidebar.style.animation = 'none';
-            sidebar.offsetHeight;
-            sidebar.style.animation = 'slideIn 0.4s ease-out';
-            document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
-            if (event && event.target.tagName !== 'INPUT') {
-                document.getElementById(`${nodeId}_${lang}`).classList.add('selected');
-            }
-        }
-
-        function toggleCompletion(nodeId, lang) {
-            const node = document.getElementById(`${nodeId}_${lang}`);
-            const isCompleted = !node.classList.contains('completed');
-            node.classList.toggle('completed', isCompleted);
-            node.querySelector('.completion-checkbox').checked = isCompleted;
-            localStorage.setItem(`completion_${nodeId}_${lang}`, isCompleted);
-            if (document.querySelector('.sidebar').innerHTML.includes(nodesData[nodeId][lang].name)) {
-                showDetails(nodeId, lang, { target: node });
-            }
-            updateProgress();
-            updateParentNodeCompletion(lang);
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             syncNodesWithParent('Chinese');
             syncNodesWithParent('English');
@@ -499,6 +565,37 @@
                 if (checkbox) checkbox.checked = isCompleted;
             });
             updateProgress();
+            // Enhance base.html's toggleLanguage to update sidebar and nodes
+            const languageSelect = document.getElementById('languageSelect');
+            if (languageSelect) {
+                const originalToggle = window.toggleLanguage;
+                window.toggleLanguage = function() {
+                    originalToggle();
+                    const selectedLang = languageSelect.value;
+                    // Update sidebar for current selected node
+                    const selectedNode = document.querySelector('.node.selected');
+                    if (selectedNode) {
+                        const nodeId = selectedNode.id.split('_')[0];
+                        document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
+                        const newNode = document.getElementById(`${nodeId}_${selectedLang}`);
+                        if (newNode) {
+                            newNode.classList.add('selected');
+                            showDetails(nodeId, null);
+                        }
+                    }
+                    // Sync completion states
+                    completableNodes.forEach(nodeId => {
+                        const node = document.getElementById(`${nodeId}_${selectedLang}`);
+                        if (node) {
+                            const isCompleted = localStorage.getItem(`completion_${nodeId}_${selectedLang}`) === 'true';
+                            node.classList.toggle('completed', isCompleted);
+                            const checkbox = node.querySelector('.completion-checkbox');
+                            if (checkbox) checkbox.checked = isCompleted;
+                        }
+                    });
+                    updateProgress();
+                };
+            }
         });
     </script>
 {% endblock %}

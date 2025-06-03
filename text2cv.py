@@ -429,3 +429,59 @@ header = r"""
         \newsavebox\ANDbox
         \sbox\ANDbox{$|$}
 """
+
+if __name__ == "__main__":
+    input = {
+        "language": "en",
+        "Name": "John Doe",
+        "Location": "Guangzhou, PRC",
+        "Email": "...@...",
+        "Education": [
+            {
+                "institution": "Sun Yat-sen University",
+                "duration": "Sep 2023 - Present",
+                "degree": "BEng in Computer Science and Technology",
+                "GPA": "4.0/4.0",
+                "Core Courses": ...
+            }
+        ],
+        "Experience": [
+            {
+                "affiliation": "Sun Yat-sen University",
+                "location": "Guangzhou, PRC",
+                "duration": "Jun 2024 - Present",
+                "descriptions": [
+                    "...",
+                    "..."
+                ]
+            }
+        ],
+        "Publications": [
+        {
+            "authors": ["Li"],
+            "title": "...",
+            "venue": "NeurIPS",
+            "year": 2025,
+            "url": "https:..."
+        }
+        ],
+        "Projects":[
+            {
+                "title": "...",
+                "descriptions": [
+                    ...,
+                    ...
+                ]
+            }
+        ],
+
+        "Skills": {
+            "Programming Languages": "C/C++, Python, Java",
+            "Packages/Frameworks": "TensorFlow, PyTorch",
+            ...: ...
+        }
+        
+    }
+
+    text2Latex(input)
+    compileLatex('./cv.tex')
