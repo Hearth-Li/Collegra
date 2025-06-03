@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)http://localhost:5001/ -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习任务追踪器</title>
+    <link rel="stylesheet" href="./学习任务追踪器_files/style.css">
+    <link rel="stylesheet" href="./学习任务追踪器_files/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-tasks"></i> 学习任务追踪器</h1>
+        
+        <!-- 添加任务表单 -->
+        <form action="http://localhost:5001/add" method="POST" class="task-form">
+            <div class="form-group">
+                <input type="text" name="title" placeholder="任务标题" required="">
+            </div>
+            
+            <div class="form-group">
+                <textarea name="description" placeholder="任务描述"></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>截止日期:</label>
+                    <input type="date" name="due_date">
+                </div>
+                
+                <div class="form-group">
+                    <label>优先级:</label>
+                    <select name="priority">
+                        <option value="High">高</option>
+                        <option value="Medium" selected="">中</option>
+                        <option value="Low">低</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">
+                <i class="fas fa-plus"></i> 添加任务
+            </button>
+        </form>
+        
+        <!-- 活动任务列表 -->
+        <h2>进行中的任务 <span class="count-badge">0</span></h2>
+        <div class="task-list">
+            
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <p>没有进行中的任务，添加新任务开始吧！</p>
+            </div>
+            
+        </div>
+        
+        <!-- 已完成任务列表 -->
+        <h2>已完成的任务 <span class="count-badge">0</span></h2>
+        <div class="task-list">
+            
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <p>还没有完成的任务，加油！</p>
+            </div>
+            
+        </div>
+    </div>
+
+</body></html>
