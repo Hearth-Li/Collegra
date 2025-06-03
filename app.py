@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('base.html')
+    return render_template('index.html')
 
 @app.route('/recommender')
 def recommender():
@@ -14,15 +14,15 @@ def recommender():
 
 @app.route('/llm')
 def llm():
-    return render_template('PathRecommender/LLM/main.html')
+    return render_template('PathRecommender/llm/main.html')
 
 @app.route('/aigc')
 def aigc():
-    return render_template('PathRecommender/AIGC/main.html')
+    return render_template('PathRecommender/aigc/main.html')
 
 @app.route('/embodied')
 def embodied():
-    return render_template('PathRecommender/Embodied/main.html')
+    return render_template('PathRecommender/embodied/main.html')
 
 @app.route('/algorithms')
 def algorithms():
