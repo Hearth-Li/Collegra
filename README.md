@@ -55,7 +55,7 @@ Collegra
 - **Other folders under `templates/`**: Contain module-specific pages.
 - **`static/`**: Contains static assets such as CSS, JavaScript, and images.
 - **`text2cv.py`**: A script for generating a resume from user input (if applicable).
-- - **`recommender.html`**: Homepage of learning path recommender module, which recommend learning path for different areas.
+- **`recommender.html`**: Homepage of learning path recommender module, which recommend learning path for different areas.
 - **`resume.html`**: Homepage for resume generator.
 - **`course_scheduler.html`**: Homepage for course scheduler.
 - **`todo.html`**: Homepage for todo list scheduler, which schdule tasks with different priorities.
