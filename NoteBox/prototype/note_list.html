@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}NoteBox - 笔记列表{% endblock %}
+
+{% block head %}
+<style>
+    .filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+    .filter-group select, .filter-group input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+    }
+    .notes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+    .note-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .note-card:hover {
+        transform: translateY(-2px);
+    }
+    .note-title {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .note-meta {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    .note-tags {
+        margin-top: 0.5rem;
+    }
+    .tag {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background: #e5e7eb;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="filters">
+    <div class="filter-group">
+        <label class="lang-en hidden">Course</label>
+        <label class="lang-zh">课程</label>
+        <select id="course-filter">
+            <option value="">All Courses</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="lang-en hidden">Tags</label>
+        <label class="lang-zh">标签</label>
+        <select id="tag-filter">
+            <option value="">All Tags</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="lang-en hidden">Search</label>
+        <label class="lang-zh">搜索</label>
+        <input type="text" id="search" placeholder="搜索笔记...">
+    </div>
+</div>
+
+<div class="notes-grid" id="notes-container">
+    <!-- 笔记卡片将通过 JavaScript 动态加载 -->
+</div>
+
+<script>
+    function loadNotes() {
+        // TODO: 实现笔记加载逻辑
+        const sampleNotes = [
+            {
+                id: 1,
+                title: "Sample Note 1",
+                course: "Mathematics",
+                tags: ["algebra", "calculus"],
+                lastModified: "2024-03-20"
+            },
+            {
+                id: 2,
+                title: "Sample Note 2",
+                course: "Physics",
+                tags: ["mechanics", "thermodynamics"],
+                lastModified: "2024-03-19"
+            }
+        ];
+
+        const container = document.getElementById('notes-container');
+        container.innerHTML = sampleNotes.map(note => `
+            <div class="note-card" onclick="openNote(${note.id})">
+                <div class="note-title">${note.title}</div>
+                <div class="note-meta">
+                    <div>${note.course}</div>
+                    <div>${note.lastModified}</div>
+                </div>
+                <div class="note-tags">
+                    ${note.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openNote(id) {
+        // TODO: 实现打开笔记逻辑
+        console.log('Opening note:', id);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadNotes);
+</script>
+{% endblock %} 

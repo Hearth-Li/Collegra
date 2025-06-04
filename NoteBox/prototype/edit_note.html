@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}NoteBox - 编辑笔记{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<style>
+    .editor-container {
+        margin-bottom: 2rem;
+    }
+    .toolbar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .toolbar button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        background: #3b82f6;
+        color: white;
+        cursor: pointer;
+    }
+    .toolbar button:hover {
+        background: #2563eb;
+    }
+    .metadata {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .metadata input, .metadata select {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="metadata">
+    <div>
+        <label class="lang-en hidden">Course</label>
+        <label class="lang-zh">课程</label>
+        <input type="text" id="course" placeholder="输入课程名称">
+    </div>
+    <div>
+        <label class="lang-en hidden">Tags</label>
+        <label class="lang-zh">标签</label>
+        <input type="text" id="tags" placeholder="用逗号分隔多个标签">
+    </div>
+</div>
+
+<div class="toolbar">
+    <button onclick="saveNote()">
+        <span class="lang-en hidden">Save</span>
+        <span class="lang-zh">保存</span>
+    </button>
+    <button onclick="generateCards()">
+        <span class="lang-en hidden">Generate Cards</span>
+        <span class="lang-zh">生成卡片</span>
+    </button>
+</div>
+
+<div class="editor-container">
+    <textarea id="editor"></textarea>
+</div>
+
+<script>
+    const easyMDE = new EasyMDE({
+        element: document.getElementById('editor'),
+        spellChecker: false,
+        autofocus: true,
+        toolbar: [
+            "bold", "italic", "heading", "|",
+            "quote", "unordered-list", "ordered-list", "|",
+            "link", "image", "code", "|",
+            "preview", "side-by-side", "fullscreen", "|",
+            "guide"
+        ]
+    });
+
+    function saveNote() {
+        const noteData = {
+            course: document.getElementById('course').value,
+            tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()),
+            content: easyMDE.value()
+        };
+        // TODO: 实现保存逻辑
+        console.log('Saving note:', noteData);
+    }
+
+    function generateCards() {
+        // TODO: 实现卡片生成逻辑
+        console.log('Generating cards from note');
+    }
+</script>
+{% endblock %} 
