@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}MyCerts - List{% endblock %}
+
+{% block head %}
+<style>
+    .filter-bar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    .filter-select {
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background-color: white;
+    }
+    .cert-list {
+        display: grid;
+        gap: 1rem;
+    }
+    .cert-item {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .cert-info {
+        flex: 1;
+    }
+    .cert-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .cert-meta {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    .cert-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+    .page-link {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        color: #374151;
+        text-decoration: none;
+    }
+    .page-link.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1 class="text-3xl font-bold mb-4">
+        <span class="lang-en hidden">My Certificates & Achievements</span>
+        <span class="lang-zh">我的证书与成就</span>
+    </h1>
+</div>
+
+<div class="filter-bar">
+    <select class="filter-select" id="category-filter">
+        <option value="">
+            <span class="lang-en hidden">All Categories</span>
+            <span class="lang-zh">所有类别</span>
+        </option>
+        <option value="competition">
+            <span class="lang-en hidden">Competition Award</span>
+            <span class="lang-zh">比赛获奖</span>
+        </option>
+        <option value="volunteer">
+            <span class="lang-en hidden">Volunteer Service</span>
+            <span class="lang-zh">志愿服务</span>
+        </option>
+        <option value="research">
+            <span class="lang-en hidden">Research Project</span>
+            <span class="lang-zh">科研项目</span>
+        </option>
+        <option value="scholarship">
+            <span class="lang-en hidden">Scholarship</span>
+            <span class="lang-zh">奖学金</span>
+        </option>
+        <option value="internship">
+            <span class="lang-en hidden">Internship Experience</span>
+            <span class="lang-zh">实习经历</span>
+        </option>
+    </select>
+
+    <select class="filter-select" id="sort-filter">
+        <option value="date-desc">
+            <span class="lang-en hidden">Newest First</span>
+            <span class="lang-zh">最新优先</span>
+        </option>
+        <option value="date-asc">
+            <span class="lang-en hidden">Oldest First</span>
+            <span class="lang-zh">最早优先</span>
+        </option>
+        <option value="name-asc">
+            <span class="lang-en hidden">Name A-Z</span>
+            <span class="lang-zh">名称 A-Z</span>
+        </option>
+        <option value="name-desc">
+            <span class="lang-en hidden">Name Z-A</span>
+            <span class="lang-zh">名称 Z-A</span>
+        </option>
+    </select>
+</div>
+
+<div class="cert-list">
+    <div class="cert-item">
+        <div class="cert-info">
+            <div class="cert-title">
+                <span class="lang-en hidden">No certificates found</span>
+                <span class="lang-zh">暂无证书记录</span>
+            </div>
+            <div class="cert-meta">
+                <span class="lang-en hidden">Upload your first certificate to get started</span>
+                <span class="lang-zh">上传您的第一份证书开始使用</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="pagination">
+    <a href="#" class="page-link">
+        <span class="lang-en hidden">Previous</span>
+        <span class="lang-zh">上一页</span>
+    </a>
+    <a href="#" class="page-link active">1</a>
+    <a href="#" class="page-link">
+        <span class="lang-en hidden">Next</span>
+        <span class="lang-zh">下一页</span>
+    </a>
+</div>
+
+<div class="mt-6 flex justify-center">
+    <a href="{{ url_for('mycerts_upload') }}" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+        <span class="lang-en hidden">Upload New Certificate</span>
+        <span class="lang-zh">上传新证书</span>
+    </a>
+</div>
+{% endblock %} 

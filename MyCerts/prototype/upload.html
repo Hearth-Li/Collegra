@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}MyCerts - Upload{% endblock %}
+
+{% block head %}
+<style>
+    .upload-form {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    .form-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    .form-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        min-height: 100px;
+        resize: vertical;
+        transition: all 0.3s ease;
+    }
+    .form-textarea:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    .file-upload {
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+    }
+    .file-upload:hover {
+        border-color: #3b82f6;
+        background: #f0f9ff;
+    }
+    .file-upload input[type="file"] {
+        display: none;
+    }
+    .category-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        background-color: white;
+        transition: all 0.3s ease;
+    }
+    .category-select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    .date-range {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .volunteer-hours {
+        display: none;
+    }
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .btn-primary {
+        background: #3b82f6;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+    }
+    .btn-secondary:hover {
+        background: #4b5563;
+        transform: translateY(-1px);
+    }
+    .btn-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1 class="text-3xl font-bold mb-4">
+        <span class="lang-en hidden">Upload New Certificate</span>
+        <span class="lang-zh">上传新证书</span>
+    </h1>
+</div>
+
+<form class="upload-form" action="{{ url_for('mycerts_upload') }}" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+        <label class="form-label">
+            <span class="lang-en hidden">Certificate Name</span>
+            <span class="lang-zh">证书名称</span>
+        </label>
+        <input type="text" name="name" class="form-input" required>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">
+            <span class="lang-en hidden">Category</span>
+            <span class="lang-zh">类别</span>
+        </label>
+        <select name="category" class="category-select" required onchange="toggleVolunteerHours(this.value)">
+            <option value="">
+                <span class="lang-en hidden">Select a category</span>
+                <span class="lang-zh">选择类别</span>
+            </option>
+            <option value="competition">
+                <span class="lang-en hidden">Competition Award</span>
+                <span class="lang-zh">比赛获奖</span>
+            </option>
+            <option value="volunteer">
+                <span class="lang-en hidden">Volunteer Service</span>
+                <span class="lang-zh">志愿服务</span>
+            </option>
+            <option value="research">
+                <span class="lang-en hidden">Research Project</span>
+                <span class="lang-zh">科研项目</span>
+            </option>
+            <option value="scholarship">
+                <span class="lang-en hidden">Scholarship</span>
+                <span class="lang-zh">奖学金</span>
+            </option>
+            <option value="internship">
+                <span class="lang-en hidden">Internship Experience</span>
+                <span class="lang-zh">实习经历</span>
+            </option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">
+            <span class="lang-en hidden">Date Range</span>
+            <span class="lang-zh">日期范围</span>
+        </label>
+        <div class="date-range">
+            <input type="date" name="start_date" class="form-input" required>
+            <input type="date" name="end_date" class="form-input" required>
+        </div>
+    </div>
+
+    <div class="form-group volunteer-hours">
+        <label class="form-label">
+            <span class="lang-en hidden">Volunteer Hours</span>
+            <span class="lang-zh">志愿服务时长</span>
+        </label>
+        <input type="number" name="volunteer_hours" class="form-input" min="0" step="0.5">
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">
+            <span class="lang-en hidden">Description</span>
+            <span class="lang-zh">描述</span>
+        </label>
+        <textarea name="description" class="form-textarea"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">
+            <span class="lang-en hidden">Upload File</span>
+            <span class="lang-zh">上传文件</span>
+        </label>
+        <div class="file-upload" onclick="document.getElementById('file-input').click()">
+            <input type="file" id="file-input" name="file" accept=".pdf,.jpg,.jpeg,.png" required>
+            <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <p class="text-gray-600">
+                <span class="lang-en hidden">Click to upload or drag and drop</span>
+                <span class="lang-zh">点击上传或拖拽文件</span>
+            </p>
+            <p class="text-sm text-gray-500 mt-2">
+                <span class="lang-en hidden">PDF, JPG, PNG up to 10MB</span>
+                <span class="lang-zh">支持 PDF、JPG、PNG 格式，最大 10MB</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="flex justify-end space-x-4 mt-6">
+        <a href="{{ url_for('mycerts_main') }}" class="btn btn-secondary">
+            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span class="lang-en hidden">Cancel</span>
+            <span class="lang-zh">取消</span>
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            <span class="lang-en hidden">Upload</span>
+            <span class="lang-zh">上传</span>
+        </button>
+    </div>
+</form>
+
+<script>
+document.getElementById('file-input').addEventListener('change', function(e) {
+    const fileName = e.target.files[0]?.name;
+    if (fileName) {
+        const uploadText = document.querySelector('.file-upload p');
+        uploadText.textContent = fileName;
+    }
+});
+
+// 页面加载时检查类别
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.querySelector('select[name="category"]');
+    toggleVolunteerHours(categorySelect.value);
+});
+
+function toggleVolunteerHours(category) {
+    const volunteerHoursDiv = document.querySelector('.volunteer-hours');
+    if (category === 'volunteer') {
+        volunteerHoursDiv.style.display = 'block';
+        volunteerHoursDiv.querySelector('input').required = true;
+    } else {
+        volunteerHoursDiv.style.display = 'none';
+        volunteerHoursDiv.querySelector('input').required = false;
+    }
+}
+</script>
+{% endblock %} 
