@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}
+    <span class="lang-en hidden">{{ _('Add Course') }}</span>
+    <span class="lang-zh">{{ _('添加课程') }}</span>
+{% endblock %}
+
+{% block head %}
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1 class="text-3xl font-bold mb-8" style="background: linear-gradient(90deg, #6b46c1, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent;">
+        <span class="lang-en hidden">{{ _('Add New Course') }}</span>
+        <span class="lang-zh">{{ _('添加新课程') }}</span>
+    </h1>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    <span class="lang-en hidden">{{ _(message) }}</span>
+                    <span class="lang-zh">{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<form method="POST" class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+            <span class="lang-en hidden">{{ _('Course Name') }}</span>
+            <span class="lang-zh">{{ _('课程名称') }}</span>
+        </label>
+        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="name" name="name" required>
+    </div>
+    
+    <div class="mb-6">
+        <label for="teacher" class="block text-sm font-medium text-gray-700 mb-2">
+            <span class="lang-en hidden">{{ _('Teacher') }}</span>
+            <span class="lang-zh">{{ _('任课教师') }}</span>
+        </label>
+        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="teacher" name="teacher" required>
+    </div>
+
+    <div class="mb-6">
+        <label for="day_of_week" class="block text-sm font-medium text-gray-700 mb-2">
+            <span class="lang-en hidden">{{ _('Day of Week') }}</span>
+            <span class="lang-zh">{{ _('星期') }}</span>
+        </label>
+        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="day_of_week" name="day_of_week" required>
+            {% for day_index, day_name in days %}
+            <option value="{{ day_index }}">
+                {% if g.lang == 'en' %}
+                    {{ day_name|replace('周一', 'Monday')|replace('周二', 'Tuesday')|replace('周三', 'Wednesday')|replace('周四', 'Thursday')|replace('周五', 'Friday')|replace('周六', 'Saturday')|replace('周日', 'Sunday') }}
+                {% else %}
+                    {{ day_name }}
+                {% endif %}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+            <label for="start_period" class="block text-sm font-medium text-gray-700 mb-2">
+                <span class="lang-en hidden">{{ _('Start Period') }}</span>
+                <span class="lang-zh">{{ _('开始节次') }}</span>
+            </label>
+            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="start_period" name="start_period" required>
+                {% for period in periods %}
+                <option value="{{ period }}">{{ period }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="end_period" class="block text-sm font-medium text-gray-700 mb-2">
+                <span class="lang-en hidden">{{ _('End Period') }}</span>
+                <span class="lang-zh">{{ _('结束节次') }}</span>
+            </label>
+            <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="end_period" name="end_period" required>
+                {% for period in periods %}
+                <option value="{{ period }}">{{ period }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class="mb-6">
+        <label for="location" class="block text-sm font-medium text-gray-700 mb-2">
+            <span class="lang-en hidden">{{ _('Location') }}</span>
+            <span class="lang-zh">{{ _('地点') }}</span>
+        </label>
+        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="location" name="location" required>
+    </div>
+
+    <div class="mb-6">
+        <label for="weeks" class="block text-sm font-medium text-gray-700 mb-2">
+            <span class="lang-en hidden">{{ _('Weeks') }}</span>
+            <span class="lang-zh">{{ _('周数') }}</span>
+        </label>
+        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="weeks" name="weeks" placeholder="{% if g.lang == 'en' %}{{ _('e.g., Week 1–15') }}{% else %}{{ _('例如：第1-15周') }}{% endif %}" required>
+    </div>
+    
+    <div class="flex gap-4">
+        <button type="submit" class="inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700">
+            <span class="lang-en hidden">{{ _('Add Course') }}</span>
+            <span class="lang-zh">{{ _('添加课程') }}</span>
+        </button>
+        <a href="{{ url_for('index') }}" class="inline-block bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700">
+            <span class="lang-en hidden">{{ _('Back') }}</span>
+            <span class="lang-zh">{{ _('返回') }}</span>
+        </a>
+    </div>
+</form>
+{% endblock %}
