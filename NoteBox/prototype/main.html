@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}NoteBox - 笔记管理{% endblock %}
+
+{% block head %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #3b82f6;
+    }
+    .recent-notes {
+        margin-top: 2rem;
+    }
+    .note-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    .action-button {
+        background: #3b82f6;
+        color: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .action-button:hover {
+        background: #2563eb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">0</div>
+        <div class="lang-en hidden">Total Notes</div>
+        <div class="lang-zh">笔记总数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">0</div>
+        <div class="lang-en hidden">Flash Cards</div>
+        <div class="lang-zh">知识卡片</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">0</div>
+        <div class="lang-en hidden">Review Items</div>
+        <div class="lang-zh">待复习</div>
+    </div>
+</div>
+
+<div class="quick-actions">
+    <a href="{{ url_for('notebox_edit_note') }}" class="action-button">
+        <div class="lang-en hidden">New Note</div>
+        <div class="lang-zh">新建笔记</div>
+    </a>
+    <a href="{{ url_for('notebox_cards') }}" class="action-button">
+        <div class="lang-en hidden">View Cards</div>
+        <div class="lang-zh">查看卡片</div>
+    </a>
+    <a href="{{ url_for('notebox_review') }}" class="action-button">
+        <div class="lang-en hidden">Start Review</div>
+        <div class="lang-zh">开始复习</div>
+    </a>
+</div>
+
+<div class="recent-notes">
+    <h2 class="lang-en hidden">Recent Notes</h2>
+    <h2 class="lang-zh">最近笔记</h2>
+    <div id="recent-notes-list">
+        <!-- 笔记列表将通过 JavaScript 动态加载 -->
+    </div>
+</div>
+{% endblock %} 

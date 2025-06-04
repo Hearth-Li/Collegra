@@ -1,0 +1,446 @@
+{% extends "base.html" %}
+
+{% block title %}NoteBox - 复习模式{% endblock %}
+
+{% block head %}
+<style>
+    .review-container {
+        max-width: 600px;
+        margin: 0 auto;
+        position: relative;
+        padding-top: 2.5rem;  /* 减小顶部间距 */
+    }
+    .flashcard {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        min-height: 300px;
+        perspective: 1000px;
+        cursor: pointer;
+    }
+    .flashcard-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+    }
+    .flashcard.flipped .flashcard-inner {
+        transform: rotateY(180deg);
+    }
+    .flashcard-front, .flashcard-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+    .flashcard-back {
+        transform: rotateY(180deg);
+    }
+    .progress-bar {
+        height: 0.5rem;
+        background: #e5e7eb;
+        border-radius: 9999px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: #3b82f6;
+        transition: width 0.3s ease;
+    }
+    .controls {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    .control-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s;
+    }
+    .difficulty-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .difficulty-button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .difficulty-button:hover {
+        background: #f3f4f6;
+        transform: translateY(-1px);
+    }
+    .difficulty-button.active {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    .difficulty-button.active:hover {
+        background: #2563eb;
+    }
+    .stats {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        color: #6b7280;
+    }
+    .exit-button {
+        position: absolute;
+        top: 0.75rem;  /* 调整顶部距离 */
+        right: 0;      /* 与卡片右边界对齐 */
+        padding: 0.35rem 0.75rem;  /* 减小内边距 */
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        z-index: 10;
+        font-weight: 500;
+        font-size: 0.875rem;  /* 减小字体大小 */
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;  /* 减小图标和文字间距 */
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .exit-button:hover {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .exit-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .exit-button::before {
+        content: "×";
+        font-size: 1.1rem;  /* 减小图标大小 */
+        line-height: 1;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+    }
+    .modal-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .modal-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .modal-button.confirm {
+        background: #ef4444;
+        color: white;
+    }
+    .modal-button.cancel {
+        background: #e5e7eb;
+    }
+    .completion-message {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    .completion-message a {
+        color: #3b82f6;
+        text-decoration: none;
+    }
+    .completion-message a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <button class="exit-button" onclick="confirmExit()">
+        <span class="lang-en hidden">Exit</span>
+        <span class="lang-zh">退出</span>
+    </button>
+
+    <div class="stats">
+        <div>
+            <span class="lang-en hidden">Progress: </span>
+            <span class="lang-zh">进度：</span>
+            <span id="progress-text">0/0</span>
+        </div>
+        <div>
+            <span class="lang-en hidden">Time: </span>
+            <span class="lang-zh">时间：</span>
+            <span id="timer">00:00</span>
+        </div>
+    </div>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+
+    <div id="flashcard-container">
+        <div class="flashcard" onclick="flipCard(this)">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <h2 class="lang-en hidden">Question</h2>
+                    <h2 class="lang-zh">问题</h2>
+                    <div id="card-front-content"></div>
+                </div>
+                <div class="flashcard-back">
+                    <h2 class="lang-en hidden">Answer</h2>
+                    <h2 class="lang-zh">答案</h2>
+                    <div id="card-back-content"></div>
+                    <div class="difficulty-buttons">
+                        <button class="difficulty-button" onclick="rateDifficulty(event, 'easy')">
+                            <span class="lang-en hidden">Easy</span>
+                            <span class="lang-zh">简单</span>
+                        </button>
+                        <button class="difficulty-button" onclick="rateDifficulty(event, 'medium')">
+                            <span class="lang-en hidden">Medium</span>
+                            <span class="lang-zh">中等</span>
+                        </button>
+                        <button class="difficulty-button" onclick="rateDifficulty(event, 'hard')">
+                            <span class="lang-en hidden">Hard</span>
+                            <span class="lang-zh">困难</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="control-button" onclick="previousCard()">
+            <span class="lang-en hidden">Previous</span>
+            <span class="lang-zh">上一个</span>
+        </button>
+        <button class="control-button" onclick="nextCard()">
+            <span class="lang-en hidden">Next</span>
+            <span class="lang-zh">下一个</span>
+        </button>
+    </div>
+</div>
+
+<!-- 退出确认对话框 -->
+<div class="modal" id="exit-modal">
+    <div class="modal-content">
+        <h3 class="lang-en hidden">Are you sure you want to exit?</h3>
+        <h3 class="lang-zh">确定要退出吗？</h3>
+        <p class="lang-en hidden">Your progress will be saved.</p>
+        <p class="lang-zh">您的进度将被保存。</p>
+        <div class="modal-buttons">
+            <button class="modal-button confirm" onclick="exitReview()">
+                <span class="lang-en hidden">Exit</span>
+                <span class="lang-zh">退出</span>
+            </button>
+            <button class="modal-button cancel" onclick="closeModal('exit-modal')">
+                <span class="lang-en hidden">Cancel</span>
+                <span class="lang-zh">取消</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 跳过确认对话框 -->
+<div class="modal" id="skip-modal">
+    <div class="modal-content">
+        <h3 class="lang-en hidden">Skip this card?</h3>
+        <h3 class="lang-zh">跳过这张卡片？</h3>
+        <p class="lang-en hidden">You haven't rated this card yet.</p>
+        <p class="lang-zh">您还没有对这张卡片进行评级。</p>
+        <div class="modal-buttons">
+            <button class="modal-button confirm" onclick="confirmSkip()">
+                <span class="lang-en hidden">Skip</span>
+                <span class="lang-zh">跳过</span>
+            </button>
+            <button class="modal-button cancel" onclick="closeModal('skip-modal')">
+                <span class="lang-en hidden">Cancel</span>
+                <span class="lang-zh">取消</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 完成复习对话框 -->
+<div class="modal" id="completion-modal">
+    <div class="modal-content">
+        <h3 class="lang-en hidden">Review Complete!</h3>
+        <h3 class="lang-zh">复习完成！</h3>
+        <p class="lang-en hidden">You have reviewed all cards.</p>
+        <p class="lang-zh">您已复习完所有卡片。</p>
+        <div class="completion-message">
+            <a href="{{ url_for('notebox_main') }}">
+                <span class="lang-en hidden">Return to Home</span>
+                <span class="lang-zh">返回主页</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentCardIndex = 0;
+    let cards = [];
+    let startTime = new Date();
+    let currentCardRated = false;
+    let currentCardFlipped = false;
+
+    function loadCards() {
+        // TODO: 实现卡片加载逻辑
+        cards = [
+            {
+                id: 1,
+                front: "What is the derivative of sin(x)?",
+                back: "cos(x)",
+                difficulty: "medium"
+            },
+            {
+                id: 2,
+                front: "What is the formula for the area of a circle?",
+                back: "πr²",
+                difficulty: "easy"
+            }
+        ];
+        updateCard();
+        startTimer();
+    }
+
+    function updateCard() {
+        const card = cards[currentCardIndex];
+        document.getElementById('card-front-content').textContent = card.front;
+        document.getElementById('card-back-content').textContent = card.back;
+        document.getElementById('progress-text').textContent = `${currentCardIndex + 1}/${cards.length}`;
+        document.getElementById('progress-fill').style.width = `${((currentCardIndex + 1) / cards.length) * 100}%`;
+        
+        // 重置卡片状态
+        const flashcard = document.querySelector('.flashcard');
+        flashcard.classList.remove('flipped');
+        currentCardFlipped = false;
+        currentCardRated = false;
+        
+        // 移除所有难度按钮的active类
+        document.querySelectorAll('.difficulty-button').forEach(button => {
+            button.classList.remove('active');
+        });
+    }
+
+    function flipCard(card) {
+        card.classList.toggle('flipped');
+        currentCardFlipped = !currentCardFlipped;
+    }
+
+    function previousCard() {
+        if (currentCardIndex > 0) {
+            currentCardIndex--;
+            updateCard();
+        }
+    }
+
+    function nextCard() {
+        if (currentCardIndex === cards.length - 1) {
+            showModal('completion-modal');
+            return;
+        }
+
+        if (!currentCardFlipped) {
+            showModal('skip-modal');
+            return;
+        }
+
+        if (!currentCardRated) {
+            alert('请先选择难度等级');
+            return;
+        }
+
+        currentCardIndex++;
+        updateCard();
+    }
+
+    function rateDifficulty(event, difficulty) {
+        event.stopPropagation();
+        currentCardRated = true;
+        
+        // 移除所有按钮的active类
+        document.querySelectorAll('.difficulty-button').forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        // 为当前点击的按钮添加active类
+        event.currentTarget.classList.add('active');
+        
+        // TODO: 实现难度评级逻辑
+        console.log('Rating difficulty:', difficulty);
+    }
+
+    function startTimer() {
+        setInterval(() => {
+            const now = new Date();
+            const diff = Math.floor((now - startTime) / 1000);
+            const minutes = Math.floor(diff / 60).toString().padStart(2, '0');
+            const seconds = (diff % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+        }, 1000);
+    }
+
+    function showModal(modalId) {
+        document.getElementById(modalId).style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    function confirmExit() {
+        if (!currentCardRated && currentCardFlipped) {
+            alert('请先选择难度等级');
+            return;
+        }
+        showModal('exit-modal');
+    }
+
+    function exitReview() {
+        window.location.href = "{{ url_for('notebox_main') }}";
+    }
+
+    function confirmSkip() {
+        closeModal('skip-modal');
+        currentCardIndex++;
+        updateCard();
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCards);
+</script>
+{% endblock %} 
