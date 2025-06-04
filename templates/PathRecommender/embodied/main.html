@@ -7,7 +7,6 @@
 {% block head %}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Center the title */
         h1 {
             text-align: center;
             width: 100%;
@@ -161,6 +160,10 @@
         }
         .completion-button.completed {
             background-color: #6b7280;
+            cursor: not-allowed;
+        }
+        .completion-button.completed:hover {
+            background-color: #6b7280;
         }
         @media (max-width: 768px) {
             .path-container {
@@ -208,11 +211,11 @@
         </div>
     </div>
     <div class="path-container">
-        <div class="node lang-zh" id="useful-information_Chinese" data-node="useful-information" onclick="showDetails('useful-information', event)">
+        <div class="node lang-zh" id="useful-information_Chinese" data-node="useful-information" onclick="showDetails('useful-information', 'Chinese', event)">
             <h3>实用信息</h3>
             <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('useful-information', 'Chinese')">
         </div>
-        <div class="node lang-en hidden" id="useful-information_English" data-node="useful-information" onclick="showDetails('useful-information', event)">
+        <div class="node lang-en hidden" id="useful-information_English" data-node="useful-information" onclick="showDetails('useful-information', 'English', event)">
             <h3>Useful Information</h3>
             <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('useful-information', 'English')">
         </div>
@@ -226,11 +229,11 @@
                 <line x1="15" y1="0" x2="15" y2="30" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
             </svg>
         </div>
-        <div class="node lang-zh" id="algorithms_Chinese" data-node="algorithms" onclick="showDetails('algorithms', event)">
+        <div class="node lang-zh" id="algorithms_Chinese" data-node="algorithms" onclick="showDetails('algorithms', 'Chinese', event)">
             <h3>算法</h3>
             <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('algorithms', 'Chinese')">
         </div>
-        <div class="node lang-en hidden" id="algorithms_English" data-node="algorithms" onclick="showDetails('algorithms', event)">
+        <div class="node lang-en hidden" id="algorithms_English" data-node="algorithms" onclick="showDetails('algorithms', 'English', event)">
             <h3>Algorithms</h3>
             <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('algorithms', 'English')">
         </div>
@@ -244,11 +247,11 @@
                 <line x1="15" y1="0" x2="15" y2="30" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
             </svg>
         </div>
-        <div class="node lang-zh" id="control-and-robotics_Chinese" data-node="control-and-robotics" onclick="showDetails('control-and-robotics', event)">
+        <div class="node lang-zh" id="control-and-robotics_Chinese" data-node="control-and-robotics" onclick="showDetails('control-and-robotics', 'Chinese', event)">
             <h3>控制与机器人学</h3>
             <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('control-and-robotics', 'Chinese')">
         </div>
-        <div class="node lang-en hidden" id="control-and-robotics_English" data-node="control-and-robotics" onclick="showDetails('control-and-robotics', event)">
+        <div class="node lang-en hidden" id="control-and-robotics_English" data-node="control-and-robotics" onclick="showDetails('control-and-robotics', 'English', event)">
             <h3>Control and Robotics</h3>
             <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('control-and-robotics', 'English')">
         </div>
@@ -262,11 +265,11 @@
                 <line x1="15" y1="0" x2="15" y2="30" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
             </svg>
         </div>
-        <div class="node lang-zh" id="hardware_Chinese" data-node="hardware" onclick="showDetails('hardware', event)">
+        <div class="node lang-zh" id="hardware_Chinese" data-node="hardware" onclick="showDetails('hardware', 'Chinese', event)">
             <h3>硬件</h3>
             <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('hardware', 'Chinese')">
         </div>
-        <div class="node lang-en hidden" id="hardware_English" data-node="hardware" onclick="showDetails('hardware', event)">
+        <div class="node lang-en hidden" id="hardware_English" data-node="hardware" onclick="showDetails('hardware', 'English', event)">
             <h3>Hardware</h3>
             <input type="checkbox" class="completion-checkbox" onchange="toggleCompletion('hardware', 'English')">
         </div>
@@ -283,37 +286,33 @@
             'useful-information': {
                 English: {
                     name: 'Useful Information',
+                    description: 'Explore foundational resources and background knowledge essential for starting your journey in embodied AI.',
                     content: `
-                        <h3>Related Lab Summaries</h3>
+                        <h3>Introduction to Embodied AI</h3>
+                        <p class="description">Understand the core concepts and applications of embodied intelligence.</p>
                         <ul>
-                            <li><a href="https://zhuanlan.zhihu.com/p/682671294" target="_blank">Lab Summary 1</a></li>
-                            <li><a href="https://zhuanlan.zhihu.com/p/682692024" target="_blank">Lab Summary 2</a></li>
+                            <li><a href="https://zhuanlan.zhihu.com/p/627086976" target="_blank">Embodied AI Overview</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV1zJ411z7fE" target="_blank">Embodied AI Tutorial</a></li>
                         </ul>
-                        <h3>High-Quality WeChat Accounts</h3>
-                        <p>Shi Ma Diary, Synced, Xinzhiyuan, QbitAI, Xbot Embodied Knowledge Base, Embodied Intelligence Heart, Autonomous Driving Heart, 3D Vision Workshop, Jiangmen Ventures, RLCN Reinforcement Learning Research, CVHub</p>
-                        <h3>High-Quality Conferences/Journals</h3>
-                        <p>Science Robotics, TRO, IJRR, JFR, RSS, IROS, ICRA, ICCV, ECCV, ICML, CVPR, NeurIPS, ICLR, AAAI, ACL</p>
-                        <h3>Introductory Course</h3>
+                        <h3>Key Resources</h3>
                         <ul>
-                            <li><a href="https://www.bilibili.com/video/BV17T421k78T/" target="_blank">Robotics Introductory Course</a></li>
+                            <li><a href="https://arxiv.org/abs/2307.03748" target="_blank">Embodied AI Research Paper</a></li>
                         </ul>
                     `
                 },
                 Chinese: {
                     name: '实用信息',
+                    description: '探索具身智能学习的基础资源和背景知识，为你的学习之旅打下基础。',
                     content: `
-                        <h3>相关实验室总结</h3>
+                        <h3>具身智能简介</h3>
+                        <p class="description">了解具身智能的核心概念和应用。</p>
                         <ul>
-                            <li><a href="https://zhuanlan.zhihu.com/p/682671294" target="_blank">实验室总结 1</a></li>
-                            <li><a href="https://zhuanlan.zhihu.com/p/682692024" target="_blank">实验室总结 2</a></li>
+                            <li><a href="https://zhuanlan.zhihu.com/p/627086976" target="_blank">具身智能概览</a></li>
+                            <li><a href="https://www.bilibili.com/video/BV1zJ411z7fE" target="_blank">具身智能教程</a></li>
                         </ul>
-                        <h3>高质量公众号</h3>
-                        <p>石麻日记, 机器之心, 新智元, 量子位, Xbot具身知识库, 具身智能之心, 自动驾驶之心, 3D视觉工坊, 将门创投, RLCN强化学习研究, CVHub</p>
-                        <h3>高质量会议/期刊</h3>
-                        <p>Science Robotics, TRO, IJRR, JFR, RSS, IROS, ICRA, ICCV, ECCV, ICML, CVPR, NeurIPS, ICLR, AAAI, ACL</p>
-                        <h3>导论课程</h3>
+                        <h3>关键资源</h3>
                         <ul>
-                            <li><a href="https://www.bilibili.com/video/BV17T421k78T/" target="_blank">机器人学导论课程</a></li>
+                            <li><a href="https://arxiv.org/abs/2307.03748" target="_blank">具身智能研究论文</a></li>
                         </ul>
                     `
                 }
@@ -321,38 +320,51 @@
             'algorithms': {
                 English: {
                     name: 'Algorithms',
+                    description: 'Dive into algorithms critical for embodied AI, including machine learning, computer vision, and robot learning techniques.',
                     content: `
-                        <p class="description">Explore various algorithms used in Embodied AI.</p>
-                        <p><a href="{{ url_for('algorithms') }}" target="_blank">Go to Algorithms Path</a></p>
+                        <p class="description">This section covers key algorithmic approaches for embodied intelligence.</p>
+                        <ul>
+                            <li><a href="/algorithms">Explore Algorithms Learning Path</a></li>
+                        </ul>
                     `
                 },
                 Chinese: {
                     name: '算法',
+                    description: '深入学习具身智能的关键算法，包括机器学习、计算机视觉和机器人学习技术。',
                     content: `
-                        <p class="description">探索具身智能中使用的各种算法。</p>
-                        <p><a href="{{ url_for('algorithms') }}" target="_blank">前往算法路径</a></p>
+                        <p class="description">本部分涵盖具身智能的关键算法方法。</p>
+                        <ul>
+                            <li><a href="/algorithms">探索算法学习路线</a></li>
+                        </ul>
                     `
                 }
             },
             'control-and-robotics': {
                 English: {
                     name: 'Control and Robotics',
+                    description: 'Learn control theory, robotics fundamentals, and techniques like SLAM for autonomous systems.',
                     content: `
-                        <p class="description">Learn about control systems and robotics.</p>
-                        <p><a href="{{ url_for('control_and_robotics') }}" target="_blank">Go to Control and Robotics Path</a></p>
+                        <p class="description">This section introduces control and robotics concepts for embodied AI.</p>
+                        <ul>
+                            <li><a href="/control_and_robotics">Explore Control & Robotics Learning Path</a></li>
+                        </ul>
                     `
                 },
                 Chinese: {
                     name: '控制与机器人学',
+                    description: '学习控制理论、机器人学基础以及SLAM等自主系统技术。',
                     content: `
-                        <p class="description">了解控制系统和机器人学。</p>
-                        <p><a href="{{ url_for('control_and_robotics') }}" target="_blank">前往控制与机器人学路径</a></p>
+                        <p class="description">本部分介绍具身智能的控制与机器人学概念。</p>
+                        <ul>
+                            <li><a href="/control_and_robotics">探索控制与机器人学学习路线</a></li>
+                        </ul>
                     `
                 }
             },
             'hardware': {
                 English: {
                     name: 'Hardware',
+                    description: 'Understand the hardware components essential for embodied AI, including embedded systems, mechanical design, robotic systems, and sensors.',
                     content: `
                         <h3>Embedded Systems</h3>
                         <ul>
@@ -377,6 +389,7 @@
                 },
                 Chinese: {
                     name: '硬件',
+                    description: '了解具身智能的硬件组件，包括嵌入式系统、机械设计、机器人系统和传感器。',
                     content: `
                         <h3>嵌入式</h3>
                         <ul>
@@ -403,136 +416,207 @@
         };
 
         const completableNodes = ['useful-information', 'algorithms', 'control-and-robotics', 'hardware'];
+        const subNodes = {
+            'algorithms': ['common-tools', 'vision-fusion', 'robot-learning', 'vla-models', 'computer-vision'],
+            'control-and-robotics': ['control-theory', 'robotics-basics', 'slam']
+        };
 
-        function showDetails(nodeId, event) {
-            const selectedLang = document.getElementById('languageSelect').value;
-            const data = nodesData[nodeId][selectedLang];
-            const isCompleted = localStorage.getItem(`completion_${nodeId}_${selectedLang}`) === 'true';
-            const sidebar = document.getElementById('sidebar');
-            const buttonText = isCompleted ? (selectedLang === 'Chinese' ? '已完成' : 'Completed') : (selectedLang === 'Chinese' ? '标记为完成' : 'Mark as Completed');
-            let html = `<h2 class="${selectedLang === 'Chinese' ? 'lang-zh' : 'lang-en'}">${data.name}</h2>`;
-            if (['useful-information', 'hardware'].includes(nodeId)) {
-                html += `<button class="completion-button${isCompleted ? ' completed' : ''}" onclick="toggleCompletion('${nodeId}', '${selectedLang}')">${buttonText}</button>`;
-            }
-            html += data.content;
-            sidebar.innerHTML = html;
-            sidebar.style.animation = 'none';
-            sidebar.offsetHeight;
-            sidebar.style.animation = 'slideIn 0.4s ease-out';
-            document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
-            if (event && event.target.tagName !== 'INPUT') {
-                document.getElementById(`${nodeId}_${selectedLang}`).classList.add('selected');
-            }
-        }
-
-        function toggleCompletion(nodeId, lang) {
-            const node = document.getElementById(`${nodeId}_${lang}`);
-            if (!node) return;
-            const isCompleted = !node.classList.contains('completed');
-            node.classList.toggle('completed', isCompleted);
-            const checkbox = node.querySelector('.completion-checkbox');
-            if (checkbox) checkbox.checked = isCompleted;
-            localStorage.setItem(`completion_${nodeId}_${lang}`, isCompleted);
-            if (nodeId === 'algorithms') {
-                const subNodes = ['common-tools', 'vision-fusion', 'robot-learning', 'vla-models', 'computer-vision'];
-                subNodes.forEach(subNode => {
-                    localStorage.setItem(`completion_${subNode}_${lang}`, isCompleted);
-                });
-                updateParentNodeCompletion('algorithms', subNodes, lang);
-            } else if (nodeId === 'control-and-robotics') {
-                const subNodes = ['control-theory', 'robotics-basics', 'path-planning', 'slam'];
-                subNodes.forEach(subNode => {
-                    localStorage.setItem(`completion_${subNode}_${lang}`, isCompleted);
-                });
-                updateParentNodeCompletion('control-and-robotics', subNodes, lang);
-            }
-            if (['useful-information', 'hardware'].includes(nodeId) && document.querySelector('.sidebar').innerHTML.includes(nodesData[nodeId][lang].name)) {
-                showDetails(nodeId, null);
-            }
-            updateProgress();
+        function getPreferredLanguage() {
+            return localStorage.getItem('language') || 'zh';
         }
 
         function updateProgress() {
-            const selectedLang = document.getElementById('languageSelect').value;
+            const lang = getPreferredLanguage() === 'en' ? 'English' : 'Chinese';
             const completedCount = completableNodes.filter(id => 
-                localStorage.getItem(`completion_${id}_${selectedLang}`) === 'true').length;
+                localStorage.getItem(`completion_${id}_${lang}`) === 'true'
+            ).length;
             const totalNodes = completableNodes.length;
             const progressPercentage = Math.round((completedCount / totalNodes) * 100);
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
-            progressFill.style.width = `${progressPercentage}%`;
-            progressText.querySelector('.lang-zh').textContent = `进度: ${progressPercentage}%`;
-            progressText.querySelector('.lang-en').textContent = `Progress: ${progressPercentage}%`;
+            if (progressFill && progressText) {
+                progressFill.style.width = `${progressPercentage}%`;
+                progressText.querySelector('.lang-zh').textContent = `进度: ${progressPercentage}%`;
+                progressText.querySelector('.lang-en').textContent = `Progress: ${progressPercentage}%`;
+                progressText.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
+                    el.classList.toggle('hidden', !el.classList.contains(`lang-${lang}`));
+                });
+            }
         }
 
-        function updateParentNodeCompletion(parentId, subNodes, lang) {
-            const allCompleted = subNodes.every(subNode => localStorage.getItem(`completion_${subNode}_${lang}`) === 'true');
-            const node = document.getElementById(`${parentId}_${lang}`);
-            if (node) {
-                node.classList.toggle('completed', allCompleted);
+        function syncNodesWithParent(lang) {
+            completableNodes.forEach(parentId => {
+                const parentCompleted = localStorage.getItem(`completion_${parentId}_${lang}`) === 'true';
+                if (!parentCompleted && subNodes[parentId]) {
+                    subNodes[parentId].forEach(nodeId => {
+                        localStorage.setItem(`completion_${nodeId}_${lang}`, false);
+                    });
+                }
+            });
+        }
+
+        function updateParentNodeCompletion(parentId, lang) {
+            if (subNodes[parentId]) {
+                const allSubNodesCompleted = subNodes[parentId].every(id => 
+                    localStorage.getItem(`completion_${id}_${lang}`) === 'true'
+                );
+                localStorage.setItem(`completion_${parentId}_${lang}`, allSubNodesCompleted);
+                const parentNode = document.getElementById(`${parentId}_${lang}`);
+                if (parentNode) {
+                    parentNode.classList.toggle('completed', allSubNodesCompleted);
+                    const checkbox = parentNode.querySelector('.completion-checkbox');
+                    if (checkbox) checkbox.checked = allSubNodesCompleted;
+                }
+            }
+        }
+
+        function showDetails(nodeId, lang, event) {
+            try {
+                if (event && event.target.classList.contains('completion-checkbox')) {
+                    return;
+                }
+                const currentLang = getPreferredLanguage() === 'en' ? 'English' : 'Chinese';
+                if (lang !== currentLang) {
+                    lang = currentLang;
+                }
+                if (!nodesData[nodeId] || !nodesData[nodeId][lang]) {
+                    return;
+                }
+                const data = nodesData[nodeId][lang];
+                const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
+                const buttonText = isCompleted ? (lang === 'Chinese' ? '已完成' : 'Completed') : (lang === 'Chinese' ? '标记为完成' : 'Mark as Completed');
+                const sidebar = document.getElementById('sidebar');
+                let html = `
+                    <h2 class="lang-zh ${lang === 'Chinese' ? '' : 'hidden'}">${data.name}</h2>
+                    <h2 class="lang-en ${lang === 'English' ? '' : 'hidden'}">${data.name}</h2>
+                    <button class="completion-button ${isCompleted ? 'completed' : ''}" onclick="toggleCompletion('${nodeId}', '${lang}')">${buttonText}</button>
+                    <p class="description">${data.description}</p>
+                `;
+                html += data.content;
+                sidebar.innerHTML = html;
+                sidebar.style.animation = 'none';
+                sidebar.offsetHeight;
+                sidebar.style.animation = 'slideIn 0.4s ease-out';
+                document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
+                const nodeElement = document.getElementById(`${nodeId}_${lang}`);
+                if (nodeElement) {
+                    nodeElement.classList.add('selected');
+                }
+            } catch (e) {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.innerHTML = `
+                    <h2 class="lang-zh">节点详情</h2>
+                    <h2 class="lang-en hidden">Node Details</h2>
+                    <p class="lang-zh">点击一个节点以查看详情</p>
+                    <p class="lang-en hidden">Click a node to view details</p>
+                `;
+                sidebar.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
+                    el.classList.toggle('hidden', !el.classList.contains(`lang-${getPreferredLanguage()}`));
+                });
+            }
+        }
+
+        function toggleCompletion(nodeId, lang) {
+            try {
+                const node = document.getElementById(`${nodeId}_${lang}`);
+                if (!node) return;
+                const isCompleted = !node.classList.contains('completed');
+                node.classList.toggle('completed', isCompleted);
                 const checkbox = node.querySelector('.completion-checkbox');
-                if (checkbox) checkbox.checked = allCompleted;
-                localStorage.setItem(`completion_${parentId}_${lang}`, allCompleted);
+                if (checkbox) checkbox.checked = isCompleted;
+                localStorage.setItem(`completion_${nodeId}_${lang}`, isCompleted);
+                if (subNodes[nodeId]) {
+                    if (!isCompleted) {
+                        subNodes[nodeId].forEach(subId => {
+                            localStorage.setItem(`completion_${subId}_${lang}`, false);
+                        });
+                    }
+                    updateParentNodeCompletion(nodeId, lang);
+                }
+                if (document.querySelector('.sidebar').innerHTML.includes(nodesData[nodeId][lang].name)) {
+                    showDetails(nodeId, lang, null);
+                }
+                updateProgress();
+            } catch (e) {
+                console.error('Error in toggleCompletion:', e);
             }
         }
 
-        function syncSubNodes(lang) {
-            const algorithmSubNodes = ['common-tools', 'vision-fusion', 'robot-learning', 'vla-models', 'computer-vision'];
-            const controlSubNodes = ['control-theory', 'robotics-basics', 'path-planning', 'slam'];
-            const algorithmsCompleted = localStorage.getItem(`completion_algorithms_${lang}`) === 'true';
-            const controlCompleted = localStorage.getItem(`completion_control-and-robotics_${lang}`) === 'true';
-            if (!algorithmsCompleted) {
-                algorithmSubNodes.forEach(subNode => {
-                    localStorage.setItem(`completion_${subNode}_${lang}`, false);
+        function toggleLanguage() {
+            try {
+                const lang = getPreferredLanguage() === 'zh' ? 'en' : 'zh';
+                localStorage.setItem('language', lang);
+                document.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
+                    el.classList.toggle('hidden', !el.classList.contains(`lang-${lang}`));
                 });
-            }
-            if (!controlCompleted) {
-                controlSubNodes.forEach(subNode => {
-                    localStorage.setItem(`completion_${subNode}_${lang}`, false);
+                document.querySelectorAll('.node').forEach(node => {
+                    node.classList.toggle('hidden', !node.classList.contains(`lang-${lang === 'en' ? 'en' : 'zh'}`));
                 });
+                const selectedNode = document.querySelector('.node:not(.hidden).selected');
+                if (selectedNode) {
+                    const nodeId = selectedNode.id.split('_')[0];
+                    document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
+                    const newNode = document.getElementById(`${nodeId}_${lang === 'en' ? 'English' : 'Chinese'}`);
+                    if (newNode) {
+                        newNode.classList.add('selected');
+                        showDetails(nodeId, lang === 'en' ? 'English' : 'Chinese', null);
+                    }
+                } else {
+                    const sidebar = document.getElementById('sidebar');
+                    sidebar.innerHTML = `
+                        <h2 class="lang-zh ${lang === 'zh' ? '' : 'hidden'}">节点详情</h2>
+                        <h2 class="lang-en ${lang === 'en' ? '' : 'hidden'}">Node Details</h2>
+                        <p class="lang-zh ${lang === 'zh' ? '' : 'hidden'}">点击一个节点以查看详情</p>
+                        <p class="lang-en ${lang === 'en' ? '' : 'hidden'}">Click a node to view details</p>
+                    `;
+                }
+                completableNodes.forEach(nodeId => {
+                    const node = document.getElementById(`${nodeId}_${lang === 'en' ? 'English' : 'Chinese'}`);
+                    if (node) {
+                        const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang === 'en' ? 'English' : 'Chinese'}`) === 'true';
+                        node.classList.toggle('completed', isCompleted);
+                        const checkbox = node.querySelector('.completion-checkbox');
+                        if (checkbox) checkbox.checked = isCompleted;
+                    }
+                });
+                updateProgress();
+            } catch (e) {
+                console.error('Error in toggleLanguage:', e);
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            syncSubNodes('Chinese');
-            syncSubNodes('English');
-            document.querySelectorAll('.node[data-node]').forEach(node => {
-                const nodeId = node.dataset.node;
-                const lang = node.id.split('_')[1];
-                const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
-                node.classList.toggle('completed', isCompleted);
-                const checkbox = node.querySelector('.completion-checkbox');
-                if (checkbox) checkbox.checked = isCompleted;
-            });
-            updateProgress();
-            // Enhance base.html's toggleLanguage to update sidebar and nodes
-            const languageSelect = document.getElementById('languageSelect');
-            if (languageSelect) {
-                const originalToggle = window.toggleLanguage;
-                window.toggleLanguage = function() {
-                    originalToggle();
-                    const selectedLang = languageSelect.value;
-                    // Update sidebar for current selected node
-                    const selectedNode = document.querySelector('.node.selected');
-                    if (selectedNode) {
-                        const nodeId = selectedNode.id.split('_')[0];
-                        document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
-                        const newNode = document.getElementById(`${nodeId}_${selectedLang}`);
-                        if (newNode) newNode.classList.add('selected');
-                        showDetails(nodeId, null);
+            try {
+                const lang = getPreferredLanguage();
+                document.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
+                    el.classList.toggle('hidden', !el.classList.contains(`lang-${lang}`));
+                });
+                document.querySelectorAll('.node').forEach(node => {
+                    node.classList.toggle('hidden', !node.id.endsWith(lang === 'en' ? 'English' : 'Chinese'));
+                    const nodeId = node.id.split('_')[0];
+                    const nodeLang = node.id.split('_')[1];
+                    const isCompleted = localStorage.getItem(`completion_${nodeId}_${nodeLang}`) === 'true';
+                    node.classList.toggle('completed', isCompleted);
+                    const checkbox = node.querySelector('.completion-checkbox');
+                    if (checkbox) checkbox.checked = isCompleted;
+                });
+                syncNodesWithParent('Chinese');
+                syncNodesWithParent('English');
+                completableNodes.forEach(nodeId => {
+                    updateParentNodeCompletion(nodeId, 'Chinese');
+                    updateParentNodeCompletion(nodeId, 'English');
+                });
+                updateProgress();
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'language') {
+                        toggleLanguage();
                     }
-                    // Sync completion states
-                    completableNodes.forEach(nodeId => {
-                        const node = document.getElementById(`${nodeId}_${selectedLang}`);
-                        if (node) {
-                            const isCompleted = localStorage.getItem(`completion_${nodeId}_${selectedLang}`) === 'true';
-                            node.classList.toggle('completed', isCompleted);
-                            const checkbox = node.querySelector('.completion-checkbox');
-                            if (checkbox) checkbox.checked = isCompleted;
-                        }
-                    });
-                    updateProgress();
-                };
+                });
+                if (typeof window.toggleLanguage === 'function') {
+                    window.toggleLanguage = toggleLanguage;
+                }
+            } catch (e) {
+                console.error('Error in DOMContentLoaded:', e);
             }
         });
     </script>

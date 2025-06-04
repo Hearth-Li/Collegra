@@ -2,9 +2,10 @@ import subprocess
 import os
 
 def compileLatex(tex_file, output_dir):
-    result = subprocess.run(["pdflatex", tex_file], cwd=output_dir, capture_output=True, text=True)
+    # Use xelatex instead of pdflatex for better Chinese support
+    result = subprocess.run(["xelatex", tex_file], cwd=output_dir, capture_output=True, text=True)
     if result.returncode != 0:
-        raise Exception(f"pdflatex failed: {result.stderr}")
+        raise Exception(f"xelatex failed: {result.stderr}")
     aux_extensions = ['.aux', '.log', '.out']
     for ext in aux_extensions:
         aux_file = os.path.splitext(tex_file)[0] + ext
@@ -27,7 +28,8 @@ def text2Latex(input, output_path=None):
     language = input.get('language', 'en')
     assert language in ['en', 'ch'], "Language must be 'en' or 'ch'"
 
-    result = header
+    # Use the appropriate header based on language
+    result = header if language == 'en' else header_ch
 
     name = escape_latex(input.get('Name', '').strip())
     location = escape_latex(input.get('Location', '').strip())
@@ -192,18 +194,19 @@ def skills(language, skills):
         result += f"\\begin{{onecolentry}}\n\\textbf{{{category}}}: {items}\n\\end{{onecolentry}}\n"
     
     return result
-                
+
+# Header for English resumes
 header = r"""
     \documentclass[10pt, letterpaper]{article}
 
     % Packages:
     \usepackage[
         ignoreheadfoot, % set margins without considering header and footer
-        top=2 cm, % seperation between body and page edge from the top
-        bottom=2 cm, % seperation between body and page edge from the bottom
-        left=2 cm, % seperation between body and page edge from the left
-        right=2 cm, % seperation between body and page edge from the right
-        footskip=1.0 cm, % seperation between body and footer
+        top=2 cm, % separation between body and page edge from the top
+        bottom=2 cm, % separation between body and page edge from the bottom
+        left=2 cm, % separation between body and page edge from the left
+        right=2 cm, % separation between body and page edge from the right
+        footskip=1.0 cm, % separation between body and footer
     ]{geometry}
     \usepackage{titlesec}
     \usepackage{tabularx}
@@ -335,7 +338,154 @@ header = r"""
         \sbox\ANDbox{$|$}
 """
 
+# Header for Chinese resumes
+header_ch = r"""
+    \documentclass[10pt, letterpaper]{article}
+
+    % Packages:
+    \usepackage[
+        ignoreheadfoot, % set margins without considering header and footer
+        top=2 cm, % separation between body and page edge from the top
+        bottom=2 cm, % separation between body and page edge from the bottom
+        left=2 cm, % separation between body and page edge from the left
+        right=2 cm, % separation between body and page edge from the right
+        footskip=1.0 cm, % separation between body and footer
+    ]{geometry}
+    \usepackage{titlesec}
+    \usepackage{tabularx}
+    \usepackage{array}
+    \usepackage[dvipsnames]{xcolor}
+    \definecolor{primaryColor}{RGB}{0, 0, 0}
+    \usepackage{enumitem}
+    \usepackage{fontawesome5}
+    \usepackage{amsmath}
+    \usepackage[
+        pdftitle={CV},
+        pdfauthor={User},
+        pdfcreator={LaTeX with RenderCV},
+        colorlinks=true,
+        urlcolor=primaryColor
+    ]{hyperref}
+    \usepackage[pscoord]{eso-pic}
+    \usepackage{calc}
+    \usepackage{bookmark}
+    \usepackage{lastpage}
+    \usepackage{changepage}
+    \usepackage{paracol}
+    \usepackage{ifthen}
+    \usepackage{needspace}
+    \usepackage{iftex}
+    \usepackage{xeCJK} % Add support for Chinese characters
+
+    \ifPDFTeX
+        \input{glyphtounicode}
+        \pdfgentounicode=1
+        \usepackage[T1]{fontenc}
+        \usepackage[utf8]{inputenc}
+        \usepackage{lmodern}
+    \fi
+
+    % Set Chinese font (e.g., SimSun or a similar font available in your LaTeX distribution)
+    \setCJKmainfont{SimSun} % Use SimSun for Chinese text
+    \setCJKsansfont{SimSun}
+    \setCJKmonofont{SimSun}
+
+    \raggedright
+    \AtBeginEnvironment{adjustwidth}{\partopsep0pt}
+    \pagestyle{empty}
+    \setcounter{secnumdepth}{0}
+    \setlength{\parindent}{0pt}
+    \setlength{\topskip}{0pt}
+    \setlength{\columnsep}{0.15cm}
+    \pagenumbering{gobble}
+
+    \titleformat{\section}{\needspace{4\baselineskip}\bfseries\large}{}{0pt}{}[\vspace{1pt}\titlerule]
+
+    \titlespacing{\section}{-1pt}{0.3 cm}{0.2 cm}
+
+    \renewcommand\labelitemi{$\vcenter{\hbox{\small$\bullet$}}$}
+    \newenvironment{highlights}{
+        \begin{itemize}[
+            topsep=0.10 cm,
+            parsep=0.10 cm,
+            partopsep=0pt,
+            itemsep=0pt,
+            leftmargin=0 cm + 10pt
+        ]
+    }{
+        \end{itemize}
+    }
+
+    \newenvironment{highlightsforbulletentries}{
+        \begin{itemize}[
+            topsep=0.10 cm,
+            parsep=0.10 cm,
+            partopsep=0pt,
+            itemsep=0pt,
+            leftmargin=10pt
+        ]
+    }{
+        \end{itemize}
+    }
+
+    \newenvironment{onecolentry}{
+        \begin{adjustwidth}{0 cm + 0.00001 cm}{0 cm + 0.00001 cm}
+    }{
+        \end{adjustwidth}
+    }
+
+    \newenvironment{twocolentry}[2][]{
+        \onecolentry
+        \def\secondColumn{#2}
+        \setcolumnwidth{\fill, 4.5 cm}
+        \begin{paracol}{2}
+    }{
+        \switchcolumn \raggedleft \secondColumn
+        \end{paracol}
+        \endonecolentry
+    }
+
+    \newenvironment{threecolentry}[3][]{
+        \onecolentry
+        \def\thirdColumn{#3}
+        \setcolumnwidth{, \fill, 4.5 cm}
+        \begin{paracol}{3}
+        {\raggedright #2} \switchcolumn
+    }{
+        \switchcolumn \raggedleft \thirdColumn
+        \end{paracol}
+        \endonecolentry
+    }
+
+    \newenvironment{header}{
+        \setlength{\topsep}{0pt}\par\kern\topsep\centering\linespread{1.5}
+    }{
+        \par\kern\topsep
+    }
+
+    \newcommand{\placelastupdatedtext}{
+        \AddToShipoutPictureFG*{
+            \put(
+                \LenToUnit{\paperwidth-2 cm-0 cm+0.05cm},
+                \LenToUnit{\paperheight-1.0 cm}
+            ){\vtop{{\null}\makebox[0pt][c]{
+                \small\color{gray}\textit{最后更新于2024年9月}\hspace{\widthof{最后更新于2024年9月}}
+            }}}
+        }
+    }
+
+    \let\hrefWithoutArrow\href
+
+    \begin{document}
+        \newcommand{\AND}{\unskip
+            \cleaders\copy\ANDbox\hskip\wd\ANDbox
+            \ignorespaces
+        }
+        \newsavebox\ANDbox
+        \sbox\ANDbox{$|$}
+"""
+
 if __name__ == "__main__":
-    input = {'language': 'ch', 'download_option': 'latex', 'Name': 'John Doe', 'Location': 'Guangzhou, PRC', 'Email': 'zhangwei@sysu.com', 'Education': [], 'Experience': [], 'Publications': [], 'Projects': [], 'Skills': {}}
+    input = {'language': 'ch', 'download_option': 'latex', 'Name': '张伟', 'Location': 'Guangzhou, PRC', 'Email': 'zhangwei@sysu.com', 'Education': [], 'Experience': [], 'Publications': [], 'Projects': [], 'Skills': {}}
     text2Latex(input)
     compileLatex('./cv.tex', '.')

@@ -114,8 +114,13 @@ def generate_cv_route():
                 print(f'PDF exists: {os.path.exists(pdf_file)}, size: {os.path.getsize(pdf_file) if os.path.exists(pdf_file) else 0}')
                 if not os.path.exists(pdf_file):
                     return jsonify({"error": "PDF generation failed: No PDF file produced"}), 500
+                # Read the PDF content into memory
+                with open(pdf_file, 'rb') as f:
+                    pdf_content = f.read()
+                # Use send_file with BytesIO to send the content
+                from io import BytesIO
                 return send_file(
-                    pdf_file,
+                    BytesIO(pdf_content),
                     as_attachment=True,
                     download_name='resume.pdf',
                     mimetype='application/pdf'
