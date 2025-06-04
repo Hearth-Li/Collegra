@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}
+    <span class="lang-en hidden">{{ _('Chat with AI Assistant') }}</span>
+    <span class="lang-zh">{{ _('与AI助手对话') }}</span>
+{% endblock %}
+
+{% block head %}
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    {{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1 class="text-3xl font-bold mb-8" style="background: linear-gradient(90deg, #6b46c1, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent;">
+        <span class="lang-en hidden">{{ _('Chat with AI Assistant') }}</span>
+        <span class="lang-zh">{{ _('与AI助手对话') }}</span>
+    </h1>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    <span class="lang-en hidden">{{ _(message) }}</span>
+                    <span class="lang-zh">{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<div class="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-4">
+    <div id="chat-window" class="h-96 overflow-y-auto mb-4 p-4 border border-gray-200 rounded-lg">
+        <!-- Chat messages will be appended here -->
+    </div>
+    <div class="mb-4">
+        <p class="text-sm text-gray-600 mb-2">
+            <span class="lang-en hidden">{{ _('Select a model: V1 for general conversation, R3 for advanced reasoning.') }}</span>
+            <span class="lang-zh">{{ _('选择模型：V1用于常规对话，R3用于高级推理。') }}</span>
+        </p>
+        <div class="mb-4">
+            <select id="model-select" class="w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                data-translations='{
+                    "V1": {"en": "{{ _('V1') }}", "zh": "{{ _('V1') }}"},
+                    "R3": {"en": "{{ _('R3') }}", "zh": "{{ _('R3') }}"}
+                }'>
+                <option value="V1">{{ _('V1') }}</option>
+                <option value="R3">{{ _('R3') }}</option>
+            </select>
+        </div>
+        <p class="text-sm text-gray-600 mb-2">
+            <span class="lang-en hidden">{{ _('System prompts define the AI’s role or tone, ensuring consistent and tailored responses.') }}</span>
+            <span class="lang-zh">{{ _('系统提示定义AI的角色或语气，确保响应一致且定制化。') }}</span>
+        </p>
+        <p class="text-sm text-gray-600 mb-2">
+            <span class="lang-en hidden">{{ _('Example System Prompt: “Act as a formal academic tutor.” This makes the AI respond with structured, educational answers.') }}</span>
+            <span class="lang-zh">{{ _('系统提示示例：“作为正式学术导师。”这使AI以结构化、教育的答案回应。') }}</span>
+        </p>
+        <p class="text-sm text-gray-600 mb-2">
+            <span class="lang-en hidden">{{ _('System prompts are important because they guide the AI’s behavior, ensuring responses match your desired tone or expertise.') }}</span>
+            <span class="lang-zh">{{ _('系统提示很重要，因为它们指导AI的行为，确保响应符合您期望的语气或专业性。') }}</span>
+        </p>
+        <div class="flex gap-4">
+            <label class="flex items-center">
+                <input type="radio" name="prompt-type" value="user" checked class="mr-2">
+                <span class="lang-en hidden">{{ _('User Prompt') }}</span>
+                <span class="lang-zh">{{ _('用户提示') }}</span>
+            </label>
+            <label class="flex items-center">
+                <input type="radio" name="prompt-type" value="system" class="mr-2">
+                <span class="lang-en hidden">{{ _('System Prompt') }}</span>
+                <span class="lang-zh">{{ _('系统提示') }}</span>
+            </label>
+        </div>
+    </div>
+    <div class="flex gap-2">
+        <input type="text" id="chat-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="{% if g.lang == 'en' %}{{ _('Type your message...') }}{% else %}{{ _('输入您的消息...') }}{% endif %}" required>
+        <button id="send-button" class="inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700">
+            <span class="lang-en hidden">{{ _('Send') }}</span>
+            <span class="lang-zh">{{ _('发送') }}</span>
+        </button>
+    </div>
+    <div id="loading-indicator" class="hidden text-gray-600 mt-2">
+        <span class="lang-en hidden">{{ _('Loading...') }}</span>
+        <span class="lang-zh">{{ _('加载中...') }}</span>
+    </div>
+</div>
+{% endblock %}

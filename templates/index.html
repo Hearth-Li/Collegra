@@ -51,5 +51,23 @@
        class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-zh">
         待办清单
     </a>
+
+    <a href="{{ url_for('course_scheduler') }}"
+       class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-en hidden">
+        Course Scheduler
+    </a>
+    <a href="{{ url_for('course_scheduler') }}"
+       class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-zh">
+        课程表管理
+    </a>
+
+    <a href="{{ url_for('chat') }}"
+       class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-en hidden">
+        AI Assistant
+    </a>
+    <a href="{{ url_for('chat') }}"
+       class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-zh">
+        AI助手
+    </a>
 {% endblock %}
 
