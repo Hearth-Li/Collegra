@@ -16,7 +16,7 @@ conda activate collegra
 
 2. 安装所需依赖：
 ```bash
-pip install flask flask_sqlalchemy flask_babel
+pip install flask flask_sqlalchemy flask_babel requests
 ```
 
 3. 进入项目目录并运行程序：
@@ -43,16 +43,21 @@ Collegra
         |-- PathRecommender
         |-- base.html
         |-- index.html
-        |-- ...
-        |-- ...
+        |-- recommender.html
+        |-- resume.html
+        |-- course_scheduler.html
+        |-- todo.html
 ```
 
 - **`app.py`**：Flask 应用的主文件，定义路由、初始化程序并启动服务器。
 - **`base.html`**：定义顶栏（包括 logo、标语、语言切换和菜单）以及渐变背景的基础模板。
 - **`index.html`**：Collegra 的主页。
-- **`templates/` 下的其他文件夹**：包含各个模块的页面。
 - **`static/`**：包含静态资源，如 CSS、JavaScript 和图像等。
 - **`text2cv.py`**：用于将文本生成简历的脚本（如需也可补充用途说明）。
+- **`recommender.html`**: 路径推荐模块的主页, 它为用户推荐一些领域方向的学习路径。
+- **`resume.html`**: 简历生成器的主页, 它根据用户输入生成简历。
+- **`course_scheduler.html`**: 课程表管理主页。
+- **`todo.html`**: 待办列表主页, 它可以设置不同的任务和优先程度等。
 
 ---
 

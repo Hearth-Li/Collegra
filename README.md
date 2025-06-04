@@ -16,7 +16,7 @@ conda activate collegra
 
 2. Install required dependencies:
 ```bash
-pip install flask flask_sqlalchemy flask_babel
+pip install flask flask_sqlalchemy flask_babel requests
 ```
 
 3. Navigate to the project directory and run the application:
@@ -43,8 +43,10 @@ Collegra
         |-- PathRecommender/
         |-- base.html
         |-- index.html
-        |-- ...
-        |-- ...
+        |-- recommender.html
+        |-- resume.html
+        |-- course_scheduler.html
+        |-- todo.html
 ```
 
 - **`app.py`**: The main Flask application file that defines routes, initializes the app, and launches the server.
@@ -53,6 +55,10 @@ Collegra
 - **Other folders under `templates/`**: Contain module-specific pages.
 - **`static/`**: Contains static assets such as CSS, JavaScript, and images.
 - **`text2cv.py`**: A script for generating a resume from user input (if applicable).
+- - **`recommender.html`**: Homepage of learning path recommender module, which recommend learning path for different areas.
+- **`resume.html`**: Homepage for resume generator.
+- **`course_scheduler.html`**: Homepage for course scheduler.
+- **`todo.html`**: Homepage for todo list scheduler, which schdule tasks with different priorities.
 
 ---
 
