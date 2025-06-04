@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Preview{% endblock %}
+
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-latex.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <style>
+        #latex-preview {
+            display: none;
+            width: 100%;
+            min-height: 200px;
+            max-height: 90vh;
+            height: auto;
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            resize: none;
+            background: #f8fafc;
+        }
+        #pdf-preview {
+            display: none;
+            width: 100%;
+            min-height: 200px;
+            max-height: 90vh;
+            border: 1px solid #d1d5db;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+        #error-message {
+            display: none;
+            color: #dc2626;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .button {
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
+        function resizeLatexPreview() {
+            const textarea = document.getElementById('latex-preview');
+            if (textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = `${Math.min(textarea.scrollHeight + 20, window.innerHeight * 0.9)}px`;
+                console.log('LaTeX textarea resized to:', textarea.style.height);
+            } else {
+                console.error('LaTeX preview element not found');
+            }
+        }
+
+        async function loadPreview() {
+            console.log('Starting loadPreview');
+            const errorMessage = document.getElementById('error-message');
+            const latexPreview = document.getElementById('latex-preview');
+            const pdfPreview = document.getElementById('pdf-preview');
+
+            if (!errorMessage || !latexPreview || !pdfPreview) {
+                console.error('DOM elements missing:', { errorMessage, latexPreview, pdfPreview });
+                errorMessage.textContent = localStorage.getItem('language') === 'zh' ? '页面设置错误：缺少预览元素。' : 'Page setup error: Missing preview elements.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            errorMessage.textContent = localStorage.getItem('language') === 'zh' ? '加载预览中...' : 'Loading preview...';
+            errorMessage.style.display = 'block';
+            console.log('Set loading message');
+
+            try {
+                const data = JSON.parse(sessionStorage.getItem('resumeData'));
+                console.log('Session storage data:', data);
+                if (!data) {
+                    throw new Error('No resume data found in sessionStorage');
+                }
+
+                const response = await fetch('/api/preview-resume', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Preview fetch response status:', response.status);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Preview fetch error:', errorText);
+                    throw new Error(`HTTP error: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('API response:', result);
+                if (result.error) {
+                    console.error('API error:', result.error);
+                    throw new Error(`API error: ${result.error}`);
+                }
+
+                errorMessage.style.display = 'none';
+
+                if (result.type === 'pdf') {
+                    try {
+                        if (!result.content || !/^[A-Za-z0-9+/=]+$/.test(result.content)) {
+                            throw new Error('Invalid base64 data');
+                        }
+                        console.log('PDF base64 length:', result.content.length, 'starts with:', result.content.substring(0, 10));
+                        const pdfData = atob(result.content);
+                        console.log('Decoded PDF data length:', pdfData.length);
+                        const pdfBytes = new Uint8Array(pdfData.length);
+                        for (let i = 0; i < pdfData.length; i++) {
+                            pdfBytes[i] = pdfData.charCodeAt(i);
+                        }
+                        const pdfDoc = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
+                        console.log('PDF document loaded, pages:', pdfDoc.numPages);
+                        pdfPreview.innerHTML = '';
+                        for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                            console.log('Rendering PDF page:', pageNum);
+                            const page = await pdfDoc.getPage(pageNum);
+                            const canvas = document.createElement('canvas');
+                            canvas.style.marginBottom = '10px';
+                            canvas.style.border = '1px solid #e5e7eb';
+                            pdfPreview.appendChild(canvas);
+                            const context = canvas.getContext('2d');
+                            const viewport = page.getViewport({ scale: 1.5 });
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            await page.render({ canvasContext: context, viewport }).promise;
+                        }
+                        pdfPreview.style.display = 'block';
+                    } catch (pdfErr) {
+                        console.error('PDF rendering error:', pdfErr);
+                        errorMessage.textContent = localStorage.getItem('language') === 'zh' ? '无法渲染PDF预览，请检查服务器日志或尝试下载PDF。' : 'Failed to render PDF preview. Please check server logs or try downloading the PDF.';
+                        errorMessage.style.display = 'block';
+                    }
+                } else if (result.type === 'latex') {
+                    latexPreview.textContent = result.content || (localStorage.getItem('language') === 'zh' ? '未返回LaTeX内容' : 'No LaTeX content returned');
+                    latexPreview.classList.add('language-latex');
+                    console.log('LaTeX content set:', result.content ? result.content.substring(0, 100) + '...' : 'Empty');
+                    latexPreview.style.display = 'block';
+                    Prism.highlightElement(latexPreview);
+                    resizeLatexPreview();
+                } else {
+                    throw new Error(`Unknown result type: ${result.type}`);
+                }
+
+                const downloadButton = document.getElementById('download-button');
+                if (downloadButton) {
+                    downloadButton.onclick = async () => {
+                        try {
+                            console.log('Initiating download with data:', data);
+                            const response = await fetch('/api/generate-resume', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                            console.log('Download fetch response status:', response.status);
+                            if (!response.ok) {
+                                const errorText = await response.text();
+                                console.error('Download fetch error:', errorText);
+                                throw new Error(`Failed to generate file: ${response.status} - ${errorText}`);
+                            }
+                            const blob = await response.blob();
+                            console.log('Download blob received, size:', blob.size);
+                            const contentDisposition = response.headers.get('Content-Disposition');
+                            const filename = contentDisposition 
+                                ? contentDisposition.match(/filename="(.+)"/)?.[1] 
+                                : data.download_option === 'latex' ? 'resume.tex' : 'resume.pdf';
+                            console.log('Download filename:', filename);
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = filename;
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        } catch (error) {
+                            console.error('Download error:', error);
+                            const isChinese = localStorage.getItem('language') === 'zh';
+                            alert(isChinese ? '生成文件时出错，请检查服务器日志并重试。' : 'Error generating file. Please check server logs and try again.');
+                        }
+                    };
+                } else {
+                    console.error('Download button not found');
+                }
+            } catch (error) {
+                console.error('Load preview error:', error);
+                const isChinese = localStorage.getItem('language') === 'zh';
+                errorMessage.textContent = isChinese 
+                    ? '加载预览时出错，请返回并重试。' 
+                    : 'Error loading preview. Please go back and try again.';
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Preview page loaded, applying language');
+            const lang = localStorage.getItem('language') || 'zh';
+            console.log('Language:', lang);
+            document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('hidden', lang !== 'en'));
+            document.querySelectorAll('.lang-zh').forEach(el => el.classList.toggle('hidden', lang !== 'zh'));
+            loadPreview();
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <h1 class="text-3xl font-bold mb-4">
+        <span class="lang-en hidden">Resume Preview</span>
+        <span class="lang-zh">简历预览</span>
+    </h1>
+    <div id="error-message"></div>
+    <div id="latex-preview"></div>
+    <div id="pdf-preview"></div>
+    <div class="flex justify-end space-x-4 mt-4">
+        <a href="{{ url_for('resume') }}" class="bg-gray-500 text-white px-4 py-2 rounded button">
+            <span class="lang-en hidden">Back</span>
+            <span class="lang-zh">返回</span>
+        </a>
+        <button id="download-button" class="bg-green-500 text-white px-4 py-2 rounded button">
+            <span class="lang-en hidden">Download</span>
+            <span class="lang-zh">下载</span>
+        </button>
+    </div>
+{% endblock %}

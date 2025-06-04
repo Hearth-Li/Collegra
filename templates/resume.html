@@ -82,6 +82,11 @@
         .progress-dot.active {
             background: #8b5cf6;
         }
+        .education-entry, .experience-entry, .publication-entry, .project-entry, .skill-entry {
+            max-width: 48rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -92,7 +97,8 @@
         }
     </style>
     <script>
-        // Dynamic form field addition functions
+        let isSubmitting = false;
+
         function addEducation() {
             const container = document.getElementById('education-container');
             const div = document.createElement('div');
@@ -109,12 +115,28 @@
                 <input type="text" name="education_institution[]" class="w-full p-2 mb-2 border rounded" placeholder="Institution" data-zh-placeholder="学校">
                 <input type="text" name="education_duration[]" class="w-full p-2 mb-2 border rounded" placeholder="Duration (e.g., Sep 2023 - Present)" data-zh-placeholder="时间段 (例如：2023年9月 - 至今)">
                 <input type="text" name="education_degree[]" class="w-full p-2 mb-2 border rounded" placeholder="Degree" data-zh-placeholder="学位">
-                <input type="text" name="education_gpa[]" class="w-full p-2 mb-2 border rounded" placeholder="GPA (e.g., 4.0/4.0)" data-zh-placeholder="绩点 (例如：4.0/4.0)">
-                <input type="text" name="education_courses[]" class="w-full p-2 mb-2 border rounded" placeholder="Core Courses" data-zh-placeholder="核心课程">
+                <div class="extra-items-container mb-2"></div>
+                <button type="button" onclick="addExtraItem(this)" class="bg-blue-300 text-white px-3 py-1 rounded add-button">
+                    <span class="lang-en hidden">Add Extra Item</span>
+                    <span class="lang-zh">添加额外项</span>
+                </button>
             `;
             container.appendChild(div);
             updatePlaceholders();
             updateProgress();
+        }
+
+        function addExtraItem(button) {
+            const container = button.previousElementSibling;
+            const div = document.createElement('div');
+            div.className = 'extra-item flex space-x-2 mb-2';
+            div.innerHTML = `
+                <input type="text" name="education_extra_key[${container.parentElement.querySelectorAll('.extra-item').length}][]" class="w-1/3 p-2 border rounded" placeholder="Key (e.g., GPA)" data-zh-placeholder="键 (例如：GPA)">
+                <input type="text" name="education_extra_value[${container.parentElement.querySelectorAll('.extra-item').length}][]" class="w-2/3 p-2 border rounded" placeholder="Value (e.g., 4.0/4.0)" data-zh-placeholder="值 (例如：4.0/4.0)">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 remove-button">X</button>
+            `;
+            container.appendChild(div);
+            updatePlaceholders();
         }
 
         function addExperience() {
@@ -178,7 +200,7 @@
                         <span class="lang-zh">删除</span>
                     </button>
                 </div>
-                <input type="text" name="project_title[]" class="w-full p-2 mb-2 border rounded" placeholder="Title" data-zh-placeholder="标题">
+                <input type="text" name="project_title[]" class="w-full p-2 mb-2 border rounded" placeholder="Project Title" data-zh-placeholder="标题">
                 <textarea name="project_descriptions[]" class="w-full p-2 mb-2 border rounded" rows="4" placeholder="Descriptions (one per line)" data-zh-placeholder="描述 (每行一条)"></textarea>
             `;
             container.appendChild(div);
@@ -207,7 +229,6 @@
             updateProgress();
         }
 
-        // Update placeholders based on language
         function updatePlaceholders() {
             const isChinese = !document.querySelector('.lang-en:not(.hidden)');
             document.querySelectorAll('input[data-zh-placeholder], textarea[data-zh-placeholder]').forEach(element => {
@@ -216,7 +237,6 @@
             document.querySelector('[name="language"]').value = isChinese ? 'ch' : 'en';
         }
 
-        // Update progress bar based on filled sections
         function updateProgress() {
             const sections = [
                 { id: 'personal-info', selector: '[name="name"], [name="location"], [name="email"]' },
@@ -241,10 +261,14 @@
 
         async function submitForm(event) {
             event.preventDefault();
+            if (isSubmitting) return;
+            isSubmitting = true;
+
             const form = document.getElementById('resume-form');
             const formData = new FormData(form);
             const data = {
                 language: formData.get('language'),
+                download_option: formData.get('download_option'),
                 Name: formData.get('name'),
                 Location: formData.get('location'),
                 Email: formData.get('email'),
@@ -255,20 +279,23 @@
                 Skills: {}
             };
 
-            // Build education array
             const educationEntries = document.getElementsByClassName('education-entry');
             for (let entry of educationEntries) {
                 const education = {
                     institution: entry.querySelector('[name="education_institution[]"]').value,
                     duration: entry.querySelector('[name="education_duration[]"]').value,
-                    degree: entry.querySelector('[name="education_degree[]"]').value,
-                    GPA: entry.querySelector('[name="education_gpa[]"]').value,
-                    'Core Courses': entry.querySelector('[name="education_courses[]"]').value
+                    degree: entry.querySelector('[name="education_degree[]"]').value
                 };
+                const extraKeys = entry.querySelectorAll('[name^="education_extra_key"]');
+                const extraValues = entry.querySelectorAll('[name^="education_extra_value"]');
+                for (let i = 0; i < extraKeys.length; i++) {
+                    if (extraKeys[i].value.trim() && extraValues[i].value.trim()) {
+                        education[extraKeys[i].value] = extraValues[i].value;
+                    }
+                }
                 data.Education.push(education);
             }
 
-            // Build experience array
             const experienceEntries = document.getElementsByClassName('experience-entry');
             for (let entry of experienceEntries) {
                 const descriptions = entry.querySelector('[name="experience_descriptions[]"]').value.split('\n').filter(d => d.trim());
@@ -279,10 +306,9 @@
                     position: entry.querySelector('[name="experience_position[]"]').value,
                     descriptions: descriptions
                 };
-                data.Education.push(experience);
+                data.Experience.push(experience);
             }
 
-            // Build publications array
             const publicationEntries = document.getElementsByClassName('publication-entry');
             for (let entry of publicationEntries) {
                 const authors = entry.querySelector('[name="publication_authors[]"]').value.split(',').map(a => a.trim());
@@ -296,7 +322,6 @@
                 data.Publications.push(publication);
             }
 
-            // Build projects array
             const projectEntries = document.getElementsByClassName('project-entry');
             for (let entry of projectEntries) {
                 const descriptions = entry.querySelector('[name="project_descriptions[]"]').value.split('\n').filter(d => d.trim());
@@ -307,43 +332,27 @@
                 data.Projects.push(project);
             }
 
-            // Build skills object
             const skillEntries = document.getElementsByClassName('skill-entry');
             for (let entry of skillEntries) {
-                const category = entry.querySelector('[name="skill_category[]"]').value;
-                const items = entry.querySelector('[name="skill_items[]"]').value;
-                data.Skills[category] = items;
+                const category = entry.querySelector('[name="skill_category[]"]').value.trim();
+                const items = entry.querySelector('[name="skill_items[]"]').value.trim();
+                if (category && items) {
+                    data.Skills[category] = items;
+                }
             }
 
             try {
-                const response = await fetch('/api/generate-resume', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'resume.pdf';
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                } else {
-                    const isChinese = !document.querySelector('.lang-en:not(.hidden)');
-                    alert(isChinese ? '生成简历时出错，请重试。' : 'Error generating resume. Please try again.');
-                }
+                sessionStorage.setItem('resumeData', JSON.stringify(data));
+                window.open('/preview', '_blank');
             } catch (error) {
                 console.error('Error:', error);
                 const isChinese = !document.querySelector('.lang-en:not(.hidden)');
-                alert(isChinese ? '生成简历时出错，请重试。' : 'Error generating resume. Please try again.');
+                alert(isChinese ? '生成预览时出错，请重试。' : 'Error generating preview. Please try again.');
+            } finally {
+                isSubmitting = false;
             }
         }
 
-        // Initialize on page load
         window.onload = function() {
             updatePlaceholders();
             updateProgress();
@@ -354,7 +363,6 @@
             document.querySelectorAll('.lang-en, .lang-zh').forEach(element => {
                 observer.observe(element, { attributes: true, attributeFilter: ['class'] });
             });
-            // Add input event listeners for personal info
             document.querySelectorAll('[name="name"], [name="location"], [name="email"]').forEach(input => {
                 input.addEventListener('input', updateProgress);
             });
@@ -375,14 +383,34 @@
         <div id="progress-dot-4" class="progress-dot"></div>
         <div id="progress-dot-5" class="progress-dot"></div>
     </div>
-    <div class="info-banner">
-        <p>
-            <span class="lang-en hidden">To generate the resume PDF directly, please install pdflatex locally. See our <a href="{{ url_for('MiKTeX_installation') }}">installation guide</a>.</span>
-            <span class="lang-zh">要直接生成简历PDF，请在本地安装pdflatex。查看我们的<a href="{{ url_for('MiKTeX_installation') }}">安装指南</a>。</span>
-        </p>
-    </div>
     <form id="resume-form" onsubmit="submitForm(event)" class="space-y-6">
         <input type="hidden" name="language" value="en">
+        <div class="info-banner">
+            <h2 class="text-lg font-semibold mb-2">
+                <span class="lang-en hidden">Download Options</span>
+                <span class="lang-zh">下载选项</span>
+            </h2>
+            <div class="flex items-center space-x-4 mb-4">
+                <label>
+                    <input type="radio" name="download_option" value="pdf" checked>
+                    <span class="lang-en hidden">Download PDF</span>
+                    <span class="lang-zh">下载PDF</span>
+                </label>
+                <label>
+                    <input type="radio" name="download_option" value="latex">
+                    <span class="lang-en hidden">Download LaTeX file</span>
+                    <span class="lang-zh">下载LaTeX文件</span>
+                </label>
+            </div>
+            <p>
+                <span class="lang-en hidden">To download PDF, local compilation of LaTeX is required, please install pdflatex. See our <a href="{{ url_for('MiKTeX_installation') }}">installation guide</a>.</span>
+                <span class="lang-zh">要下载PDF，需要本地编译LaTeX文件，请安装pdflatex。查看我们的<a href="{{ url_for('MiKTeX_installation') }}">安装指南</a>。</span>
+            </p>
+            <p>
+                <span class="lang-en hidden">Alternatively, you can download only LaTeX file and compile it with online compiler like <a href="https://cn.overleaf.com/">Overleaf</a>, bypassing local dependencies.</span>
+                <span class="lang-zh">否则，你可以仅下载LaTeX代码并使用在线编译器如<a href="https://cn.overleaf.com/">Overleaf</a>编译为PDF，这样不需要下载任何本地依赖。</span>
+            </p>
+        </div>
         <div class="form-section p-6" id="personal-info">
             <h2 class="text-xl font-semibold mb-4">
                 <span class="lang-en hidden">Personal Information</span>
@@ -464,8 +492,8 @@
         </div>
 
         <button type="submit" class="bg-green-500 text-white px-6 py-3 rounded-lg submit-button">
-            <span class="lang-en hidden">Generate Resume</span>
-            <span class="lang-zh">生成简历</span>
+            <span class="lang-en hidden">Preview Resume</span>
+            <span class="lang-zh">预览简历</span>
         </button>
     </form>
 {% endblock %}

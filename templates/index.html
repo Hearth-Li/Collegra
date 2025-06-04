@@ -3,6 +3,20 @@
 
 {% block title %}Welcome | Collegra{% endblock %}
 
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Index page loaded, applying language');
+            const lang = localStorage.getItem('language') || 'zh';
+            console.log('Language:', lang);
+            document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('hidden', lang !== 'en'));
+            document.querySelectorAll('.lang-zh').forEach(el => el.classList.toggle('hidden', lang !== 'zh'));
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
     <h1 class="text-3xl font-bold text-center lang-en hidden">Welcome to Collegra</h1>
     <h1 class="text-3xl font-bold text-center lang-zh">欢迎来到Collegra</h1>
@@ -20,7 +34,6 @@
        class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-zh">
         学习路径推荐
     </a>
-
     <a href="{{ url_for('resume') }}"
        class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-en hidden">
         Resume Generator
@@ -29,6 +42,5 @@
        class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-zh">
         简历生成器
     </a>
-
 {% endblock %}
 
