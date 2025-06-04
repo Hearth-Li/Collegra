@@ -160,6 +160,10 @@
         }
         .completion-button.completed {
             background-color: #6b7280;
+            cursor: not-allowed;
+        }
+        .completion-button.completed:hover {
+            background-color: #6b7280;
         }
         @media (max-width: 768px) {
             .path-container {
@@ -192,6 +196,16 @@
             to { opacity: 1; transform: translateX(0); }
         }
     </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Modern Algo page loaded, applying language');
+            const lang = localStorage.getItem('language') || 'zh';
+            console.log('Language:', lang);
+            document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('hidden', lang !== 'en'));
+            document.querySelectorAll('.lang-zh').forEach(el => el.classList.toggle('hidden', lang !== 'zh'));
+            modernAlgoToggleLanguage();
+        });
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -397,7 +411,7 @@
                         <p>预训练是大模型训练的第一步骤，目标是让模型学习语言的基本规律。方法包括自监督学习、对比学习等。</p>
                         <h3>参考资料</h3>
                         <ul>
-                            <li><a href="https://huggingface.co/learn/nlp-course/llchapter7/6?fw=pt" target="_blank">HuggingFace：从头训练因果语言模型</a></li>
+                            <li><a href="https://huggingface.co/learn/nlp-course/chapter7/6?fw=pt" target="_blank">HuggingFace：从头训练因果语言模型</a></li>
                             <li><a href="https://github.com/Zjh-/LLMDataHub" target="_blank">LLMDataHub预训练数据集列表</a></li>
                         </ul>
                     `
@@ -503,11 +517,15 @@
 
         const completableNodes = ['backbone', 'promptdata', 'pretrain', 'finetune', 'rlhf', 'eval'];
 
+        function getPreferredLanguage() {
+            return localStorage.getItem('language') || 'zh';
+        }
+
         function updateProgress() {
-            const selectedLang = document.getElementById('languageSelect')?.value || 'Chinese';
-            console.log('Updating progress for language:', selectedLang);
+            const lang = getPreferredLanguage() === 'en' ? 'English' : 'Chinese';
+            console.log('Updating progress for language:', lang);
             const completedCount = completableNodes.filter(id => 
-                localStorage.getItem(`completion_${id}_${selectedLang}`) === 'true'
+                localStorage.getItem(`completion_${id}_${lang}`) === 'true'
             ).length;
             const totalNodes = completableNodes.length;
             const progressPercentage = Math.round((completedCount / totalNodes) * 100);
@@ -518,7 +536,7 @@
                 progressText.querySelector('.lang-zh').textContent = `进度: ${progressPercentage}%`;
                 progressText.querySelector('.lang-en').textContent = `Progress: ${progressPercentage}%`;
                 progressText.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
-                    el.classList.toggle('hidden', !el.classList.contains(`lang-${selectedLang === 'English' ? 'en' : 'zh'}`));
+                    el.classList.toggle('hidden', !el.classList.contains(`lang-${lang === 'English' ? 'en' : 'zh'}`));
                 });
             }
         }
@@ -538,37 +556,71 @@
             }
         }
 
-        function updateParentNodeCompletion() {
-            const selectedLang = document.getElementById('languageSelect')?.value || 'Chinese';
-            const allCompleted = completableNodes.every(id => localStorage.getItem(`completion_${id}_${selectedLang}`) === 'true');
-            localStorage.setItem(`completion_modern-algorithm-architecture_${selectedLang}`, allCompleted);
+        function updateParentNodeCompletion(lang) {
+            const allCompleted = completableNodes.every(id => localStorage.getItem(`completion_${id}_${lang}`) === 'true');
+            localStorage.setItem(`completion_modern-algorithm-architecture_${lang}`, allCompleted);
         }
 
         function showDetails(nodeId, lang, event) {
-            console.log('Showing details for node:', nodeId, 'language:', lang);
+            console.log('Attempting to show details for node:', nodeId, 'language:', lang, 'event:', event);
             try {
+                const currentLang = getPreferredLanguage() === 'en' ? 'English' : 'Chinese';
+                console.log('Current preferred language:', currentLang);
+                if (lang !== currentLang) {
+                    console.warn(`Language mismatch: requested ${lang}, using ${currentLang}`);
+                    lang = currentLang;
+                }
+
+                if (!nodesData[nodeId] || !nodesData[nodeId][lang]) {
+                    console.error(`Invalid nodeId (${nodeId}) or language (${lang})`);
+                    return;
+                }
+
+                if (event && event.target.classList.contains('completion-checkbox')) {
+                    console.log('Click on checkbox, skipping showDetails');
+                    return;
+                }
+
                 const data = nodesData[nodeId][lang];
                 const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
                 const sidebar = document.getElementById('sidebar');
                 const buttonText = isCompleted ? (lang === 'Chinese' ? '已完成' : 'Completed') : (lang === 'Chinese' ? '标记为完成' : 'Mark as Completed');
+
+                console.log('Updating sidebar with data:', data);
                 sidebar.innerHTML = `
-                    <h2 class="lang-zh">${data.name}</h2>
-                    <h2 class="lang-en hidden">${data.name}</h2>
-                    <button class="completion-button${isCompleted ? ' completed' : ''}" onclick="toggleCompletion('${nodeId}', '${lang}')">${buttonText}</button>
+                    <h2 class="lang-zh ${lang === 'Chinese' ? '' : 'hidden'}">${data.name}</h2>
+                    <h2 class="lang-en ${lang === 'English' ? '' : 'hidden'}">${data.name}</h2>
+                    <button class="completion-button ${isCompleted ? 'completed' : ''}" onclick="toggleCompletion('${nodeId}', '${lang}')">${buttonText}</button>
                     ${data.content}
                 `;
                 sidebar.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
                     el.classList.toggle('hidden', !el.classList.contains(`lang-${lang === 'English' ? 'en' : 'zh'}`));
                 });
+
                 sidebar.style.animation = 'none';
                 sidebar.offsetHeight;
                 sidebar.style.animation = 'slideIn 0.4s ease-out';
+
                 document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
-                if (event && event.target.tagName !== 'INPUT') {
-                    document.getElementById(`${nodeId}_${lang}`).classList.add('selected');
+                const nodeElement = document.getElementById(`${nodeId}_${lang}`);
+                if (nodeElement) {
+                    nodeElement.classList.add('selected');
+                    console.log('Selected node:', nodeId);
+                } else {
+                    console.warn(`Node element ${nodeId}_${lang} not found`);
                 }
             } catch (e) {
                 console.error('Error in showDetails:', e);
+                const sidebar = document.getElementById('sidebar');
+                sidebar.innerHTML = `
+                    <h2 class="lang-zh">节点详情</h2>
+                    <h2 class="lang-en hidden">Node Details</h2>
+                    <p class="lang-zh">点击一个节点以查看详情</p>
+                    <p class="lang-en hidden">Click a node to view details</p>
+                `;
+                sidebar.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
+                    el.classList.toggle('hidden', !el.classList.contains(`lang-${lang === 'English' ? 'en' : 'zh'}`));
+                });
             }
         }
 
@@ -576,17 +628,19 @@
             console.log('Toggling completion for node:', nodeId, 'language:', lang);
             try {
                 const node = document.getElementById(`${nodeId}_${lang}`);
-                if (!node) return;
+                if (!node) {
+                    console.warn(`Node ${nodeId}_${lang} not found`);
+                    return;
+                }
                 const isCompleted = !node.classList.contains('completed');
                 node.classList.toggle('completed', isCompleted);
-                const checkbox = node.querySelector('.completion-checkbox');
-                if (checkbox) checkbox.checked = isCompleted;
+                node.querySelector('.completion-checkbox').checked = isCompleted;
                 localStorage.setItem(`completion_${nodeId}_${lang}`, isCompleted);
                 if (document.querySelector('.sidebar').innerHTML.includes(nodesData[nodeId][lang].name)) {
-                    showDetails(nodeId, lang, { target: node });
+                    showDetails(nodeId, lang, null);
                 }
                 updateProgress();
-                updateParentNodeCompletion();
+                updateParentNodeCompletion(lang);
             } catch (e) {
                 console.error('Error in toggleCompletion:', e);
             }
@@ -594,26 +648,25 @@
 
         function modernAlgoToggleLanguage() {
             try {
-                const languageSelect = document.getElementById('languageSelect');
-                const selectedLang = languageSelect?.value || 'Chinese';
-                console.log('Modern Algo toggling language to:', selectedLang);
+                const lang = getPreferredLanguage();
+                console.log('Modern Algo toggling language to:', lang);
 
                 document.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
-                    el.classList.toggle('hidden', !el.classList.contains(`lang-${selectedLang === 'English' ? 'en' : 'zh'}`));
+                    el.classList.toggle('hidden', !el.classList.contains(`lang-${lang}`));
                 });
 
                 document.querySelectorAll('.node').forEach(node => {
-                    node.classList.toggle('hidden', !node.classList.contains(`lang-${selectedLang === 'English' ? 'en' : 'zh'}`));
+                    node.classList.toggle('hidden', !node.classList.contains(`lang-${lang === 'en' ? 'en' : 'zh'}`));
                 });
 
                 const selectedNode = document.querySelector('.node:not(.hidden).selected');
                 if (selectedNode) {
                     const nodeId = selectedNode.id.split('_')[0];
                     document.querySelectorAll('.node').forEach(node => node.classList.remove('selected'));
-                    const newNode = document.getElementById(`${nodeId}_${selectedLang}`);
+                    const newNode = document.getElementById(`${nodeId}_${lang === 'en' ? 'English' : 'Chinese'}`);
                     if (newNode) {
                         newNode.classList.add('selected');
-                        showDetails(nodeId, selectedLang, null);
+                        showDetails(nodeId, lang === 'en' ? 'English' : 'Chinese', null);
                     }
                 } else {
                     const sidebar = document.getElementById('sidebar');
@@ -624,14 +677,14 @@
                         <p class="lang-en hidden">Click a node to view details</p>
                     `;
                     sidebar.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
-                        el.classList.toggle('hidden', !el.classList.contains(`lang-${selectedLang === 'English' ? 'en' : 'zh'}`));
+                        el.classList.toggle('hidden', !el.classList.contains(`lang-${lang}`));
                     });
                 }
 
                 completableNodes.forEach(nodeId => {
-                    const node = document.getElementById(`${nodeId}_${selectedLang}`);
+                    const node = document.getElementById(`${nodeId}_${lang === 'en' ? 'English' : 'Chinese'}`);
                     if (node) {
-                        const isCompleted = localStorage.getItem(`completion_${nodeId}_${selectedLang}`) === 'true';
+                        const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang === 'en' ? 'English' : 'Chinese'}`) === 'true';
                         node.classList.toggle('completed', isCompleted);
                         const checkbox = node.querySelector('.completion-checkbox');
                         if (checkbox) checkbox.checked = isCompleted;
@@ -639,11 +692,6 @@
                 });
 
                 updateProgress();
-
-                if (window.toggleLanguage && window.toggleLanguage !== modernAlgoToggleLanguage) {
-                    console.log('Calling base toggleLanguage');
-                    window.toggleLanguage();
-                }
             } catch (e) {
                 console.error('Error in modernAlgoToggleLanguage:', e);
             }
@@ -652,18 +700,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM loaded, initializing modern_algorithm_architecture.html at', new Date().toLocaleString());
             try {
-                const languageSelect = document.getElementById('languageSelect');
-                const selectedLang = languageSelect?.value || 'Chinese';
-                console.log('Initial language:', selectedLang);
+                const lang = getPreferredLanguage();
+                console.log('Initial language:', lang);
 
                 document.querySelectorAll('.lang-zh, .lang-en').forEach(el => {
-                    el.classList.toggle('hidden', !el.classList.contains(`lang-${selectedLang === 'English' ? 'en' : 'zh'}`));
+                    el.classList.toggle('hidden', !el.classList.contains(`lang-${lang}`));
                 });
                 document.querySelectorAll('.node').forEach(node => {
-                    node.classList.toggle('hidden', !node.classList.contains(`lang-${selectedLang === 'English' ? 'en' : 'zh'}`));
+                    node.classList.toggle('hidden', !node.classList.contains(`lang-${lang === 'en' ? 'en' : 'zh'}`));
                     const nodeId = node.dataset.node;
-                    const lang = node.id.split('_')[1];
-                    const isCompleted = localStorage.getItem(`completion_${nodeId}_${lang}`) === 'true';
+                    const nodeLang = node.id.split('_')[1];
+                    const isCompleted = localStorage.getItem(`completion_${nodeId}_${nodeLang}`) === 'true';
                     node.classList.toggle('completed', isCompleted);
                     const checkbox = node.querySelector('.completion-checkbox');
                     if (checkbox) checkbox.checked = isCompleted;
@@ -672,21 +719,19 @@
                 syncNodesWithParent('Chinese');
                 syncNodesWithParent('English');
                 updateProgress();
+                modernAlgoToggleLanguage();
 
-                if (languageSelect) {
-                    languageSelect.onchange = () => {
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'language') {
+                        console.log('Detected language change via storage event:', e.newValue);
                         modernAlgoToggleLanguage();
-                    };
-                    console.log('Language select found, attached event listener');
-                    modernAlgoToggleLanguage();
-                } else {
-                    console.warn('No language select found, defaulting to Chinese');
-                    document.querySelectorAll('.lang-zh').forEach(el => el.classList.remove('hidden'));
-                    document.querySelectorAll('.lang-en').forEach(el => el.classList.add('hidden'));
-                }
+                    }
+                });
             } catch (e) {
                 console.error('Error in DOMContentLoaded:', e);
             }
         });
+
+        window.modernAlgoToggleLanguage = modernAlgoToggleLanguage;
     </script>
 {% endblock %}

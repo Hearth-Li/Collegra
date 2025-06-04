@@ -1,70 +1,37 @@
 import subprocess
-"""
-Here is a example for the input:
-输入中的值可以改成中文, 对应"language"也改成'ch', 但是键需严格按照例子中命名
-input = {
-    "language": "en",
-    "Name": "John Doe",
-    "Location": "Guangzhou, PRC",
-    "Email": "...@...",
-    "Education": [
-        {
-            "institution": "Sun Yat-sen University",
-            "duration": "Sep 2023 - Present",
-            "degree": "BEng in Computer Science and Technology",
-            "GPA": "4.0/4.0,
-            "Core Courses": ...
-        }
-    ]
-    "Experience": [
-        {
-            "affiliation": "Sun Yat-sen University",
-            "location": "Guangzhou, PRC",
-            "duration": "Jun 2024 - Present",
-            "descriptions": [
-                ...,
-                ...
-            ]
-        }
-    ]
-    "Publications": [
-    {
-        "authors": [...]
-        "title": "...",
-        "venue": "NeurIPS",
-        "year": 2025,
-        "url": "https:..."
-    }]
-    "Projects":[
-        {
-            "title": "...",
-            "descriptions": [
-                ...,
-                ...
-            ]
-        }
-    ]
+import os
 
-    "Skills": {
-        "Programming Languages": "C/C++, Python, Java",
-        "Packages/Frameworks": "TensorFlow, PyTorch",
-        ...: ...
+def compileLatex(tex_file, output_dir):
+    result = subprocess.run(["pdflatex", tex_file], cwd=output_dir, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise Exception(f"pdflatex failed: {result.stderr}")
+    aux_extensions = ['.aux', '.log', '.out']
+    for ext in aux_extensions:
+        aux_file = os.path.splitext(tex_file)[0] + ext
+        try:
+            if os.path.exists(aux_file):
+                os.remove(aux_file)
+        except PermissionError:
+            pass
+
+def escape_latex(text):
+    replacements = {
+        '&': r'\&', '%': r'\%', '$': r'\$', '#': r'\#', '_': r'\_',
+        '{': r'\{', '}': r'\}', '~': r'\~{}', '^': r'\^{}', '\\': r'\textbackslash{}'
     }
-    
-}
-"""
-def compileLatex(tex_file):
-    subprocess.run(["pdflatex", tex_file])
-    
-def text2Latex(input, output_path = './cv.tex'):
+    for char, replacement in replacements.items():
+        text = str(text).replace(char, replacement)
+    return text
+
+def text2Latex(input, output_path=None):
     language = input.get('language', 'en')
     assert language in ['en', 'ch'], "Language must be 'en' or 'ch'"
 
     result = header
 
-    name = input.get('Name', '').strip()
-    location = input.get('Location', '').strip()
-    email = input.get('Email', '').strip()
+    name = escape_latex(input.get('Name', '').strip())
+    location = escape_latex(input.get('Location', '').strip())
+    email = escape_latex(input.get('Email', '').strip())
 
     result += rf"""
     \begin{{header}}
@@ -96,51 +63,31 @@ def text2Latex(input, output_path = './cv.tex'):
             result += skills(language, content)
 
     result += r"""\end{document}"""
-    with open(output_path, 'w') as f:
-        f.write(result)
+    if output_path:
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(result)
     return result
 
 def education(language, educations):
-    """
-    Generate the education section of a CV in LaTeX format.
-    生成简历的教育经历板块
-    Params:
-        language (str): Language of the section, options: ['en', 'ch']
-        educations (list): List of dicts, each with keys: 'institution', 'duration', 'degree', and optional extras
-    Returns:
-        result (str): LaTeX formatted education section
-
-    educations example
-    [
-        {
-            "institution": "Sun Yat-sen University",
-            "duration": "Sep 2023 - Present",
-            "degree": "BEng in Computer Science and Technology",
-            "GPA": "4.0/4.0,
-            "Core Courses": ...
-        }
-    ]
-    """
     assert language in ['en', 'ch']
     result = '\\section{Education}' if language == 'en' else '\\section{教育经历}'
     result += '\n'
 
     for edu in educations:
-        institution = edu.get('institution', '')
-        duration = edu.get('duration', '')
-        degree = edu.get('degree', '')
+        institution = escape_latex(edu.get('institution', ''))
+        duration = escape_latex(edu.get('duration', ''))
+        degree = escape_latex(edu.get('degree', ''))
 
-        # Main entry
         entry = (
             f"\\begin{{twocolentry}}{{{duration}}}{{\\textbf{{{institution}}}, {degree}}}\n"
         )
 
-        # Optional details
         extras = [k for k in edu.keys() if k not in ['institution', 'duration', 'degree']]
         if extras:
             entry += "\\begin{onecolentry}\n\\begin{highlights}\n"
             for key in extras:
-                value = edu[key]
+                value = escape_latex(edu[key])
+                key = escape_latex(key)
                 entry += f"\\item \\textbf{{{key}}}: {value}\n"
             entry += "\\end{highlights}\n\\end{onecolentry}\n"
 
@@ -150,38 +97,24 @@ def education(language, educations):
     return result
 
 def experience(language, experiences):
-    """
-    Generate the experience (Research, work...) section of a CV in LaTeX format.
-
-    Params:
-        language (str): 'en' or 'ch'
-        experiences (list): List of dicts with keys:
-            'affiliation', 'location', 'duration', 'position', 'descriptions' (list)
-
-    Returns:
-        str: LaTeX-formatted experience section
-    """
     assert language in ['en', 'ch']
     result = '\\section{Experience}' if language == 'en' else '\\section{工作经历}'
     result += '\n'
 
     for exp in experiences:
-        affiliation = exp.get('affiliation', '')
-        location = exp.get('location', '')
-        duration = exp.get('duration', '')
-        position = exp.get('position', '')
-        descriptions = exp.get('descriptions', [])
+        affiliation = escape_latex(exp.get('affiliation', ''))
+        location = escape_latex(exp.get('location', ''))
+        duration = escape_latex(exp.get('duration', ''))
+        position = escape_latex(exp.get('position', ''))
+        descriptions = [escape_latex(desc) for desc in exp.get('descriptions', [])]
 
-        # Main entry block
         entry = (
             f"\\begin{{twocolentry}}{{{duration}}}{{\\textbf{{{affiliation}}}, {location}}}\n"
         )
 
-        # Position title in italic
         entry += f"\\textit{{{position}}}\n"
         entry += f"\\vspace{{0.1cm}}\n"
 
-        # Descriptions
         if descriptions:
             entry += "\\begin{onecolentry}\n\\begin{highlights}\n"
             for desc in descriptions:
@@ -194,28 +127,17 @@ def experience(language, experiences):
     return result
 
 def publications(language, publications, host):
-    """
-    Generate the publications section of a CV in LaTeX format.
-    
-    Params:
-        language (str): 'en' or 'ch'
-        publications (list): List of publication dictionaries
-        host (str): Name of the CV owner (to bold in author list)
-    Returns:
-        str: LaTeX-formatted publications section
-    """
     assert language in ['en', 'ch']
     result = '\\section{Publications}' if language == 'en' else '\\section{论文发表}'
     result += '\n\\begin{samepage}\n\\begin{onecolentry}\n\\begin{itemize}\n'
 
     for pub in publications:
-        authors = pub.get('authors', [])
-        title = pub.get('title', '')
-        venue = pub.get('venue', '')
-        year = pub.get('year', '')
-        url = pub.get('url', '')
+        authors = [escape_latex(a) for a in pub.get('authors', [])]
+        title = escape_latex(pub.get('title', ''))
+        venue = escape_latex(pub.get('venue', ''))
+        year = escape_latex(pub.get('year', ''))
+        url = escape_latex(pub.get('url', ''))
 
-        # Format author list, bolding the host
         formatted_authors = []
         for author in authors:
             if author == host:
@@ -224,7 +146,6 @@ def publications(language, publications, host):
                 formatted_authors.append(author)
         authors_str = ', '.join(formatted_authors)
 
-        # Format entry
         entry = f"\\item {authors_str}. \\textit{{{title}}}. {venue}, {year}."
         if url:
             entry += f" \\href{{{url}}}{{[Link]}}"
@@ -242,8 +163,8 @@ def projects(language, projects):
     result += '\n'
 
     for project in projects:
-        title = project.get('title', '')
-        descriptions = project.get('descriptions', [])
+        title = escape_latex(project.get('title', ''))
+        descriptions = [escape_latex(desc) for desc in project.get('descriptions', [])]
 
         entry = f"\\begin{{onecolentry}}\n"
         entry += f"\\textbf{{{title}}}\\\\\n"
@@ -266,6 +187,8 @@ def skills(language, skills):
     result += '\n'
 
     for category, items in skills.items():
+        category = escape_latex(category)
+        items = escape_latex(items)
         result += f"\\begin{{onecolentry}}\n\\textbf{{{category}}}: {items}\n\\end{{onecolentry}}\n"
     
     return result
@@ -281,34 +204,32 @@ header = r"""
         left=2 cm, % seperation between body and page edge from the left
         right=2 cm, % seperation between body and page edge from the right
         footskip=1.0 cm, % seperation between body and footer
-        % showframe % for debugging 
-    ]{geometry} % for adjusting page geometry
-    \usepackage{titlesec} % for customizing section titles
-    \usepackage{tabularx} % for making tables with fixed width columns
-    \usepackage{array} % tabularx requires this
-    \usepackage[dvipsnames]{xcolor} % for coloring text
-    \definecolor{primaryColor}{RGB}{0, 0, 0} % define primary color
-    \usepackage{enumitem} % for customizing lists
-    \usepackage{fontawesome5} % for using icons
-    \usepackage{amsmath} % for math
+    ]{geometry}
+    \usepackage{titlesec}
+    \usepackage{tabularx}
+    \usepackage{array}
+    \usepackage[dvipsnames]{xcolor}
+    \definecolor{primaryColor}{RGB}{0, 0, 0}
+    \usepackage{enumitem}
+    \usepackage{fontawesome5}
+    \usepackage{amsmath}
     \usepackage[
         pdftitle={John Doe's CV},
         pdfauthor={John Doe},
         pdfcreator={LaTeX with RenderCV},
         colorlinks=true,
         urlcolor=primaryColor
-    ]{hyperref} % for links, metadata and bookmarks
-    \usepackage[pscoord]{eso-pic} % for floating text on the page
-    \usepackage{calc} % for calculating lengths
-    \usepackage{bookmark} % for bookmarks
-    \usepackage{lastpage} % for getting the total number of pages
-    \usepackage{changepage} % for one column entries (adjustwidth environment)
-    \usepackage{paracol} % for two and three column entries
-    \usepackage{ifthen} % for conditional statements
-    \usepackage{needspace} % for avoiding page brake right after the section title
-    \usepackage{iftex} % check if engine is pdflatex, xetex or luatex
+    ]{hyperref}
+    \usepackage[pscoord]{eso-pic}
+    \usepackage{calc}
+    \usepackage{bookmark}
+    \usepackage{lastpage}
+    \usepackage{changepage}
+    \usepackage{paracol}
+    \usepackage{ifthen}
+    \usepackage{needspace}
+    \usepackage{iftex}
 
-    % Ensure that generate pdf is machine readable/ATS parsable:
     \ifPDFTeX
         \input{glyphtounicode}
         \pdfgentounicode=1
@@ -319,30 +240,20 @@ header = r"""
 
     \usepackage{charter}
 
-    % Some settings:
     \raggedright
-    \AtBeginEnvironment{adjustwidth}{\partopsep0pt} % remove space before adjustwidth environment
-    \pagestyle{empty} % no header or footer
-    \setcounter{secnumdepth}{0} % no section numbering
-    \setlength{\parindent}{0pt} % no indentation
-    \setlength{\topskip}{0pt} % no top skip
-    \setlength{\columnsep}{0.15cm} % set column seperation
-    \pagenumbering{gobble} % no page numbering
+    \AtBeginEnvironment{adjustwidth}{\partopsep0pt}
+    \pagestyle{empty}
+    \setcounter{secnumdepth}{0}
+    \setlength{\parindent}{0pt}
+    \setlength{\topskip}{0pt}
+    \setlength{\columnsep}{0.15cm}
+    \pagenumbering{gobble}
 
     \titleformat{\section}{\needspace{4\baselineskip}\bfseries\large}{}{0pt}{}[\vspace{1pt}\titlerule]
 
-    \titlespacing{\section}{
-        % left space:
-        -1pt
-    }{
-        % top space:
-        0.3 cm
-    }{
-        % bottom space:
-        0.2 cm
-    } % section title spacing
+    \titlespacing{\section}{-1pt}{0.3 cm}{0.2 cm}
 
-    \renewcommand\labelitemi{$\vcenter{\hbox{\small$\bullet$}}$} % custom bullet points
+    \renewcommand\labelitemi{$\vcenter{\hbox{\small$\bullet$}}$}
     \newenvironment{highlights}{
         \begin{itemize}[
             topsep=0.10 cm,
@@ -353,8 +264,7 @@ header = r"""
         ]
     }{
         \end{itemize}
-    } % new environment for highlights
-
+    }
 
     \newenvironment{highlightsforbulletentries}{
         \begin{itemize}[
@@ -366,17 +276,13 @@ header = r"""
         ]
     }{
         \end{itemize}
-    } % new environment for highlights for bullet entries
+    }
 
     \newenvironment{onecolentry}{
-        \begin{adjustwidth}{
-            0 cm + 0.00001 cm
-        }{
-            0 cm + 0.00001 cm
-        }
+        \begin{adjustwidth}{0 cm + 0.00001 cm}{0 cm + 0.00001 cm}
     }{
         \end{adjustwidth}
-    } % new environment for one column entries
+    }
 
     \newenvironment{twocolentry}[2][]{
         \onecolentry
@@ -387,7 +293,7 @@ header = r"""
         \switchcolumn \raggedleft \secondColumn
         \end{paracol}
         \endonecolentry
-    } % new environment for two column entries
+    }
 
     \newenvironment{threecolentry}[3][]{
         \onecolentry
@@ -399,26 +305,25 @@ header = r"""
         \switchcolumn \raggedleft \thirdColumn
         \end{paracol}
         \endonecolentry
-    } % new environment for three column entries
+    }
 
     \newenvironment{header}{
         \setlength{\topsep}{0pt}\par\kern\topsep\centering\linespread{1.5}
     }{
         \par\kern\topsep
-    } % new environment for the header
+    }
 
-    \newcommand{\placelastupdatedtext}{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
-    \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
-        \put(
-            \LenToUnit{\paperwidth-2 cm-0 cm+0.05cm},
-            \LenToUnit{\paperheight-1.0 cm}
-        ){\vtop{{\null}\makebox[0pt][c]{
-            \small\color{gray}\textit{Last updated in September 2024}\hspace{\widthof{Last updated in September 2024}}
-        }}}%
-    }%
-    }%
+    \newcommand{\placelastupdatedtext}{
+        \AddToShipoutPictureFG*{
+            \put(
+                \LenToUnit{\paperwidth-2 cm-0 cm+0.05cm},
+                \LenToUnit{\paperheight-1.0 cm}
+            ){\vtop{{\null}\makebox[0pt][c]{
+                \small\color{gray}\textit{Last updated in September 2024}\hspace{\widthof{Last updated in September 2024}}
+            }}}
+        }
+    }
 
-    % save the original href command in a new command:
     \let\hrefWithoutArrow\href
 
     \begin{document}
@@ -431,57 +336,6 @@ header = r"""
 """
 
 if __name__ == "__main__":
-    input = {
-        "language": "en",
-        "Name": "John Doe",
-        "Location": "Guangzhou, PRC",
-        "Email": "...@...",
-        "Education": [
-            {
-                "institution": "Sun Yat-sen University",
-                "duration": "Sep 2023 - Present",
-                "degree": "BEng in Computer Science and Technology",
-                "GPA": "4.0/4.0",
-                "Core Courses": ...
-            }
-        ],
-        "Experience": [
-            {
-                "affiliation": "Sun Yat-sen University",
-                "location": "Guangzhou, PRC",
-                "duration": "Jun 2024 - Present",
-                "descriptions": [
-                    "...",
-                    "..."
-                ]
-            }
-        ],
-        "Publications": [
-        {
-            "authors": ["Li"],
-            "title": "...",
-            "venue": "NeurIPS",
-            "year": 2025,
-            "url": "https:..."
-        }
-        ],
-        "Projects":[
-            {
-                "title": "...",
-                "descriptions": [
-                    ...,
-                    ...
-                ]
-            }
-        ],
-
-        "Skills": {
-            "Programming Languages": "C/C++, Python, Java",
-            "Packages/Frameworks": "TensorFlow, PyTorch",
-            ...: ...
-        }
-        
-    }
-
+    input = {'language': 'ch', 'download_option': 'latex', 'Name': 'John Doe', 'Location': 'Guangzhou, PRC', 'Email': 'zhangwei@sysu.com', 'Education': [], 'Experience': [], 'Publications': [], 'Projects': [], 'Skills': {}}
     text2Latex(input)
-    compileLatex('./cv.tex')
+    compileLatex('./cv.tex', '.')
