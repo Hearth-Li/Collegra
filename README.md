@@ -2,45 +2,81 @@
 
 [中文版](readme_ch.md)
 
-Collegra (College + Agora) is a lightweight software platform that integrates multiple useful features to support college students in their studies, career pursuits, and daily life.
+**Collegra** (College + Agora) is a lightweight software platform designed to help college students thrive academically, professionally, and personally by integrating a suite of useful tools.
 
-## What has been done?
+---
 
-The basic functionality of the following modules has been implemented:
+## 🚀 Installation
 
-* Resume-Generator: Students provide their information, and the generator automatically returns a LaTeX (.tex) file or a PDF version of their resume.
-* LearningPath-Recommendator: This module recommends learning paths for students interested in specific areas. Various resources such as online courses, blogs, and research papers are suggested.
-* Timetable-Generator: This module helps students schedule their classes efficiently.
-* A simple task management tool to help students organize their daily tasks and assignments.
+1. Create and activate a virtual environment using conda:
+```bash
+conda create -n collegra python=3.9
+conda activate collegra
+```
 
-By the way, two versions of logo are completed, under the directory `./assets`.
+2. Install required dependencies:
+```bash
+pip install flask flask_sqlalchemy flask_babel
+```
 
-## Conduct codes for contribution
+3. Navigate to the project directory and run the application:
+```bash
+cd Collegra
+python app.py
+```
 
-To contribute new modules that you believe will benefit college students in their studies, career pursuits, or daily life, simply:
+4. Open your browser and visit: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
-1. Integrate your implementation into a new directory.
-2. All your `html` file should be derived from the `base.html` file for consistent theme.
-3. Include a `main.html` or `index.html` file as the main interface under that directory.
-4. Submit a pull request.
-5. You are highly recommended to implement both Chinese and English version. The `base.html` file has implemented the language toggle buttom.
+---
 
-## TODO
+## 📁 Project Structure
 
-##### timetable generator
+```bash
+Collegra
+    |-- app.py
+    |-- README.md
+    |-- readme_ch.md
+    |-- text2cv.py
+    |-- static/
+    |-- templates/
+        |-- CourseScheduler/
+        |-- PathRecommender/
+        |-- base.html
+        |-- index.html
+```
 
-- [ ] Adjust GUI interface
+- **`app.py`**: The main Flask application file that defines routes, initializes the app, and launches the server.
+- **`base.html`**: Defines the top navigation bar (logo, slogan, language toggle, and menu) and the gradient background.
+- **`index.html`**: The homepage of *Collegra*.
+- **Other folders under `templates/`**: Contain module-specific pages.
+- **`static/`**: Contains static assets such as CSS, JavaScript, and images.
+- **`text2cv.py`**: A script for generating a resume from user input (if applicable).
 
-##### resume generator
+---
 
-- [X] main source codes
-- [X] entire I/O stream line
-- [X] guide for installing `pdflatex` locally
-- [ ] online compilation method?
+## 🤝 Contribution Guidelines
 
-##### learning path recommender
+To contribute a new module that benefits college students:
 
-- [X] Add more details to each node to the aigc learning path
-- [X] Improve the design of user interface
-- [X] Other paths design
-- [ ] Validate all urls.
+1. Place your module’s main `HTML` file directly under the `templates/` folder.
+2. If your module contains multiple pages, create a subfolder under `templates/` to organize them.
+3. Register a route in `app.py`:
+   ```python
+   @app.route('/<your_module>')
+   def your_module():
+       return render_template('<your_main_html_path>')
+   ```
+   You may also need to define additional Python functions depending on your module’s logic.
+
+4. Add a menu entry in `base.html`:
+   ```html
+   <a href="{{ url_for('your_module') }}">
+       <span class="lang-en hidden">Your Module Name</span>
+       <span class="lang-zh">你的模块名称</span>
+   </a>
+   ```
+
+5. All HTML templates should extend `base.html` to maintain a consistent layout.
+6. Ensure your proposed module is distinct and not duplicative of existing features.
+
+

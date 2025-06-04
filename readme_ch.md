@@ -1,33 +1,81 @@
 # Collegra
 
-[English version](README.md)
+[English Version](README.md)
 
-Collegra（由 College 和 Agora 组成）是一个轻量级的软件平台，集成了多种实用功能，旨在支持大学生的学习、职业发展和日常生活。
+**Collegra**（College + Agora）是一个轻量级的软件平台，集成了多种实用功能，旨在帮助大学生在学业、职业发展和日常生活中全面成长。
 
-## 已完成的内容
+---
 
-以下模块的基本功能已实现：
+## 🚀 安装指南
 
-* 简历生成器（Resume-Generator）：学生提供个人信息后，生成器会自动返回一份 LaTeX（.tex）格式的简历或 PDF 版本。
-* 学习路径推荐器（LearningPath-Recommender）：该模块为对特定领域感兴趣的学生推荐学习路径，涵盖在线课程、博客、论文等多种资源。
-* 课程表生成器（Timetable-Generator）：该模块帮助学生高效地安排课程时间表。
-* 待办事项清单（todo——List）：一款简易任务管理工具，帮助学生整理日常任务与作业。
+1. 使用 conda 创建并激活虚拟环境：
+```bash
+conda create -n collegra python=3.9
+conda activate collegra
+```
 
+2. 安装所需依赖：
+```bash
+pip install flask flask_sqlalchemy flask_babel
+```
 
+3. 进入项目目录并运行程序：
+```bash
+cd Collegra
+python app.py
+```
 
+4. 在浏览器中访问：[http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
+---
 
+## 📁 项目结构
 
+```bash
+Collegra
+    |-- app.py
+    |-- README.md
+    |-- readme_ch.md
+    |-- text2cv.py
+    |-- static
+    |-- templates
+        |-- CourseScheduler
+        |-- PathRecommender
+        |-- base.html
+        |-- index.html
+```
 
+- **`app.py`**：Flask 应用的主文件，定义路由、初始化程序并启动服务器。
+- **`base.html`**：定义顶栏（包括 logo、标语、语言切换和菜单）以及渐变背景的基础模板。
+- **`index.html`**：Collegra 的主页。
+- **`templates/` 下的其他文件夹**：包含各个模块的页面。
+- **`static/`**：包含静态资源，如 CSS、JavaScript 和图像等。
+- **`text2cv.py`**：用于将文本生成简历的脚本（如需也可补充用途说明）。
 
-另外, 完成了两个版本的logo, 在目录 `./assets`下.
+---
 
-## 贡献规范
+## 🤝 贡献指南
 
-如果你希望添加对大学生在学习、职业发展或日常生活有帮助的新模块，请按以下步骤操作：
+如果你想贡献一个对大学生有帮助的新模块，请遵循以下步骤：
 
-1. 将你的实现集成到一个新的目录中。
-2. 你的所有 `html`文件应该继承 `base.html`文件以实现协调的GUI主题。
-3. 在该目录下包含一个 main.html 文件，作为模块的主界面。
-4. 提交一个 Pull Request。
-5. 希望你可以包含中英文两个版本, `base.html`中实现了语言切换的按钮。
+1. 将你的模块主页的 `HTML` 文件直接放入 `templates/` 文件夹中。
+2. 如果你的模块包含多个页面，请在 `templates/` 下创建一个新文件夹，并将辅助页面放入其中。
+3. 在 `app.py` 中注册模块路由，例如：
+   ```python
+   @app.route('/<your_module>')
+   def your_module():
+       return render_template('<your_main_html_path>')
+   ```
+   根据实现的复杂程度，你可能还需要添加更多的 Python 接口逻辑。
+
+4. 更新 `base.html` 中的导航菜单，添加模块链接：
+   ```html
+   <a href="{{ url_for('your_module') }}">
+       <span class="lang-en hidden">Your Module Name</span>
+       <span class="lang-zh">你的模块名称</span>
+   </a>
+   ```
+
+5. 所有的 `HTML` 页面应继承自 `base.html`，以保持一致的页面结构和样式。
+6. 请确保你提议的模块与现有模块不相似或重复。
+
