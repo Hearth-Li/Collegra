@@ -43,6 +43,8 @@ Collegra
         |-- PathRecommender
         |-- base.html
         |-- index.html
+        |-- ...
+        |-- ...
 ```
 
 - **`app.py`**：Flask 应用的主文件，定义路由、初始化程序并启动服务器。

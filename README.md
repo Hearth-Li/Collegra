@@ -43,6 +43,8 @@ Collegra
         |-- PathRecommender/
         |-- base.html
         |-- index.html
+        |-- ...
+        |-- ...
 ```
 
 - **`app.py`**: The main Flask application file that defines routes, initializes the app, and launches the server.
