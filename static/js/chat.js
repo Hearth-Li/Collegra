@@ -4,24 +4,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatWindow = document.getElementById('chat-window');
     const loadingIndicator = document.getElementById('loading-indicator');
     const modelSelect = document.getElementById('model-select');
-    const lang = localStorage.getItem('language') || 'zh';
+    let lang = localStorage.getItem('language') || 'zh';
+
+    function updateModelOptions() {
+        const translations = JSON.parse(modelSelect.dataset.translations);
+        modelSelect.innerHTML = `
+            <option value="V1">${translations.V1[lang]}</option>
+            <option value="R3">${translations.R3[lang]}</option>
+        `;
+    }
+
+    function parseMarkdown(text) {
+        // Simple Markdown parser for bold text (handles **text**)
+        return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
 
     function addMessage(content, isUser, isSystem = false) {
+        const messageContainer = document.createElement('div');
+        messageContainer.classList.add('flex', 'items-start', 'mb-2', isUser ? 'justify-end' : 'justify-start');
+
         const messageDiv = document.createElement('div');
         messageDiv.classList.add(
-            'mb-2', 'p-2', 'rounded',
+            'p-2', 'rounded',
             isUser ? 'bg-blue-100' : 'bg-gray-100',
-            isUser ? 'ml-auto' : 'mr-auto',
             'max-w-xs'
         );
+
+        // Add message text
+        const textSpan = document.createElement('span');
         if (isSystem && !isUser) {
-            messageDiv.classList.add('italic');
+            textSpan.classList.add('italic');
             const prefix = lang === 'en' ? '[System Response]: ' : '[系统响应]：';
-            messageDiv.textContent = prefix + content;
+            textSpan.innerHTML = parseMarkdown(prefix + content);
         } else {
-            messageDiv.textContent = content;
+            textSpan.innerHTML = parseMarkdown(content);
         }
-        chatWindow.appendChild(messageDiv);
+
+        // Add icon
+        const icon = document.createElement('img');
+        icon.classList.add('h-6', 'w-6', isUser ? 'ml-2' : 'mr-2');
+        icon.src = isUser ? '/static/icons/human.png' : '/static/icons/robot.png';
+
+        // Append elements
+        if (isUser) {
+            messageContainer.appendChild(messageDiv);
+            messageContainer.appendChild(icon);
+        } else {
+            messageContainer.appendChild(icon);
+            messageContainer.appendChild(messageDiv);
+        }
+        messageDiv.appendChild(textSpan);
+
+        chatWindow.appendChild(messageContainer);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
@@ -55,9 +89,18 @@ document.addEventListener('DOMContentLoaded', () => {
             addMessage(errorMessage, false);
         } finally {
             sendButton.disabled = false;
-            loadingIndicator.classList.add('hidden');
+            loadingIndicator.classList.remove('hidden');
         }
     }
+
+    // Initialize model options
+    updateModelOptions();
+
+    // Update model options on language change
+    window.addEventListener('languageChange', () => {
+        lang = localStorage.getItem('language') || 'zh';
+        updateModelOptions();
+    });
 
     sendButton.addEventListener('click', sendMessage);
     chatInput.addEventListener('keypress', (e) => {
