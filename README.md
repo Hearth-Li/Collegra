@@ -85,8 +85,19 @@ To contribute a new module that benefits college students:
        <span class="lang-zh">你的模块名称</span>
    </a>
    ```
+5. Add your main interface to our homepage. Similar to previous modules, add to `index.html`:
+    ```html
+    <a href="{{ url_for('your_module') }}"
+       class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-en hidden">
+        Your Module Name
+    </a>
+    <a href="{{ url_for('your_module') }}"
+       class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-zh">
+        你的模块名称
+    </a>
+    ```
 
-5. All HTML templates should extend `base.html` to maintain a consistent layout.
-6. Ensure your proposed module is distinct and not duplicative of existing features.
+6. All HTML templates should extend `base.html` to maintain a consistent layout.
+7. Ensure your proposed module is distinct and not duplicative of existing features.
 
 

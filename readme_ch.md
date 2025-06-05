@@ -84,7 +84,17 @@ Collegra
        <span class="lang-zh">你的模块名称</span>
    </a>
    ```
-
-5. 所有的 `HTML` 页面应继承自 `base.html`，以保持一致的页面结构和样式。
-6. 请确保你提议的模块与现有模块不相似或重复。
+5. 将接口按钮加到主页面. 在`index.html`中, 仿照之前的模块加入:
+    ```html
+    <a href="{{ url_for('your_module') }}"
+       class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-en hidden">
+        Your Module Name
+    </a>
+    <a href="{{ url_for('your_module') }}"
+       class="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700 lang-zh">
+        你的模块名称
+    </a>
+    ```
+6. 所有的 `HTML` 页面应继承自 `base.html`，以保持一致的页面结构和样式。
+7. 请确保你提议的模块与现有模块不相似或重复。
 
