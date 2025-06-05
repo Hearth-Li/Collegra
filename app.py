@@ -68,6 +68,9 @@ def preview():
 def MiKTeX_installation():
     return render_template('MiKTeX_installation.html')
 
+@app.route('/chat')
+def chat():
+    return render_template('chat.html')
 
 @app.route('/todo')
 def todo():
