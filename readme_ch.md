@@ -47,6 +47,7 @@ Collegra
         |-- resume.html
         |-- course_scheduler.html
         |-- todo.html
+        |-- chat.html
 ```
 
 - **`app.py`**：Flask 应用的主文件，定义路由、初始化程序并启动服务器。
@@ -58,6 +59,7 @@ Collegra
 - **`resume.html`**: 简历生成器的主页, 它根据用户输入生成简历。
 - **`course_scheduler.html`**: 课程表管理主页。
 - **`todo.html`**: 待办列表主页, 它可以设置不同的任务和优先程度等。
+- **`chat.html`**: 大模型接口, 支持问答
 
 ---
 

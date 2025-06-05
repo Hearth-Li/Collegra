@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ 'en' if g.lang == 'en' else 'zh' }}">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Collegra{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', filename='logo_background.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +17,18 @@
             min-height: 100vh;
             position: relative;
         }
+        .page-wrapper {
+            transition: transform 0.3s ease;
+            width: 100%;
+        }
+        .chat-sidebar.open ~ .page-wrapper {
+            transform: translateX(-300px);
+        }
+        @media (max-width: 640px) {
+            .chat-sidebar.open ~ .page-wrapper {
+                transform: translateX(0);
+            }
+        }
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -28,6 +40,15 @@
             top: 0; left: 0; right: 0;
             z-index: 1000;
             height: 100px;
+            transition: width 0.3s ease;
+        }
+        .chat-sidebar.open ~ .page-wrapper .top-bar {
+            width: calc(100% - 300px);
+        }
+        @media (max-width: 640px) {
+            .chat-sidebar.open ~ .page-wrapper .top-bar {
+                width: 100%;
+            }
         }
         .top-bar .branding {
             display: flex;
@@ -110,60 +131,200 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+        .chat-sidebar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-sidebar.open {
+            right: 0;
+        }
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .sidebar-chat-window {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            padding: 1rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db #f3f4f6;
+            margin-bottom: 1rem;
+        }
+        .sidebar-chat-window::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-chat-window::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+        .sidebar-chat-window::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        .sidebar-input-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+        }
+        .sidebar-chat-input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            flex: 1;
+            transition: all 0.3s ease;
+            min-width: 0;
+        }
+        .sidebar-chat-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        .sidebar-send-button {
+            background: linear-gradient(90deg, #6b46c1, #3b82f6);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.2s ease, background 0.3s ease;
+            flex-shrink: 0;
+        }
+        .sidebar-send-button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(90deg, #5b21b6, #2563eb);
+        }
+        .sidebar-loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+        .sidebar-loading-indicator::before {
+            content: '';
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #3b82f6;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .lang-en.hidden, .lang-zh.hidden {
+            display: none !important;
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
 <body>
-    <div class="top-bar">
-        <div class="branding">
-            <a href="{{ url_for('index') }}">
-                <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
-            </a>
-            <span class="slogan lang-en hidden">Collegra: All You Need to Thrive in College and Beyond.</span>
-            <span class="slogan lang-zh">Collegra：成就大学生活，开启精彩未来</span>
-        </div>
-        <div class="right-section">
-            <div class="nav-dropdown">
-                <button class="dropdown-btn">
-                    <span class="lang-en hidden">Menu</span>
-                    <span class="lang-zh">菜单</span>
+    <div class="page-wrapper">
+        <div class="top-bar">
+            <div class="branding">
+                <a href="{{ url_for('index') }}">
+                    <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="Logo">
+                </a>
+                <span class="slogan lang-en {{ 'hidden' if g.lang != 'en' }}">Collegra: All You Need to Thrive in College and Beyond.</span>
+                <span class="slogan lang-zh {{ 'hidden' if g.lang == 'en' }}">Collegra：成就大学生活，开启精彩未来</span>
+            </div>
+            <div class="right-section">
+                <div class="nav-dropdown">
+                    <button class="dropdown-btn">
+                        <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Menu</span>
+                        <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">菜单</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('index') }}"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Home</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">首页</span></a>
+                        <a href="{{ url_for('recommender') }}"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Learning Path Recommendations</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">学习路径推荐</span></a>
+                        <a href="{{ url_for('resume') }}"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Resume Generator</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">简历生成器</span></a>
+                        <a href="{{ url_for('todo') }}"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Todo List</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">待办清单</span></a>
+                        <a href="{{ url_for('course_scheduler') }}"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Course Scheduler</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">课程表管理</span></a>
+                        <a href="{{ url_for('chat') }}"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">AI assistant</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">AI助手</span></a>
+                        <a href="#"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">More Coming Soon</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">更多即将推出</span></a>
+                    </div>
+                </div>
+                <button id="chat-toggle" class="dropdown-btn">
+                    <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Chat</span>
+                    <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">聊天</span>
                 </button>
-                <div class="dropdown-content">
-                    <a href="{{ url_for('index') }}"><span class="lang-en hidden">Home</span><span class="lang-zh">首页</span></a>
-                    <a href="{{ url_for('recommender') }}"><span class="lang-en hidden">Learning Path Recommendations</span><span class="lang-zh">学习路径推荐</span></a>
-                    <a href="{{ url_for('resume') }}"><span class="lang-en hidden">Resume Generator</span><span class="lang-zh">简历生成器</span></a>
-                    <a href="{{ url_for('todo') }}"><span class="lang-en hidden">Todo List</span><span class="lang-zh">待办清单</span></a>
-                    <a href="{{ url_for('course_scheduler') }}"><span class="lang-en hidden">Course Scheduler</span><span class="lang-zh">课程表管理</span></a>
-                    <a href="{{ url_for('chat') }}"><span class="lang-en hidden">AI assistant</span><span class="lang-zh">AI助手</span></a>
-                    <a href="#"><span class="lang-en hidden">More Coming Soon</span><span class="lang-zh">更多即将推出</span></a>
+                <div class="language-toggle">
+                    <select id="languageSelect" onchange="toggleLanguage()">
+                        <option value="zh" {{ 'selected' if g.lang != 'en' }}>中文</option>
+                        <option value="en" {{ 'selected' if g.lang == 'en' }}>English</option>
+                    </select>
                 </div>
             </div>
-            <div class="language-toggle">
-                <select id="languageSelect" onchange="toggleLanguage()">
-                    <option value="zh" selected>中文</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
+        </div>
+        <div class="container">
+            {% block content %}{% endblock %}
         </div>
     </div>
-    <div class="container">
-        {% block content %}{% endblock %}
+    <div id="chat-sidebar" class="chat-sidebar">
+        <div class="sidebar-header">
+            <h2 class="text-lg font-semibold">
+                <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Quick Chat</span>
+                <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">快速聊天</span>
+            </h2>
+            <button id="close-sidebar" class="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+        <div id="sidebar-chat-window" class="sidebar-chat-window">
+            <!-- Sidebar chat messages will be appended here -->
+        </div>
+        <div class="sidebar-input-section">
+            <input type="text" id="sidebar-chat-input" class="sidebar-chat-input" placeholder="{% if g.lang == 'en' %}{{ _('Type your message...') }}{% else %}{{ _('输入您的消息...') }}{% endif %}" required>
+            <button id="sidebar-send-button" class="sidebar-send-button">
+                <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('Send') }}</span>
+                <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('发送') }}</span>
+            </button>
+        </div>
+        <div id="sidebar-loading-indicator" class="sidebar-loading-indicator hidden mt-3">
+            <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('Loading...') }}</span>
+            <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('加载中...') }}</span>
+        </div>
     </div>
     <script>
         function toggleLanguage() {
-            const lang = document.getElementById('languageSelect').value;
-            localStorage.setItem('language', lang);
-            console.log('Language set to:', lang);
-            document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('hidden', lang !== 'en'));
-            document.querySelectorAll('.lang-zh').forEach(el => el.classList.toggle('hidden', lang !== 'zh'));
+            const langSelect = document.getElementById('languageSelect');
+            const newLang = langSelect.value;
+            const currentLang = localStorage.getItem('language') || '{{ g.lang }}';
+            if (newLang !== currentLang) {
+                localStorage.setItem('language', newLang);
+                console.log('Language set to:', newLang);
+                document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('hidden', newLang !== 'en'));
+                document.querySelectorAll('.lang-zh').forEach(el => el.classList.toggle('hidden', newLang !== 'zh'));
+                window.dispatchEvent(new Event('languageChange'));
+                location.reload();
+            }
         }
         document.addEventListener('DOMContentLoaded', () => {
-            const lang = localStorage.getItem('language') || 'zh'; // Default to Chinese
+            const lang = localStorage.getItem('language') || '{{ g.lang }}';
             console.log('Loaded language:', lang);
-            document.getElementById('languageSelect').value = lang;
-            toggleLanguage();
+            const langSelect = document.getElementById('languageSelect');
+            if (langSelect) {
+                langSelect.value = lang;
+                document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('hidden', lang !== 'en'));
+                document.querySelectorAll('.lang-zh').forEach(el => el.classList.toggle('hidden', lang !== 'zh'));
+            }
         });
     </script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 </body>
 </html>
 

@@ -47,6 +47,7 @@ Collegra
         |-- resume.html
         |-- course_scheduler.html
         |-- todo.html
+        |-- chat.html
 ```
 
 - **`app.py`**: The main Flask application file that defines routes, initializes the app, and launches the server.
@@ -59,6 +60,7 @@ Collegra
 - **`resume.html`**: Homepage for resume generator.
 - **`course_scheduler.html`**: Homepage for course scheduler.
 - **`todo.html`**: Homepage for todo list scheduler, which schdule tasks with different priorities.
+- **`chat.html`**: Large Language Models Interface.
 
 ---
 

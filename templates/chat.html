@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block title %}
-    <span class="lang-en hidden">{{ _('Chat with AI Assistant') }}</span>
-    <span class="lang-zh">{{ _('与AI助手对话') }}</span>
+    <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('Chat with AI Assistant') }}</span>
+    <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('与AI助手对话') }}</span>
 {% endblock %}
 
 {% block head %}
@@ -14,6 +14,8 @@
             padding: 1.5rem;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
+            width: 100%;
+            max-width: 64rem; /* Tailwind max-w-4xl */
         }
         .chat-container:hover {
             transform: translateY(-2px);
@@ -27,6 +29,7 @@
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: #d1d5db #f3f4f6;
+            width: 100%;
         }
         .chat-window::-webkit-scrollbar {
             width: 8px;
@@ -66,6 +69,7 @@
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
             font-weight: 600;
+            color: white;
             transition: transform 0.2s ease, background 0.3s ease;
         }
         .send-button:hover {
@@ -112,16 +116,23 @@
             padding: 1rem;
             margin-bottom: 1.5rem;
         }
+        .input-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+        }
         .input-container {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             flex: 1;
+            width: 100%;
         }
-        .input-section {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        .chat-input {
+            flex: 1;
+            width: 100%; /* Ensure full width within input-container */
+            min-width: 0; /* Prevent flex overflow */
         }
         .input-icon {
             height: 1.5rem;
@@ -134,8 +145,8 @@
 {% block content %}
 <div class="header">
     <h1>
-        <span class="lang-en hidden">{{ _('Chat with AI Assistant') }}</span>
-        <span class="lang-zh">{{ _('与AI助手对话') }}</span>
+        <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('Chat with AI Assistant') }}</span>
+        <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('与AI助手对话') }}</span>
     </h1>
 </div>
 
@@ -144,8 +155,8 @@
         <div class="mb-4">
             {% for message in messages %}
                 <div class="flash-message">
-                    <span class="lang-en hidden">{{ _(message) }}</span>
-                    <span class="lang-zh">{{ message }}</span>
+                    <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _(message) }}</span>
+                    <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ message }}</span>
                 </div>
             {% endfor %}
         </div>
@@ -158,8 +169,8 @@
     </div>
     <div class="mb-4">
         <p class="text-sm text-gray-600 mb-3">
-            <span class="lang-en hidden">{{ _('Select model: V1 for conversation, R3 for reasoning.') }}</span>
-            <span class="lang-zh">{{ _('选择模型：V1用于对话，R3用于推理。') }}</span>
+            <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('Select model: V1 for conversation, R3 for reasoning.') }}</span>
+            <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('选择模型：V1用于对话，R3用于推理。') }}</span>
         </p>
         <div class="mb-4">
             <select id="model-select" class="model-select"
@@ -172,23 +183,23 @@
             </select>
         </div>
         <p class="text-sm text-gray-600 mb-3">
-            <span class="lang-en hidden">{{ _('System prompts set AI’s role for consistent responses.') }}</span>
-            <span class="lang-zh">{{ _('系统提示设定AI角色，确保一致响应。') }}</span>
+            <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('System prompts set AI’s role for consistent responses.') }}</span>
+            <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('系统提示设定AI角色，确保一致响应。') }}</span>
         </p>
         <p class="text-sm text-gray-600 mb-3">
-            <span class="lang-en hidden">{{ _('Example: “Act as an academic tutor” for structured answers.') }}</span>
-            <span class="lang-zh">{{ _('示例：“作为学术导师”以获得结构化回答。') }}</span>
+            <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('Example: “Act as an academic tutor” for structured answers.') }}</span>
+            <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('示例：“作为学术导师”以获得结构化回答。') }}</span>
         </p>
         <div class="flex gap-4">
             <label class="prompt-type-label flex items-center">
                 <input type="radio" name="prompt-type" value="user" checked class="mr-2">
-                <span class="lang-en hidden">{{ _('User Prompt') }}</span>
-                <span class="lang-zh">{{ _('用户提示') }}</span>
+                <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('User Prompt') }}</span>
+                <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('用户提示') }}</span>
             </label>
             <label class="prompt-type-label flex items-center">
                 <input type="radio" name="prompt-type" value="system" class="mr-2">
-                <span class="lang-en hidden">{{ _('System Prompt') }}</span>
-                <span class="lang-zh">{{ _('系统提示') }}</span>
+                <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('System Prompt') }}</span>
+                <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('系统提示') }}</span>
             </label>
         </div>
     </div>
@@ -196,15 +207,15 @@
         <div class="input-container">
             <input type="text" id="chat-input" class="chat-input" placeholder="{% if g.lang == 'en' %}{{ _('Type your message...') }}{% else %}{{ _('输入您的消息...') }}{% endif %}" required>
             <button id="send-button" class="send-button">
-                <span class="lang-en hidden">{{ _('Send') }}</span>
-                <span class="lang-zh">{{ _('发送') }}</span>
+                <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('Send') }}</span>
+                <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('发送') }}</span>
             </button>
         </div>
         <img src="/static/icons/human.png" class="input-icon" alt="User icon">
     </div>
     <div id="loading-indicator" class="loading-indicator hidden mt-3">
-        <span class="lang-en hidden">{{ _('Loading...') }}</span>
-        <span class="lang-zh">{{ _('加载中...') }}</span>
+        <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">{{ _('Loading...') }}</span>
+        <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">{{ _('加载中...') }}</span>
     </div>
 </div>
 {% endblock %}
