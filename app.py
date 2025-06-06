@@ -70,7 +70,7 @@ def preview():
     return render_template('/ResumeGenerator/preview.html')
 
 @app.route('/MiKTeX_installation')
-def MiKTeX_install():
+def MiKTeX_installation():
     return render_template('/ResumeGenerator/MiKTeX_installation.html')
 
 @app.route('/chat', methods=['GET', 'POST'])
