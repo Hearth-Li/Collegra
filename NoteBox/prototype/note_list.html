@@ -4,6 +4,19 @@
 
 {% block head %}
 <style>
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: #e5e7eb;
+        color: #374151;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        margin-bottom: 1rem;
+    }
+    .back-button:hover {
+        background: #d1d5db;
+    }
     .filters {
         display: flex;
         gap: 1rem;
@@ -59,6 +72,11 @@
 {% endblock %}
 
 {% block content %}
+<a href="{{ url_for('notebox_main') }}" class="back-button">
+    <span class="lang-en hidden">← Back to Home</span>
+    <span class="lang-zh">← 返回主页</span>
+</a>
+
 <div class="filters">
     <div class="filter-group">
         <label class="lang-en hidden">Course</label>
@@ -87,43 +105,72 @@
 
 <script>
     function loadNotes() {
-        // TODO: 实现笔记加载逻辑
-        const sampleNotes = [
-            {
-                id: 1,
-                title: "Sample Note 1",
-                course: "Mathematics",
-                tags: ["algebra", "calculus"],
-                lastModified: "2024-03-20"
-            },
-            {
-                id: 2,
-                title: "Sample Note 2",
-                course: "Physics",
-                tags: ["mechanics", "thermodynamics"],
-                lastModified: "2024-03-19"
-            }
-        ];
+        fetch('/api/notes')
+            .then(response => response.json())
+            .then(notes => {
+                const container = document.getElementById('notes-container');
+                container.innerHTML = notes.map(note => `
+                    <div class="note-card" onclick="openNote(${note.id})">
+                        <div class="note-title">${note.title}</div>
+                        <div class="note-meta">
+                            <div>${note.course || '未分类'}</div>
+                            <div>${note.updated_at || note.created_at}</div>
+                        </div>
+                        <div class="note-tags">
+                            ${(note.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
 
-        const container = document.getElementById('notes-container');
-        container.innerHTML = sampleNotes.map(note => `
-            <div class="note-card" onclick="openNote(${note.id})">
-                <div class="note-title">${note.title}</div>
-                <div class="note-meta">
-                    <div>${note.course}</div>
-                    <div>${note.lastModified}</div>
-                </div>
-                <div class="note-tags">
-                    ${note.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
-            </div>
-        `).join('');
+                // 更新课程过滤器
+                const courses = [...new Set(notes.map(note => note.course).filter(Boolean))];
+                const courseFilter = document.getElementById('course-filter');
+                courseFilter.innerHTML = `
+                    <option value="">所有课程</option>
+                    ${courses.map(course => `<option value="${course}">${course}</option>`).join('')}
+                `;
+
+                // 更新标签过滤器
+                const tags = [...new Set(notes.flatMap(note => note.tags || []))];
+                const tagFilter = document.getElementById('tag-filter');
+                tagFilter.innerHTML = `
+                    <option value="">所有标签</option>
+                    ${tags.map(tag => `<option value="${tag}">${tag}</option>`).join('')}
+                `;
+            })
+            .catch(error => {
+                console.error('Error loading notes:', error);
+                alert('加载笔记失败，请重试');
+            });
+    }
+
+    function filterNotes() {
+        const courseFilter = document.getElementById('course-filter').value;
+        const tagFilter = document.getElementById('tag-filter').value;
+        const searchText = document.getElementById('search').value.toLowerCase();
+
+        const cards = document.querySelectorAll('.note-card');
+        cards.forEach(card => {
+            const title = card.querySelector('.note-title').textContent.toLowerCase();
+            const course = card.querySelector('.note-meta div:first-child').textContent;
+            const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent);
+
+            const matchesCourse = !courseFilter || course === courseFilter;
+            const matchesTag = !tagFilter || tags.includes(tagFilter);
+            const matchesSearch = !searchText || title.includes(searchText);
+
+            card.style.display = matchesCourse && matchesTag && matchesSearch ? 'block' : 'none';
+        });
     }
 
     function openNote(id) {
-        // TODO: 实现打开笔记逻辑
-        console.log('Opening note:', id);
+        window.location.href = `/edit_note?id=${id}`;
     }
+
+    // 添加事件监听器
+    document.getElementById('course-filter').addEventListener('change', filterNotes);
+    document.getElementById('tag-filter').addEventListener('change', filterNotes);
+    document.getElementById('search').addEventListener('input', filterNotes);
 
     document.addEventListener('DOMContentLoaded', loadNotes);
 </script>

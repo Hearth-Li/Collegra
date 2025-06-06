@@ -4,6 +4,19 @@
 
 {% block head %}
 <style>
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: #e5e7eb;
+        color: #374151;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        margin-bottom: 1rem;
+    }
+    .back-button:hover {
+        background: #d1d5db;
+    }
     .cards-container {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -91,6 +104,11 @@
 {% endblock %}
 
 {% block content %}
+<a href="{{ url_for('notebox_main') }}" class="back-button">
+    <span class="lang-en hidden">← Back to Home</span>
+    <span class="lang-zh">← 返回主页</span>
+</a>
+
 <div class="filters">
     <div class="filter-group">
         <label class="lang-en hidden">Course</label>
@@ -121,43 +139,38 @@
 
 <script>
     function loadCards() {
-        // TODO: 实现卡片加载逻辑
-        const sampleCards = [
-            {
-                id: 1,
-                front: "What is the derivative of sin(x)?",
-                back: "cos(x)",
-                course: "Calculus",
-                difficulty: "easy"
-            },
-            {
-                id: 2,
-                front: "What is the formula for the area of a circle?",
-                back: "πr²",
-                course: "Geometry",
-                difficulty: "easy"
-            }
-        ];
-
-        const container = document.getElementById('cards-container');
-        container.innerHTML = sampleCards.map(card => `
-            <div class="card" onclick="flipCard(this)">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="card-actions">
-                            <button class="card-action" onclick="toggleFavorite(event, ${card.id})">★</button>
+        fetch('/api/cards')
+            .then(response => response.json())
+            .then(cards => {
+                const container = document.getElementById('cards-container');
+                container.innerHTML = cards.map(card => `
+                    <div class="card" onclick="flipCard(this)">
+                        <div class="card-inner">
+                            <div class="card-front">
+                                <div class="card-actions">
+                                    <button class="card-action" onclick="toggleFavorite(event, ${card.id})">★</button>
+                                </div>
+                                <div>${card.question}</div>
+                                <div style="margin-top: 1rem; font-size: 0.875rem; color: #6b7280;">
+                                    <span class="lang-en hidden">Difficulty: </span>
+                                    <span class="lang-zh">难度：</span>
+                                    ${card.difficulty}
+                                </div>
+                            </div>
+                            <div class="card-back">
+                                <div class="card-actions">
+                                    <button class="card-action" onclick="toggleFavorite(event, ${card.id})">★</button>
+                                </div>
+                                <div>${card.answer}</div>
+                            </div>
                         </div>
-                        <div>${card.front}</div>
                     </div>
-                    <div class="card-back">
-                        <div class="card-actions">
-                            <button class="card-action" onclick="toggleFavorite(event, ${card.id})">★</button>
-                        </div>
-                        <div>${card.back}</div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+                `).join('');
+            })
+            .catch(error => {
+                console.error('Error loading cards:', error);
+                alert('加载卡片失败，请重试');
+            });
     }
 
     function flipCard(card) {
