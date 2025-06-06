@@ -202,7 +202,7 @@
 {% endblock %}
 
 {% block content %}
-<a href="{{ url_for('notebox_main') }}" class="back-button">
+<a href="{{ url_for('NoteBox') }}" class="back-button">
     <span class="lang-en hidden">← Back to Home</span>
     <span class="lang-zh">← 返回主页</span>
 </a>
@@ -321,7 +321,7 @@
         <p class="lang-en hidden">You have reviewed all cards.</p>
         <p class="lang-zh">您已复习完所有卡片。</p>
         <div class="completion-message">
-            <a href="{{ url_for('notebox_main') }}">
+            <a href="{{ url_for('NoteBox') }}">
                 <span class="lang-en hidden">Return to Home</span>
                 <span class="lang-zh">返回主页</span>
             </a>
@@ -450,7 +450,7 @@
     }
 
     function exitReview() {
-        window.location.href = "{{ url_for('notebox_main') }}";
+        window.location.href = "{{ url_for('NoteBox') }}";
     }
 
     function confirmSkip() {
