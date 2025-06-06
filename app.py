@@ -322,6 +322,10 @@ def delete_course(id):
     flash(_l('课程删除成功！'))
     return redirect(url_for('index'))
 
+@app.route('/Resources_Collection')
+def Resources_Collection():
+    return render_template('Resources_Collection.html')
+
 if __name__ == '__main__':
     print('Starting Flask server')
     app.run(debug=True, port=8000)
