@@ -260,10 +260,22 @@
                         <a href="#"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">More Coming Soon</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">更多即将推出</span></a>
                     </div>
                 </div>
-                <button id="chat-toggle" class="dropdown-btn">
-                    <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Chat</span>
-                    <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">聊天</span>
+                <button id="chat-toggle"
+                        class="dropdown-btn mr-8 p-2 relative group"
+                        style="display: flex; align-items: center;"
+                        aria-label="{{ 'Quick Chat' if g.lang == 'en' else '快速提问' }}">
+                    <img src="{{ url_for('static', filename='icons/robot.png') }}"
+                        alt="Chat Icon"
+                        class="h-6 w-6">
+
+                    <!-- Tooltip ABOVE with language toggle -->
+                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-700 text-white text-sm rounded px-2 py-1 whitespace-nowrap z-10">
+                        <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Quick Chat</span>
+                        <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">快速提问</span>
+                    </div>
                 </button>
+
+
                 <div class="language-toggle">
                     <select id="languageSelect" onchange="toggleLanguage()">
                         <option value="zh" {{ 'selected' if g.lang != 'en' }}>中文</option>
