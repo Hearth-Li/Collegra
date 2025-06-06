@@ -46,6 +46,7 @@
         text-align: center;
         cursor: pointer;
         transition: background-color 0.3s;
+        text-decoration: none;
     }
     .action-button:hover {
         background: #2563eb;
@@ -76,6 +77,10 @@
     <a href="{{ url_for('notebox_edit_note') }}" class="action-button">
         <div class="lang-en hidden">New Note</div>
         <div class="lang-zh">新建笔记</div>
+    </a>
+    <a href="{{ url_for('notebox_notes') }}" class="action-button">
+        <div class="lang-en hidden">View Notes</div>
+        <div class="lang-zh">查看笔记</div>
     </a>
     <a href="{{ url_for('notebox_cards') }}" class="action-button">
         <div class="lang-en hidden">View Cards</div>
