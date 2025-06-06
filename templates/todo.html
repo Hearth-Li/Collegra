@@ -31,8 +31,14 @@
         
         .todo-form {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-bottom: 30px;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 10px;
         }
         
         .todo-form input {
@@ -49,18 +55,19 @@
             border-color: #4299e1;
         }
         
-        .todo-form button {
+        .todo-form button[type="submit"] {
             background-color: #4299e1;
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 0 25px;
+            padding: 12px 25px;
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.3s;
+            font-size: 1rem;
         }
         
-        .todo-form button:hover {
+        .todo-form button[type="submit"]:hover {
             background-color: #3182ce;
         }
         
@@ -150,22 +157,30 @@
         }
         
         .priority-btn {
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
             cursor: pointer;
-            background-color: #e2e8f0;
             border: none;
+            flex: 1;
         }
         
         .priority-btn.active {
-            background-color: #4299e1;
-            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .priority-high { background-color: #feb2b2; color: #c53030; }
         .priority-medium { background-color: #fbd38d; color: #dd6b20; }
         .priority-low { background-color: #c6f6d5; color: #276749; }
+        
+        .priority-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
     </style>
 {% endblock %}
 
@@ -182,27 +197,29 @@
             </p>
             
             <form class="todo-form" id="todo-form">
-                <input type="text" id="new-todo" 
-                    placeholder="添加新任务..." class="lang-zh"
-                    placeholder="Add a new task..." class="lang-en hidden">
-                <div class="priority-selector">
-                    <button type="button" class="priority-btn priority-high active" data-priority="high">
-                        <span class="lang-en hidden">High</span>
-                        <span class="lang-zh">高</span>
-                    </button>
-                    <button type="button" class="priority-btn priority-medium" data-priority="medium">
-                        <span class="lang-en hidden">Medium</span>
-                        <span class="lang-zh">中</span>
-                    </button>
-                    <button type="button" class="priority-btn priority-low" data-priority="low">
-                        <span class="lang-en hidden">Low</span>
-                        <span class="lang-zh">低</span>
+                <div class="input-row">
+                    <input type="text" id="new-todo" 
+                        data-placeholder-zh="添加新任务..."
+                        data-placeholder-en="Add a new task...">
+                    <button type="submit">
+                        <span class="lang-en hidden">Add</span>
+                        <span class="lang-zh">添加</span>
                     </button>
                 </div>
-                <button type="submit">
-                    <span class="lang-en hidden">Add</span>
-                    <span class="lang-zh">添加</span>
-                </button>
+                <div class="priority-selector">
+                    <button type="button" class="priority-btn priority-high active" data-priority="high">
+                        <span class="lang-en hidden">High Priority</span>
+                        <span class="lang-zh">高优先级</span>
+                    </button>
+                    <button type="button" class="priority-btn priority-medium" data-priority="medium">
+                        <span class="lang-en hidden">Medium Priority</span>
+                        <span class="lang-zh">中优先级</span>
+                    </button>
+                    <button type="button" class="priority-btn priority-low" data-priority="low">
+                        <span class="lang-en hidden">Low Priority</span>
+                        <span class="lang-zh">低优先级</span>
+                    </button>
+                </div>
             </form>
         </div>
         
@@ -245,6 +262,21 @@
         const completedCount = document.getElementById('completed-count');
         const pendingCount = document.getElementById('pending-count');
         
+        // 获取当前语言
+        function getCurrentLanguage() {
+            return localStorage.getItem('language') || 'zh';
+        }
+        
+        // 更新输入框占位符
+        function updatePlaceholder() {
+            const lang = getCurrentLanguage();
+            if (lang === 'zh') {
+                newTodoInput.placeholder = newTodoInput.dataset.placeholderZh;
+            } else {
+                newTodoInput.placeholder = newTodoInput.dataset.placeholderEn;
+            }
+        }
+        
         // 初始化优先级选择器
         document.querySelectorAll('.priority-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -272,6 +304,7 @@
                 saveTodos();
                 renderTodos();
                 newTodoInput.value = '';
+                newTodoInput.focus();
             }
         });
         
@@ -310,7 +343,7 @@
                 todoItem.dataset.id = todo.id;
                 
                 todoItem.innerHTML = `
-                    <input type="checkbox" ${todo.completed ? 'checked' : ''}>
+                    <input type="checkbox" ${todo.completed ? 'checked' : ''} id="check-${todo.id}">
                     <div class="todo-content">
                         ${todo.text}
                         <span class="priority-tag priority-${todo.priority}">
@@ -318,28 +351,23 @@
                         </span>
                     </div>
                     <div class="todo-actions">
-                        <button class="edit-btn" title="Edit">
+                        <button class="edit-btn" id="edit-${todo.id}">
                             <span class="lang-en hidden">✏️ Edit</span>
                             <span class="lang-zh">✏️ 编辑</span>
                         </button>
-                        <button class="delete-btn" title="Delete">
+                        <button class="delete-btn" id="delete-${todo.id}">
                             <span class="lang-en hidden">🗑️ Delete</span>
                             <span class="lang-zh">🗑️ 删除</span>
                         </button>
                     </div>
                 `;
                 
-                // 添加事件监听器
-                const checkbox = todoItem.querySelector('input[type="checkbox"]');
-                checkbox.addEventListener('change', () => toggleComplete(todo.id));
-                
-                const editBtn = todoItem.querySelector('.edit-btn');
-                editBtn.addEventListener('click', () => editTodo(todo.id));
-                
-                const deleteBtn = todoItem.querySelector('.delete-btn');
-                deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
-                
                 todoList.appendChild(todoItem);
+                
+                // 为每个元素直接绑定事件
+                document.getElementById(`check-${todo.id}`).addEventListener('change', () => toggleComplete(todo.id));
+                document.getElementById(`edit-${todo.id}`).addEventListener('click', () => editTodo(todo.id));
+                document.getElementById(`delete-${todo.id}`).addEventListener('click', () => deleteTodo(todo.id));
             });
             
             updateStats();
@@ -348,11 +376,11 @@
         // 获取优先级文本
         function getPriorityText(priority) {
             if (priority === 'high') {
-                return `<span class="lang-en hidden">High</span><span class="lang-zh">高优先级</span>`;
+                return `<span class="lang-en hidden">High</span><span class="lang-zh">高</span>`;
             } else if (priority === 'medium') {
-                return `<span class="lang-en hidden">Medium</span><span class="lang-zh">中优先级</span>`;
+                return `<span class="lang-en hidden">Medium</span><span class="lang-zh">中</span>`;
             } else {
-                return `<span class="lang-en hidden">Low</span><span class="lang-zh">低优先级</span>`;
+                return `<span class="lang-en hidden">Low</span><span class="lang-zh">低</span>`;
             }
         }
         
@@ -368,10 +396,9 @@
         // 编辑待办事项
         function editTodo(id) {
             const todo = todos.find(t => t.id === id);
-            const newText = prompt(
-                document.querySelector('.lang-en.hidden') ? 'Edit task:' : '编辑任务:', 
-                todo.text
-            );
+            const lang = getCurrentLanguage();
+            const promptText = lang === 'zh' ? '编辑任务:' : 'Edit task:';
+            const newText = prompt(promptText, todo.text);
             
             if (newText !== null && newText.trim() !== '') {
                 todos = todos.map(t => 
@@ -384,9 +411,12 @@
         
         // 删除待办事项
         function deleteTodo(id) {
-            if (confirm(document.querySelector('.lang-en.hidden') ? 
-                'Are you sure you want to delete this task?' : 
-                '确定要删除此任务吗？')) {
+            const lang = getCurrentLanguage();
+            const confirmText = lang === 'zh' ? 
+                '确定要删除此任务吗？' : 
+                'Are you sure you want to delete this task?';
+            
+            if (confirm(confirmText)) {
                 todos = todos.filter(todo => todo.id !== id);
                 saveTodos();
                 renderTodos();
@@ -395,11 +425,18 @@
         
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            renderTodos();
-            // 确保语言切换后更新界面
+            // 设置输入框占位符
+            updatePlaceholder();
+            
+            // 监听语言切换事件
             document.getElementById('languageSelect').addEventListener('change', () => {
-                setTimeout(renderTodos, 100); // 等待语言切换完成
+                setTimeout(() => {
+                    updatePlaceholder();
+                    renderTodos();
+                }, 100);
             });
+            
+            renderTodos();
         });
     </script>
 {% endblock %}
