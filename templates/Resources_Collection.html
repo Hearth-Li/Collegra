@@ -1,0 +1,626 @@
+{% extends "base.html" %}
+
+{% block title %}Resources Collection{% endblock %}
+
+{% block head %}
+<style>
+    :root {
+        --bg-color: #f9fafb;
+        --text-color: #111827;
+        --card-bg: white;
+        --border-color: #e5e7eb;
+        --primary-color: #3b82f6;
+        --hover-bg: #bfdbfe;
+    }
+
+    /* 移除与暗黑模式相关的样式 */
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: var(--card-bg);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo svg {
+        width: 2rem;
+        height: 2rem;
+        fill: var(--primary-color);
+    }
+
+    .actions button {
+        margin-left: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .actions button:hover {
+        background-color: #2563eb;
+    }
+
+    main {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .tabs {
+        display: flex;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .tabs button {
+        margin-right: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        background: transparent;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .tabs button.active,
+    .tabs button:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .collections-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .collection {
+        background-color: var(--card-bg);
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .collection:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .collection-header {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .collection-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+
+    .collection-meta {
+        font-size: 0.8rem;
+        color: #9ca3af;
+    }
+
+    .collection-body {
+        padding: 1rem;
+    }
+
+    .item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+        transition: background-color 0.2s ease;
+    }
+
+    .item:last-child {
+        border-bottom: none;
+    }
+
+    .item:hover {
+        background-color: var(--hover-bg);
+    }
+
+    .item a.title {
+        display: block;
+        color: var(--primary-color);
+        font-weight: 500;
+        text-decoration: underline;
+        word-break: break-all;
+    }
+
+    .item a.url {
+        display: block;
+        font-size: 0.85rem;
+        color: #9ca3af;
+        word-break: break-all;
+    }
+
+    .item-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+
+    .tag {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.5rem;
+        background-color: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .delete-btn {
+        background: none;
+        border: none;
+        color: red;
+        cursor: pointer;
+    }
+
+    .add-item-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border-top: 1px solid var(--border-color);
+        background-color: transparent;
+        color: #6b7280;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .add-collection-card {
+        border: 2px dashed #ccc;
+        border-radius: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 240px;
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+    }
+
+    .add-collection-card:hover {
+        border-color: var(--primary-color);
+    }
+
+    .add-collection-icon {
+        width: 3rem;
+        height: 3rem;
+        background-color: #e5e7eb;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+    }
+
+    footer {
+        padding: 2rem 1rem;
+        text-align: center;
+        background-color: var(--card-bg);
+        color: #9ca3af;
+        font-size: 0.8rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    }
+
+    .modal {
+        background-color: var(--card-bg);
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 500px;
+        width: 100%;
+        animation: fadeIn 0.3s ease forwards;
+    }
+
+    .modal h2 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .modal-buttons button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-secondary {
+        background-color: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 640px) {
+        .collections-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+   .lang-en {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header>
+    <div class="logo">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="lang-en hidden" style="font-weight:bold">Resource Collection</span>
+        <span class="lang-zh" style="font-weight:bold">资源归纳</span>
+    </div>
+    <div class="actions">
+        <button onclick="openAddModal()">
+            <span class="lang-en hidden">Add Resource</span>
+            <span class="lang-zh">添加资料</span>
+        </button>
+    </div>
+</header>
+
+<main>
+    <div class="tabs">
+        <button class="active" onclick="setActiveTab(this, 'all')">
+            <span class="lang-en hidden">All Resources</span>
+            <span class="lang-zh">所有资料</span>
+        </button>
+        <button onclick="setActiveTab(this, 'recent')">
+            <span class="lang-en hidden">Recently Added</span>
+            <span class="lang-zh">最近添加</span>
+        </button>
+        <button onclick="setActiveTab(this, 'favorites')">
+            <span class="lang-en hidden">Favorites</span>
+            <span class="lang-zh">收藏夹</span>
+        </button>
+    </div>
+
+    <div class="collections-grid" id="collectionsGrid"></div>
+
+    <div class="add-collection-card" onclick="openCreateCollectionModal()">
+        <div class="add-collection-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+        </div>
+        <p class="lang-en hidden">Create New Collection</p>
+        <p class="lang-zh">创建新的收藏分类</p>
+    </div>
+</main>
+
+<footer>
+    <span class="lang-en hidden">Resource Collection</span>
+    <span class="lang-zh">资源归纳</span>
+</footer>
+
+<!-- Add Item Modal -->
+<div class="modal-overlay" id="addItemModal" style="display:none;">
+    <div class="modal">
+        <h2>
+            <span class="lang-en hidden">Add New Resource</span>
+            <span class="lang-zh">添加新资料</span>
+        </h2>
+        <div class="form-group">
+            <label for="newItemTitle" class="lang-en hidden">Title</label>
+            <label for="newItemTitle" class="lang-zh">标题</label>
+            <input type="text" id="newItemTitle" placeholder="输入标题" />
+        </div>
+        <div class="form-group">
+            <label for="newItemUrl" class="lang-en hidden">Link URL</label>
+            <label for="newItemUrl" class="lang-zh">链接地址</label>
+            <input type="url" id="newItemUrl" placeholder="https://example.com"  />
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-secondary" onclick="closeAddItemModal()">
+                <span class="lang-en hidden">Cancel</span>
+                <span class="lang-zh">取消</span>
+            </button>
+            <button class="btn-primary" onclick="addItemToCollection()" id="addItemBtn">
+                <span class="lang-en hidden">Add</span>
+                <span class="lang-zh">添加</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Collection Modal -->
+<div class="modal-overlay" id="createCollectionModal" style="display:none;">
+    <div class="modal">
+        <h2>
+            <span class="lang-en hidden">Create New Collection</span>
+            <span class="lang-zh">新建分类</span>
+        </h2>
+        <div class="form-group">
+            <label for="newCollectionName" class="lang-en hidden">Collection Name</label>
+            <label for="newCollectionName" class="lang-zh">分类名称</label>
+            <input type="text" id="newCollectionName" placeholder="例如：React 学习资源" />
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-secondary" onclick="closeCreateCollectionModal()">
+                <span class="lang-en hidden">Cancel</span>
+                <span class="lang-zh">取消</span>
+            </button>
+            <button class="btn-primary" onclick="createNewCollection()" id="createCollectionBtn">
+                <span class="lang-en hidden">Create</span>
+                <span class="lang-zh">创建</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const collectionsData = [
+        {
+            id: 1,
+            title: {
+                en: "React Learning Resources",
+                zh: "React 学习资源"
+            },
+            items: [
+                { id: 1, title: "React 官方文档", url: "https://react.dev"  },
+                { id: 2, title: "React Hook 指南", url: "https://react.dev/reference/react/hooks"  }
+            ]
+        },
+        {
+            id: 2,
+            title: {
+                en: "Design System Resources",
+                zh: "设计系统资源"
+            },
+            items: [
+                { id: 3, title: "Material Design", url: "https://m3.material.io"  },
+                { id: 4, title: "Ant Design", url: "https://ant.design"  }
+            ]
+        },
+        {
+            id: 3,
+            title: {
+                en: "AI Tool Recommendations",
+                zh: "AI 工具推荐"
+            },
+            items: [
+                { id: 5, title: "ChatGPT", url: "https://chat.openai.com"  },
+                { id: 6, title: "MidJourney", url: "https://www.midjourney.com"  }
+            ]
+        }
+    ];
+
+    let currentCollectionId = null;
+    let activeTab = 'all';
+
+    function setActiveTab(button, tabName) {
+        document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        activeTab = tabName;
+        renderCollections();
+    }
+
+    function openAddModal(collectionId = 1) {
+        currentCollectionId = collectionId;
+        document.getElementById('newItemTitle').value = '';
+        document.getElementById('newItemUrl').value = '';
+        document.getElementById('addItemBtn').disabled = true;
+        document.getElementById('addItemModal').style.display = 'block';
+    }
+
+    function closeAddItemModal() {
+        document.getElementById('addItemModal').style.display = 'none';
+    }
+
+    function handleInput() {
+        const title = document.getElementById('newItemTitle').value.trim();
+        const url = document.getElementById('newItemUrl').value.trim();
+        document.getElementById('addItemBtn').disabled = !title || !url;
+    }
+
+    document.getElementById('newItemTitle').addEventListener('input', handleInput);
+    document.getElementById('newItemUrl').addEventListener('input', handleInput);
+
+    function addItemToCollection() {
+        const title = document.getElementById('newItemTitle').value.trim();
+        const url = document.getElementById('newItemUrl').value.trim();
+
+        if (!title || !url) return;
+
+        const collection = collectionsData.find(c => c.id === currentCollectionId);
+        if (collection) {
+            collection.items.push({
+                id: Date.now(),
+                title,
+                url
+            });
+            closeAddItemModal();
+            renderCollections();
+        }
+    }
+
+    function deleteItem(collectionId, itemId) {
+        const collection = collectionsData.find(c => c.id === collectionId);
+        if (collection) {
+            collection.items = collection.items.filter(item => item.id !== itemId);
+            renderCollections();
+        }
+    }
+
+    function openCreateCollectionModal() {
+        document.getElementById('newCollectionName').value = '';
+        document.getElementById('createCollectionBtn').disabled = true;
+        document.getElementById('createCollectionModal').style.display = 'block';
+    }
+
+    function closeCreateCollectionModal() {
+        document.getElementById('createCollectionModal').style.display = 'none';
+    }
+
+    function handleCollectionNameInput() {
+        const name = document.getElementById('newCollectionName').value.trim();
+        document.getElementById('createCollectionBtn').disabled = !name;
+    }
+
+    document.getElementById('newCollectionName').addEventListener('input', handleCollectionNameInput);
+
+    function createNewCollection() {
+        const name = document.getElementById('newCollectionName').value.trim();
+        if (!name) return;
+
+        const newId = Math.max(...collectionsData.map(c => c.id), 0) + 1;
+        collectionsData.push({
+            id: newId,
+            title: {
+                en: name,
+                zh: name
+            },
+            items: []
+        });
+
+        closeCreateCollectionModal();
+        renderCollections();
+    }
+
+    function renderCollections() {
+        const container = document.getElementById('collectionsGrid');
+        container.innerHTML = '';
+
+        // Filter based on active tab
+        const filtered = [...collectionsData].filter(col => {
+            if (activeTab === 'all') return true;
+            if (activeTab === 'recent' && col.items.length > 0) return true;
+            if (activeTab === 'favorites') return false; // Placeholder logic
+            return false;
+        });
+
+        filtered.forEach(collection => {
+            const card = document.createElement('div');
+            card.className = 'collection';
+
+            const header = document.createElement('div');
+            header.className = 'collection-header';
+            header.innerHTML = `
+                <h2 class="collection-title">
+                    <span class="lang-en hidden">${collection.title.en}</span>
+                    <span class="lang-zh">${collection.title.zh}</span>
+                </h2>
+                <p class="collection-meta">${collection.items.length} 条收藏</p>
+            `;
+
+            const body = document.createElement('div');
+            body.className = 'collection-body';
+
+            collection.items.slice(0, 5).forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <a href="${item.url}" target="_blank" class="title">${item.title}</a>
+                    <a href="${item.url}" target="_blank" class="url">${item.url.replace(/^https?:\/\/|^www\./, '')}</a>
+                    <div class="item-footer">
+                        <span class="tag">网页</span>
+                        <button class="delete-btn" onclick="deleteItem(${collection.id}, ${item.id})">×</button>
+                    </div>
+                `;
+                body.appendChild(itemDiv);
+            });
+
+            if (collection.items.length > 5) {
+                const more = document.createElement('div');
+                more.style.textAlign = 'center';
+                more.style.paddingTop = '0.5rem';
+                more.innerHTML = `<button class="view-all" onclick="alert('查看全部 ${collection.items.length} 条')">查看全部 ${collection.items.length} 条</button>`;
+                body.appendChild(more);
+            }
+
+            const footer = document.createElement('button');
+            footer.className = 'add-item-btn';
+            footer.textContent = '添加新条目';
+            footer.onclick = () => openAddModal(collection.id);
+
+            card.appendChild(header);
+            card.appendChild(body);
+            card.appendChild(footer);
+            container.appendChild(card);
+        });
+    }
+
+    // 初始化
+    renderCollections();
+</script>
+{% endblock %}
