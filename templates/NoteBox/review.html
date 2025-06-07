@@ -406,7 +406,7 @@
         <p class="lang-en hidden">You have reviewed all cards.</p>
         <p class="lang-zh">您已复习完所有卡片。</p>
         <div class="completion-message">
-            <a href="{{ url_for('NoteBox') }}">
+            <a href="{{ url_for('notebox') }}">
                 <span class="lang-en hidden">Return to Home</span>
                 <span class="lang-zh">返回主页</span>
             </a>
@@ -631,7 +631,7 @@
     }
 
     function exitReview() {
-        window.location.href = "{{ url_for('NoteBox') }}";
+        window.location.href = "{{ url_for('notebox') }}";
     }
 
     document.addEventListener('DOMContentLoaded', loadCards);

@@ -184,7 +184,7 @@
 {% endblock %}
 
 {% block content %}
-<a href="{{ url_for('NoteBox') }}" class="back-button">
+<a href="{{ url_for('notebox') }}" class="back-button">
     <span class="lang-en hidden">← Back to Home</span>
     <span class="lang-zh">← 返回主页</span>
 </a>
@@ -312,24 +312,28 @@
     function loadNotes() {
         fetch('/api/notes')
             .then(response => response.json())
-            .then(notes => {
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '加载笔记失败');
+                }
+                const notes = data.notes;
                 const container = document.getElementById('notes-container');
                 container.innerHTML = notes.map(note => `
-                    <div class="note-card" data-note-id="${note.id}" onclick="openNote(${note.id})">
+                    <div class="note-card" data-note-id="${note.id}" onclick="editNote(${note.id})">
                         <div class="note-header">
                             <h3 class="note-title">${note.title}</h3>
                             <div class="note-actions">
-                                <button class="action-button edit-button" onclick="editNote('${note.id}')">
+                                <button class="action-button edit-button" onclick="event.stopPropagation(); editNote(${note.id})">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="action-button delete-button" onclick="deleteNote('${note.id}')">
+                                <button class="action-button delete-button" onclick="event.stopPropagation(); deleteNote(${note.id})">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
                         <div class="note-meta">
                             <span class="note-course">${note.course || '未分类'}</span>
-                            <span class="note-date">${note.updated_at || note.created_at}</span>
+                            <span class="note-date">${new Date(note.updated_at).toLocaleString()}</span>
                         </div>
                         <div class="note-tags">
                             ${(note.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
@@ -378,7 +382,7 @@
         });
     }
 
-    function openNote(id) {
+    function editNote(id) {
         window.location.href = `/notebox/edit_note?id=${id}`;
     }
 
@@ -390,6 +394,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    alert('删除成功！');
                     loadNotes();
                 } else {
                     alert(data.message || '删除失败');

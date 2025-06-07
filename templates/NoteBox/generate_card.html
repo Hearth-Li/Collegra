@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}NoteBox - 生成知识卡片{% endblock %}
+
+{% block head %}
+<style>
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: #e5e7eb;
+        color: #374151;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        margin-bottom: 1rem;
+    }
+    .back-button:hover {
+        background: #d1d5db;
+    }
+    .card-form {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #374151;
+        font-weight: 500;
+    }
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 1rem;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    .button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .button-primary {
+        background: #3b82f6;
+        color: white;
+    }
+    .button-primary:hover {
+        background: #2563eb;
+    }
+    .button-secondary {
+        background: #e5e7eb;
+        color: #374151;
+    }
+    .button-secondary:hover {
+        background: #d1d5db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('notebox') }}" class="back-button">
+    <span class="lang-en hidden">← Back to Home</span>
+    <span class="lang-zh">← 返回主页</span>
+</a>
+
+<div class="card-form">
+    <div class="form-group">
+        <label class="lang-en hidden">Course</label>
+        <label class="lang-zh">课程</label>
+        <input type="text" id="card-course" class="form-control" placeholder="输入课程名称">
+    </div>
+    <div class="form-group">
+        <label class="lang-en hidden">Question</label>
+        <label class="lang-zh">问题</label>
+        <input type="text" id="card-question" class="form-control" placeholder="输入问题">
+    </div>
+    <div class="form-group">
+        <label class="lang-en hidden">Answer</label>
+        <label class="lang-zh">答案</label>
+        <textarea id="card-answer" class="form-control" rows="4" placeholder="输入答案"></textarea>
+    </div>
+    <div class="form-group">
+        <label class="lang-en hidden">Difficulty</label>
+        <label class="lang-zh">难度</label>
+        <select id="card-difficulty" class="form-control">
+            <option value="easy">简单</option>
+            <option value="medium">中等</option>
+            <option value="hard">困难</option>
+        </select>
+    </div>
+    <div class="button-group">
+        <button onclick="saveCard()" class="button button-primary">
+            <span class="lang-en hidden">Save Card</span>
+            <span class="lang-zh">保存卡片</span>
+        </button>
+        <button onclick="goToHome()" class="button button-secondary">
+            <span class="lang-en hidden">Cancel</span>
+            <span class="lang-zh">取消</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    function goToHome() {
+        window.location.href = "{{ url_for('notebox') }}";
+    }
+
+    function saveCard() {
+        const cardData = {
+            question: document.getElementById('card-question').value,
+            answer: document.getElementById('card-answer').value,
+            difficulty: document.getElementById('card-difficulty').value,
+            course: document.getElementById('card-course').value
+        };
+        
+        fetch('/api/cards', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(cardData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('卡片保存成功！');
+                // 清空表单
+                document.getElementById('card-question').value = '';
+                document.getElementById('card-answer').value = '';
+                document.getElementById('card-difficulty').value = 'easy';
+                document.getElementById('card-course').value = '';
+            } else {
+                alert('保存失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('保存失败，请重试');
+        });
+    }
+</script>
+{% endblock %} 

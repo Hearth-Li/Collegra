@@ -86,6 +86,11 @@
         <div class="lang-en hidden">View Cards</div>
         <div class="lang-zh">查看卡片</div>
     </a>
+    <a href="{{ url_for('notebox_generate_card') }}" class="action-button">
+        <i class="fas fa-plus"></i>
+        <div class="lang-en hidden">Generate Card</div>
+        <div class="lang-zh">生成卡片</div>
+    </a>
     <a href="{{ url_for('notebox_review') }}" class="action-button">
         <div class="lang-en hidden">Start Review</div>
         <div class="lang-zh">开始复习</div>
@@ -105,8 +110,15 @@
         // 获取笔记数量
         fetch('/api/notes')
             .then(response => response.json())
-            .then(notes => {
-                document.querySelector('.stat-card:nth-child(1) .stat-number').textContent = notes.length;
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '加载笔记失败');
+                }
+                document.querySelector('.stat-card:nth-child(1) .stat-number').textContent = data.notes.length;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.querySelector('.stat-card:nth-child(1) .stat-number').textContent = '0';
             });
 
         // 获取卡片数量和未复习数量
@@ -133,18 +145,25 @@
     function loadRecentNotes() {
         fetch('/api/notes')
             .then(response => response.json())
-            .then(notes => {
-                const recentNotes = notes.slice(-5).reverse();
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '加载笔记失败');
+                }
+                const recentNotes = data.notes.slice(-5).reverse();
                 const container = document.getElementById('recent-notes-list');
                 container.innerHTML = recentNotes.map(note => `
                     <div class="note-card">
                         <div class="note-title">${note.title}</div>
                         <div class="note-meta">
                             <div>${note.course || '未分类'}</div>
-                            <div>${note.updated_at || note.created_at}</div>
+                            <div>${new Date(note.updated_at).toLocaleString()}</div>
                         </div>
                     </div>
                 `).join('');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('recent-notes-list').innerHTML = '<div class="note-card">加载笔记失败</div>';
             });
     }
 

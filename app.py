@@ -8,12 +8,20 @@ import requests
 import json 
 from text2cv import text2Latex, compileLatex
 from flask_babel import Babel, _, lazy_gettext as _l
+from models import db, Note, Card
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///courses.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['BABEL_DEFAULT_LOCALE'] = 'zh'
+
+# 初始化数据库
+db.init_app(app)
+
+# 确保在应用上下文中创建所有表
+with app.app_context():
+    db.create_all()
 
 DATA_DIR = os.path.join(os.path.join(os.path.dirname(__file__), 'static'), 'data')
 NOTES_FILE = os.path.join(DATA_DIR, 'notes.json')
@@ -33,8 +41,6 @@ def get_locale():
     return session.get('language', request.args.get('language', 'zh'))
 
 babel = Babel(app, locale_selector=get_locale)
-
-db = SQLAlchemy(app)
 
 @app.before_request
 def set_language():
@@ -248,10 +254,6 @@ class Course(db.Model):
     def __repr__(self):
         return f'<Course {self.name} ({self.day_of_week} {self.start_period}-{self.end_period})'
 
-with app.app_context():
-    db.create_all()
-    print('Database tables created.')
-
 @app.route('/course_scheduler')
 def course_scheduler():
     courses = Course.query.order_by(Course.day_of_week, Course.start_period).all()
@@ -370,57 +372,96 @@ def save_cards(cards):
     except Exception as e:
         print(f"Error saving cards: {str(e)}")
 
-@app.route('/NoteBox')
-def NoteBox():
-    notes = load_notes()
-    cards = load_cards()
-    return render_template('notebox.html', 
-                         total_notes=len(notes),
-                         total_cards=len(cards),
-                         recent_notes=notes[-5:] if notes else [])
+@app.route('/notebox')
+def notebox():
+    try:
+        notes = Note.query.order_by(Note.created_at.desc()).all()
+        cards = Card.query.all()
+        return render_template('notebox.html', 
+                             total_notes=len(notes),
+                             total_cards=len(cards),
+                             recent_notes=notes[-5:] if notes else [])
+    except Exception as e:
+        print(f"Error in notebox route: {str(e)}")
+        return render_template('notebox.html', 
+                             total_notes=0,
+                             total_cards=0,
+                             recent_notes=[])
 
 @app.route('/notebox/notes')
 def notebox_notes():
-    notes = load_notes()
-    return render_template('NoteBox/note_list.html', notes=notes)
+    try:
+        notes = Note.query.order_by(Note.created_at.desc()).all()
+        return render_template('NoteBox/note_list.html', notes=notes)
+    except Exception as e:
+        print(f"Error in notebox_notes route: {str(e)}")
+        return render_template('NoteBox/note_list.html', notes=[])
 
 @app.route('/notebox/edit_note')
 def notebox_edit_note():
-    note_id = request.args.get('id')
-    if note_id:
-        notes = load_notes()
-        note = next((n for n in notes if n['id'] == int(note_id)), None)
-        if note:
+    try:
+        note_id = request.args.get('id')
+        generate = request.args.get('generate')
+        
+        if note_id:
+            note = Note.query.get(note_id)
+            if not note:
+                flash('笔记不存在')
+                return redirect(url_for('notebox_notes'))
             return render_template('NoteBox/edit_note.html', note=note)
-    return render_template('NoteBox/edit_note.html')
+        elif generate:
+            return render_template('NoteBox/edit_note.html', generate=True)
+        else:
+            return render_template('NoteBox/edit_note.html')
+    except Exception as e:
+        print(f"Error in notebox_edit_note route: {str(e)}")
+        flash('加载笔记失败')
+        return redirect(url_for('notebox'))
 
 @app.route('/notebox/cards')
 def notebox_cards():
-    cards = load_cards()
-    return render_template('NoteBox/cards.html', cards=cards)
+    try:
+        cards = Card.query.all()
+        return render_template('NoteBox/cards.html', cards=cards)
+    except Exception as e:
+        print(f"Error in notebox_cards route: {str(e)}")
+        return render_template('NoteBox/cards.html', cards=[])
 
 @app.route('/notebox/review')
 def notebox_review():
     return render_template('NoteBox/review.html')
 
 @app.route('/api/notes', methods=['POST'])
-def save_note():
+def create_note():
     try:
-        note_data = request.json
-        notes = load_notes()
-        
-        # 添加创建时间和ID
-        note_data['id'] = len(notes) + 1
-        note_data['created_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        note_data['updated_at'] = note_data['created_at']
-        
-        notes.append(note_data)
-        save_notes(notes)
-        
-        flash('笔记保存成功！', 'success')
-        return jsonify({'success': True, 'message': '笔记保存成功'})
+        data = request.get_json()
+        note = Note(
+            title=data['title'],
+            content=data['content'],
+            course=data['course']
+        )
+        note.set_tags(data['tags'])  # 使用新方法设置标签
+        db.session.add(note)
+        db.session.commit()
+        return jsonify({'success': True, 'message': '笔记创建成功'})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/notes/<int:note_id>', methods=['PUT'])
+def update_note(note_id):
+    try:
+        note = Note.query.get_or_404(note_id)
+        data = request.get_json()
+        note.title = data['title']
+        note.content = data['content']
+        note.course = data['course']
+        note.set_tags(data['tags'])  # 使用新方法设置标签
+        db.session.commit()
+        return jsonify({'success': True, 'message': '笔记更新成功'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/cards', methods=['POST'])
 def save_card():
@@ -453,8 +494,22 @@ def save_card():
 
 @app.route('/api/notes', methods=['GET'])
 def get_notes():
-    notes = load_notes()
-    return jsonify(notes)
+    try:
+        notes = Note.query.order_by(Note.created_at.desc()).all()
+        return jsonify({
+            'success': True,
+            'notes': [{
+                'id': note.id,
+                'title': note.title,
+                'content': note.content,
+                'course': note.course,
+                'tags': note.get_tags(),  # 使用新方法获取标签
+                'created_at': note.created_at.isoformat(),
+                'updated_at': note.updated_at.isoformat()
+            } for note in notes]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/cards', methods=['GET'])
 def get_cards():
@@ -477,40 +532,17 @@ def get_cards():
         print(f"Error getting cards: {str(e)}")  # 添加错误日志
         return jsonify({'success': False, 'message': str(e)}), 500
 
-@app.route('/api/notes/<int:note_id>', methods=['PUT'])
-def update_note(note_id):
-    try:
-        note_data = request.json
-        notes = load_notes()
-        note = next((n for n in notes if n['id'] == note_id), None)
-        
-        if note:
-            note.update({
-                'title': note_data.get('title', note['title']),
-                'course': note_data.get('course', note['course']),
-                'tags': note_data.get('tags', note['tags']),
-                'content': note_data.get('content', note['content']),
-                'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            })
-            save_notes(notes)
-            return jsonify({'success': True, 'message': '笔记更新成功'})
-        return jsonify({'success': False, 'message': '笔记不存在'}), 404
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
 @app.route('/api/notes/<int:note_id>', methods=['DELETE'])
 def delete_note(note_id):
     try:
-        notes = load_notes()
-        note = next((n for n in notes if n['id'] == note_id), None)
-        
-        if note:
-            notes.remove(note)
-            save_notes(notes)
-            return jsonify({'success': True, 'message': '笔记删除成功'})
-        return jsonify({'success': False, 'message': '笔记不存在'}), 404
+        note = Note.query.get_or_404(note_id)
+        db.session.delete(note)
+        db.session.commit()
+        return jsonify({'success': True, 'message': '笔记删除成功'})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        db.session.rollback()
+        print(f"Error deleting note: {str(e)}")
+        return jsonify({'success': False, 'message': '删除笔记失败'})
 
 @app.route('/api/notes/<int:note_id>/cards', methods=['GET'])
 def get_note_cards(note_id):
@@ -644,6 +676,10 @@ def batch_delete_cards():
     except Exception as e:
         print(f"Error in batch delete: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/notebox/generate-card')
+def notebox_generate_card():
+    return render_template('NoteBox/generate_card.html')
 
 if __name__ == '__main__':
     init_data_files()
