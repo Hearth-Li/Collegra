@@ -8,9 +8,111 @@
 
 {% block head %}
     <style>
-        .todo-container {
-            max-width: 800px;
+        .main-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .wheel-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        
+        .wheel-title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .wheel-title h2 {
+            font-size: 1.8rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+        
+        .wheel {
+            width: 320px;
+            height: 320px;
+            position: relative;
+            border-radius: 50%;
+            border: 12px solid #4299e1;
+            transition: transform 2s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            transform: rotate(0deg);
+            box-shadow: 0 0 20px rgba(66, 153, 225, 0.2);
+            background: white;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #e53e3e;
+            z-index: 2;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+            pointer-events: none;
+        }
+        
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            border: 4px solid #4299e1;
+            z-index: 3;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .spin-button {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(66, 153, 225, 0.2);
+            font-size: 1.1rem;
+        }
+        
+        .spin-button:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(66, 153, 225, 0.3);
+        }
+        
+        .spin-button:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .todo-container {
+            flex: 2;
         }
         
         .todo-header {
@@ -27,6 +129,23 @@
         .todo-header p {
             color: #718096;
             margin-bottom: 20px;
+        }
+        
+        .clear-all-btn {
+            padding: 12px 25px;
+            background-color: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+        
+        .clear-all-btn:hover {
+            background-color: #c53030;
+            transform: translateY(-2px);
         }
         
         .todo-form {
@@ -108,6 +227,12 @@
             color: #a0aec0;
         }
         
+        .todo-item.recommended .todo-content::before {
+            content: "⭐";
+            margin-right: 8px;
+            color: #f6ad55;
+        }
+        
         .todo-actions {
             display: flex;
             gap: 10px;
@@ -185,66 +310,94 @@
 {% endblock %}
 
 {% block content %}
-    <div class="todo-container">
-        <div class="todo-header">
-            <h1>
-                <span class="lang-en hidden">My Todo List</span>
-                <span class="lang-zh">我的待办事项</span>
-            </h1>
-            <p>
-                <span class="lang-en hidden">Organize your tasks and boost your productivity</span>
-                <span class="lang-zh">组织您的任务，提高工作效率</span>
-            </p>
+    <div class="main-container">
+        <div class="wheel-container">
+            <div class="wheel-title">
+                <h2>
+                    <span class="lang-en hidden">Priority Wheel</span>
+                    <span class="lang-zh">优先级转盘</span>
+                </h2>
+                <p>
+                    <span class="lang-en hidden">Spin to decide which task to do next</span>
+                    <span class="lang-zh">转动转盘来决定下一步做什么</span>
+                </p>
+            </div>
+            <div class="wheel" id="wheel">
+                <svg id="wheel-svg" width="280" height="280" viewBox="0 0 280 280" style="display:block;z-index:1;"></svg>
+                <div class="wheel-center"></div>
+            </div>
+            <div class="wheel-pointer"></div>
+            <button class="spin-button" id="spinButton">
+                <span class="lang-en hidden">Spin</span>
+                <span class="lang-zh">转动</span>
+            </button>
+        </div>
+        
+        <div class="todo-container">
+            <div class="todo-header">
+                <h1>
+                    <span class="lang-en hidden">My Todo List</span>
+                    <span class="lang-zh">我的待办事项</span>
+                </h1>
+                <p>
+                    <span class="lang-en hidden">Organize your tasks and boost your productivity</span>
+                    <span class="lang-zh">组织您的任务，提高工作效率</span>
+                </p>
+                
+                <form class="todo-form" id="todo-form">
+                    <div class="input-row">
+                        <input type="text" id="new-todo" 
+                            data-placeholder-zh="添加新任务..."
+                            data-placeholder-en="Add a new task...">
+                        <button type="submit">
+                            <span class="lang-en hidden">Add</span>
+                            <span class="lang-zh">添加</span>
+                        </button>
+                        <button type="button" class="clear-all-btn" id="clearAllBtn">
+                            <span class="lang-en hidden">Clear All</span>
+                            <span class="lang-zh">清空所有</span>
+                        </button>
+                    </div>
+                    <div class="priority-selector">
+                        <button type="button" class="priority-btn priority-high active" data-priority="high">
+                            <span class="lang-en hidden">High Priority</span>
+                            <span class="lang-zh">高优先级</span>
+                        </button>
+                        <button type="button" class="priority-btn priority-medium" data-priority="medium">
+                            <span class="lang-en hidden">Medium Priority</span>
+                            <span class="lang-zh">中优先级</span>
+                        </button>
+                        <button type="button" class="priority-btn priority-low" data-priority="low">
+                            <span class="lang-en hidden">Low Priority</span>
+                            <span class="lang-zh">低优先级</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
             
-            <form class="todo-form" id="todo-form">
-                <div class="input-row">
-                    <input type="text" id="new-todo" 
-                        data-placeholder-zh="添加新任务..."
-                        data-placeholder-en="Add a new task...">
-                    <button type="submit">
-                        <span class="lang-en hidden">Add</span>
-                        <span class="lang-zh">添加</span>
-                    </button>
+            <div class="todo-list" id="todo-list">
+                <div class="empty-state">
+                    <span class="lang-en hidden">No tasks yet. Add your first task!</span>
+                    <span class="lang-zh">还没有任务。添加您的第一个任务！</span>
                 </div>
-                <div class="priority-selector">
-                    <button type="button" class="priority-btn priority-high active" data-priority="high">
-                        <span class="lang-en hidden">High Priority</span>
-                        <span class="lang-zh">高优先级</span>
-                    </button>
-                    <button type="button" class="priority-btn priority-medium" data-priority="medium">
-                        <span class="lang-en hidden">Medium Priority</span>
-                        <span class="lang-zh">中优先级</span>
-                    </button>
-                    <button type="button" class="priority-btn priority-low" data-priority="low">
-                        <span class="lang-en hidden">Low Priority</span>
-                        <span class="lang-zh">低优先级</span>
-                    </button>
+            </div>
+            
+            <div class="todo-stats">
+                <div>
+                    <span class="lang-en hidden">Total tasks:</span>
+                    <span class="lang-zh">总任务数：</span>
+                    <span id="total-count">0</span>
                 </div>
-            </form>
-        </div>
-        
-        <div class="todo-list" id="todo-list">
-            <div class="empty-state">
-                <span class="lang-en hidden">No tasks yet. Add your first task!</span>
-                <span class="lang-zh">还没有任务。添加您的第一个任务！</span>
-            </div>
-        </div>
-        
-        <div class="todo-stats">
-            <div>
-                <span class="lang-en hidden">Total tasks:</span>
-                <span class="lang-zh">总任务数：</span>
-                <span id="total-count">0</span>
-            </div>
-            <div>
-                <span class="lang-en hidden">Completed:</span>
-                <span class="lang-zh">已完成：</span>
-                <span id="completed-count">0</span>
-            </div>
-            <div>
-                <span class="lang-en hidden">Pending:</span>
-                <span class="lang-zh">待完成：</span>
-                <span id="pending-count">0</span>
+                <div>
+                    <span class="lang-en hidden">Completed:</span>
+                    <span class="lang-zh">已完成：</span>
+                    <span id="completed-count">0</span>
+                </div>
+                <div>
+                    <span class="lang-en hidden">Pending:</span>
+                    <span class="lang-zh">待完成：</span>
+                    <span id="pending-count">0</span>
+                </div>
             </div>
         </div>
     </div>
@@ -339,7 +492,7 @@
             
             todos.forEach(todo => {
                 const todoItem = document.createElement('div');
-                todoItem.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                todoItem.className = `todo-item ${todo.completed ? 'completed' : ''} ${todo.recommended ? 'recommended' : ''}`;
                 todoItem.dataset.id = todo.id;
                 
                 todoItem.innerHTML = `
@@ -423,6 +576,208 @@
             }
         }
         
+        // 转盘相关代码
+        let isSpinning = false;
+        const wheel = document.getElementById('wheel');
+        const spinButton = document.getElementById('spinButton');
+        
+        // SVG 扇形工具函数
+        function describeArc(cx, cy, r, startAngle, endAngle) {
+            const start = polarToCartesian(cx, cy, r, endAngle);
+            const end = polarToCartesian(cx, cy, r, startAngle);
+            const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+            return [
+                "M", cx, cy,
+                "L", start.x, start.y,
+                "A", r, r, 0, largeArcFlag, 0, end.x, end.y,
+                "Z"
+            ].join(" ");
+        }
+        function polarToCartesian(cx, cy, r, angleInDegrees) {
+            const angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+            return {
+                x: cx + (r * Math.cos(angleInRadians)),
+                y: cy + (r * Math.sin(angleInRadians))
+            };
+        }
+
+        function createWheelSections(todos) {
+            const highPriorityTodos = todos.filter(todo => !todo.completed && todo.priority === 'high');
+            const mediumPriorityTodos = todos.filter(todo => !todo.completed && todo.priority === 'medium');
+            const lowPriorityTodos = todos.filter(todo => !todo.completed && todo.priority === 'low');
+            
+            // 清空SVG
+            const svg = document.getElementById('wheel-svg');
+            svg.innerHTML = '';
+            const cx = 140, cy = 140, r = 120;
+            let currentAngle = 0;
+            
+            // 高优先级 180°
+            if (highPriorityTodos.length > 0) {
+                const sectionAngle = 180 / highPriorityTodos.length;
+                highPriorityTodos.forEach((todo, index) => {
+                    const startAngle = currentAngle + (index * sectionAngle);
+                    const endAngle = startAngle + sectionAngle;
+                    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+                    path.setAttribute('d', describeArc(cx, cy, r, startAngle, endAngle));
+                    path.setAttribute('fill', '#feb2b2');
+                    svg.appendChild(path);
+                    
+                    // 任务文字
+                    const textAngle = startAngle + (sectionAngle / 2);
+                    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+                    text.setAttribute('x', cx + Math.cos((textAngle-90)*Math.PI/180)*70);
+                    text.setAttribute('y', cy + Math.sin((textAngle-90)*Math.PI/180)*70);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-size', '12');
+                    text.setAttribute('fill', '#c53030');
+                    text.setAttribute('transform', `rotate(${textAngle}, ${cx + Math.cos((textAngle-90)*Math.PI/180)*70}, ${cy + Math.sin((textAngle-90)*Math.PI/180)*70})`);
+                    // 如果任务文字太长，截断显示
+                    const displayText = todo.text.length > 15 ? 
+                        todo.text.substring(0, 15) + '...' : 
+                        todo.text;
+                    text.textContent = displayText;
+                    svg.appendChild(text);
+                });
+                currentAngle += 180;
+            }
+            
+            // 中优先级 120°
+            if (mediumPriorityTodos.length > 0) {
+                const sectionAngle = 120 / mediumPriorityTodos.length;
+                mediumPriorityTodos.forEach((todo, index) => {
+                    const startAngle = currentAngle + (index * sectionAngle);
+                    const endAngle = startAngle + sectionAngle;
+                    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+                    path.setAttribute('d', describeArc(cx, cy, r, startAngle, endAngle));
+                    path.setAttribute('fill', '#fbd38d');
+                    svg.appendChild(path);
+                    
+                    // 任务文字
+                    const textAngle = startAngle + (sectionAngle / 2);
+                    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+                    text.setAttribute('x', cx + Math.cos((textAngle-90)*Math.PI/180)*70);
+                    text.setAttribute('y', cy + Math.sin((textAngle-90)*Math.PI/180)*70);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-size', '12');
+                    text.setAttribute('fill', '#dd6b20');
+                    text.setAttribute('transform', `rotate(${textAngle}, ${cx + Math.cos((textAngle-90)*Math.PI/180)*70}, ${cy + Math.sin((textAngle-90)*Math.PI/180)*70})`);
+                    // 如果任务文字太长，截断显示
+                    const displayText = todo.text.length > 15 ? 
+                        todo.text.substring(0, 15) + '...' : 
+                        todo.text;
+                    text.textContent = displayText;
+                    svg.appendChild(text);
+                });
+                currentAngle += 120;
+            }
+            
+            // 低优先级 60°
+            if (lowPriorityTodos.length > 0) {
+                const sectionAngle = 60 / lowPriorityTodos.length;
+                lowPriorityTodos.forEach((todo, index) => {
+                    const startAngle = currentAngle + (index * sectionAngle);
+                    const endAngle = startAngle + sectionAngle;
+                    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+                    path.setAttribute('d', describeArc(cx, cy, r, startAngle, endAngle));
+                    path.setAttribute('fill', '#c6f6d5');
+                    svg.appendChild(path);
+                    
+                    // 任务文字
+                    const textAngle = startAngle + (sectionAngle / 2);
+                    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+                    text.setAttribute('x', cx + Math.cos((textAngle-90)*Math.PI/180)*70);
+                    text.setAttribute('y', cy + Math.sin((textAngle-90)*Math.PI/180)*70);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-size', '12');
+                    text.setAttribute('fill', '#276749');
+                    text.setAttribute('transform', `rotate(${textAngle}, ${cx + Math.cos((textAngle-90)*Math.PI/180)*70}, ${cy + Math.sin((textAngle-90)*Math.PI/180)*70})`);
+                    // 如果任务文字太长，截断显示
+                    const displayText = todo.text.length > 15 ? 
+                        todo.text.substring(0, 15) + '...' : 
+                        todo.text;
+                    text.textContent = displayText;
+                    svg.appendChild(text);
+                });
+            }
+            
+            // 按钮状态
+            spinButton.disabled = !highPriorityTodos.length && !mediumPriorityTodos.length && !lowPriorityTodos.length;
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinButton.disabled = true;
+            
+            // 清除之前的推荐标记
+            todos = todos.map(todo => ({...todo, recommended: false}));
+            
+            const randomDegrees = 3600 + Math.random() * 720; // 至少转10圈，最多12圈
+            document.getElementById('wheel').style.transform = `rotate(${randomDegrees}deg)`;
+            
+            setTimeout(() => {
+                isSpinning = false;
+                spinButton.disabled = false;
+                
+                // 计算最终位置
+                const finalRotation = randomDegrees % 360;
+                let selectedPriority = '';
+                let selectedTask = null;
+                
+                // 根据新的角度比例计算优先级和具体任务
+                if (finalRotation >= 0 && finalRotation < 180) {
+                    selectedPriority = 'high';
+                    const highPriorityTodos = todos.filter(todo => !todo.completed && todo.priority === 'high');
+                    const sectionAngle = 180 / highPriorityTodos.length;
+                    const taskIndex = Math.floor(finalRotation / sectionAngle);
+                    selectedTask = highPriorityTodos[taskIndex];
+                } else if (finalRotation >= 180 && finalRotation < 300) {
+                    selectedPriority = 'medium';
+                    const mediumPriorityTodos = todos.filter(todo => !todo.completed && todo.priority === 'medium');
+                    const sectionAngle = 120 / mediumPriorityTodos.length;
+                    const taskIndex = Math.floor((finalRotation - 180) / sectionAngle);
+                    selectedTask = mediumPriorityTodos[taskIndex];
+                } else {
+                    selectedPriority = 'low';
+                    const lowPriorityTodos = todos.filter(todo => !todo.completed && todo.priority === 'low');
+                    const sectionAngle = 60 / lowPriorityTodos.length;
+                    const taskIndex = Math.floor((finalRotation - 300) / sectionAngle);
+                    selectedTask = lowPriorityTodos[taskIndex];
+                }
+                
+                if (selectedTask) {
+                    // 标记选中的任务
+                    todos = todos.map(todo => 
+                        todo.id === selectedTask.id ? {...todo, recommended: true} : todo
+                    );
+                    saveTodos();
+                    renderTodos();
+                    
+                    const lang = getCurrentLanguage();
+                    const message = lang === 'zh' ? 
+                        `建议您先完成这个任务：${selectedTask.text}` :
+                        `Suggested task to complete: ${selectedTask.text}`;
+                    alert(message);
+                }
+            }, 2000); // 减少等待时间到2秒
+        }
+        
+        // 更新转盘
+        function updateWheel() {
+            createWheelSections(todos);
+        }
+        
+        // 绑定转盘事件
+        spinButton.addEventListener('click', spinWheel);
+        
+        // 修改现有的renderTodos函数
+        const originalRenderTodos = renderTodos;
+        renderTodos = function() {
+            originalRenderTodos();
+            updateWheel();
+        };
+        
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             // 设置输入框占位符
@@ -437,6 +792,21 @@
             });
             
             renderTodos();
+            updateWheel();
+        });
+
+        document.getElementById('clearAllBtn').addEventListener('click', function() {
+            const lang = getCurrentLanguage();
+            const confirmText = lang === 'zh' ? 
+                '确定要删除所有任务吗？此操作不可恢复。' : 
+                'Are you sure you want to delete all tasks? This action cannot be undone.';
+            
+            if (confirm(confirmText)) {
+                todos = [];
+                saveTodos();
+                renderTodos();
+                updateWheel();
+            }
         });
     </script>
 {% endblock %}
