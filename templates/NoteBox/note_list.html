@@ -22,6 +22,7 @@
         gap: 1rem;
         margin-bottom: 2rem;
         flex-wrap: wrap;
+        align-items: flex-end;
     }
     .filter-group {
         flex: 1;
@@ -39,6 +40,7 @@
         gap: 1rem;
     }
     .note-card {
+        position: relative;
         background: white;
         padding: 1rem;
         border-radius: 0.5rem;
@@ -68,6 +70,116 @@
         font-size: 0.75rem;
         margin-right: 0.5rem;
     }
+    .note-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .action-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .edit-button {
+        color: #3b82f6;
+    }
+    
+    .edit-button:hover {
+        color: #2563eb;
+    }
+    
+    .delete-button {
+        color: #ff4444;
+    }
+    
+    .delete-button:hover {
+        color: #cc0000;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .delete-all-button {
+        background: #ef4444;
+        color: white;
+    }
+    .delete-all-button:hover {
+        background: #dc2626;
+    }
+    .confirm-buttons {
+        display: none;
+        gap: 1rem;
+    }
+    .confirm-button {
+        padding: 0.5rem 1.5rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+    .confirm-delete {
+        background: #ef4444;
+        color: white;
+    }
+    .confirm-delete:hover {
+        background: #dc2626;
+    }
+    .cancel-delete {
+        background: #6b7280;
+        color: white;
+    }
+    .cancel-delete:hover {
+        background: #4b5563;
+    }
+    .checkbox-wrapper {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        z-index: 10;
+        display: none;
+        pointer-events: auto;
+    }
+    .checkbox-wrapper.visible {
+        display: block;
+    }
+    .checkbox {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #6b7280;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        transition: all 0.2s;
+        pointer-events: auto;
+    }
+    .checkbox.checked {
+        background: #3b82f6;
+        border-color: #3b82f6;
+    }
+    .checkbox.checked::after {
+        content: '✓';
+        color: white;
+        font-size: 12px;
+    }
+    .note-card.selecting {
+        pointer-events: none;
+    }
+    .note-card.selecting .note-header,
+    .note-card.selecting .note-meta,
+    .note-card.selecting .note-tags {
+        opacity: 0.7;
+    }
 </style>
 {% endblock %}
 
@@ -76,6 +188,24 @@
     <span class="lang-en hidden">← Back to Home</span>
     <span class="lang-zh">← 返回主页</span>
 </a>
+
+<div class="action-buttons">
+    <button class="action-button delete-all-button" onclick="startDeleteSelection()">
+        <i class="fas fa-trash"></i>
+        <span class="lang-en hidden">Delete Selected</span>
+        <span class="lang-zh">批量删除</span>
+    </button>
+    <div class="confirm-buttons">
+        <button class="confirm-button confirm-delete" onclick="confirmDelete()">
+            <span class="lang-en hidden">Confirm</span>
+            <span class="lang-zh">确认</span>
+        </button>
+        <button class="confirm-button cancel-delete" onclick="cancelDelete()">
+            <span class="lang-en hidden">Cancel</span>
+            <span class="lang-zh">取消</span>
+        </button>
+    </div>
+</div>
 
 <div class="filters">
     <div class="filter-group">
@@ -104,17 +234,102 @@
 </div>
 
 <script>
+    let isSelecting = false;
+    let selectedNotes = new Set();
+
+    function startDeleteSelection() {
+        isSelecting = true;
+        document.querySelector('.delete-all-button').style.display = 'none';
+        document.querySelector('.confirm-buttons').style.display = 'flex';
+        document.querySelectorAll('.note-card').forEach(note => {
+            note.classList.add('selecting');
+            const checkbox = document.createElement('div');
+            checkbox.className = 'checkbox-wrapper visible';
+            checkbox.innerHTML = '<div class="checkbox" onclick="event.stopPropagation(); toggleNoteSelection(this)"></div>';
+            note.appendChild(checkbox);
+        });
+    }
+
+    function toggleNoteSelection(checkbox) {
+        event.stopPropagation();
+        const note = checkbox.closest('.note-card');
+        const noteId = note.dataset.noteId;
+        checkbox.classList.toggle('checked');
+        
+        if (checkbox.classList.contains('checked')) {
+            selectedNotes.add(noteId);
+        } else {
+            selectedNotes.delete(noteId);
+        }
+    }
+
+    function confirmDelete() {
+        if (selectedNotes.size === 0) {
+            alert('请选择要删除的笔记');
+            return;
+        }
+
+        if (confirm(`确定要删除选中的 ${selectedNotes.size} 篇笔记吗？此操作不可恢复！`)) {
+            const promises = Array.from(selectedNotes).map(noteId => 
+                fetch(`/api/notes/${noteId}`, {
+                    method: 'DELETE'
+                }).then(response => response.json())
+            );
+
+            Promise.all(promises)
+                .then(results => {
+                    if (results.every(result => result.success)) {
+                        alert('删除成功！');
+                        loadNotes();
+                    } else {
+                        alert('部分笔记删除失败，请重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败，请重试');
+                })
+                .finally(() => {
+                    cancelDelete();
+                });
+        }
+    }
+
+    function cancelDelete() {
+        isSelecting = false;
+        selectedNotes.clear();
+        document.querySelector('.delete-all-button').style.display = 'flex';
+        document.querySelector('.confirm-buttons').style.display = 'none';
+        document.querySelectorAll('.note-card').forEach(note => {
+            note.classList.remove('selecting');
+            const checkbox = note.querySelector('.checkbox-wrapper');
+            if (checkbox) {
+                checkbox.remove();
+            }
+        });
+    }
+
     function loadNotes() {
         fetch('/api/notes')
             .then(response => response.json())
             .then(notes => {
                 const container = document.getElementById('notes-container');
                 container.innerHTML = notes.map(note => `
-                    <div class="note-card" onclick="openNote(${note.id})">
-                        <div class="note-title">${note.title}</div>
+                    <div class="note-card" data-note-id="${note.id}" onclick="openNote(${note.id})">
+                        <div class="note-header">
+                            <h3 class="note-title">${note.title}</h3>
+                            <div class="note-actions">
+                                <button class="action-button edit-button" onclick="editNote('${note.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-button delete-button" onclick="deleteNote('${note.id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="note-meta">
-                            <div>${note.course || '未分类'}</div>
-                            <div>${note.updated_at || note.created_at}</div>
+                            <span class="note-course">${note.course || '未分类'}</span>
+                            <span class="note-date">${note.updated_at || note.created_at}</span>
                         </div>
                         <div class="note-tags">
                             ${(note.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
@@ -152,7 +367,7 @@
         const cards = document.querySelectorAll('.note-card');
         cards.forEach(card => {
             const title = card.querySelector('.note-title').textContent.toLowerCase();
-            const course = card.querySelector('.note-meta div:first-child').textContent;
+            const course = card.querySelector('.note-meta .note-course').textContent;
             const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent);
 
             const matchesCourse = !courseFilter || course === courseFilter;
@@ -164,7 +379,27 @@
     }
 
     function openNote(id) {
-        window.location.href = `/edit_note?id=${id}`;
+        window.location.href = `/notebox/edit_note?id=${id}`;
+    }
+
+    function deleteNote(noteId) {
+        if (confirm('确定要删除这篇笔记吗？')) {
+            fetch(`/api/notes/${noteId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadNotes();
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('删除失败，请重试');
+            });
+        }
     }
 
     // 添加事件监听器

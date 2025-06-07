@@ -64,9 +64,20 @@
         cursor: pointer;
         padding: 0.25rem;
         border-radius: 0.25rem;
+        transition: all 0.3s;
     }
     .card-action:hover {
         background: #f3f4f6;
+        transform: scale(1.1);
+    }
+    .card-action i {
+        font-size: 1.2rem;
+    }
+    .card-action.favorite {
+        color: #ccc;
+    }
+    .card-action.favorite.active {
+        color: #f59e0b;
     }
     .pagination {
         display: flex;
@@ -90,6 +101,7 @@
         display: flex;
         gap: 1rem;
         margin-bottom: 2rem;
+        align-items: flex-end;
     }
     .filter-group {
         flex: 1;
@@ -100,6 +112,157 @@
         border: 1px solid #d1d5db;
         border-radius: 0.25rem;
     }
+    .favorite-toggle {
+        padding: 0.5rem 1.5rem;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        min-width: 120px;
+    }
+    .favorite-toggle:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .favorite-toggle:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .favorite-toggle i {
+        font-size: 1.1rem;
+    }
+    .favorite-toggle.active {
+        background: #f59e0b;
+    }
+    .favorite-toggle.active:hover {
+        background: #d97706;
+    }
+    .favorite-toggle span {
+        text-align: center;
+    }
+    .favorite-button {
+        background: none;
+        border: none;
+        color: #ccc;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+    
+    .favorite-button i {
+        font-size: 1.2rem;
+    }
+    
+    .favorite-button i.active {
+        color: #ffd700;
+    }
+    
+    .delete-button {
+        background: none;
+        border: none;
+        color: #ff4444;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+    
+    .delete-button:hover {
+        color: #cc0000;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .action-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .delete-all-button {
+        background: #ef4444;
+        color: white;
+    }
+    .delete-all-button:hover {
+        background: #dc2626;
+    }
+    .confirm-buttons {
+        display: none;
+        gap: 1rem;
+    }
+    .confirm-button {
+        padding: 0.5rem 1.5rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+    .confirm-delete {
+        background: #ef4444;
+        color: white;
+    }
+    .confirm-delete:hover {
+        background: #dc2626;
+    }
+    .cancel-delete {
+        background: #6b7280;
+        color: white;
+    }
+    .cancel-delete:hover {
+        background: #4b5563;
+    }
+    .checkbox-wrapper {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        z-index: 10;
+        display: none;
+        pointer-events: auto;
+    }
+    .checkbox-wrapper.visible {
+        display: block;
+    }
+    .checkbox {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #6b7280;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        transition: all 0.2s;
+        pointer-events: auto;
+    }
+    .checkbox.checked {
+        background: #3b82f6;
+        border-color: #3b82f6;
+    }
+    .checkbox.checked::after {
+        content: '✓';
+        color: white;
+        font-size: 12px;
+    }
+    .card.selecting {
+        pointer-events: none;
+    }
+    .card.selecting .card-inner {
+        opacity: 0.7;
+    }
 </style>
 {% endblock %}
 
@@ -109,24 +272,47 @@
     <span class="lang-zh">← 返回主页</span>
 </a>
 
+<div class="action-buttons">
+    <button class="action-button delete-all-button" onclick="startDeleteSelection()">
+        <i class="fas fa-trash"></i>
+        <span class="lang-en hidden">Delete Selected</span>
+        <span class="lang-zh">批量删除</span>
+    </button>
+    <div class="confirm-buttons">
+        <button class="confirm-button confirm-delete" onclick="confirmDelete()">
+            <span class="lang-en hidden">Confirm</span>
+            <span class="lang-zh">确认</span>
+        </button>
+        <button class="confirm-button cancel-delete" onclick="cancelDelete()">
+            <span class="lang-en hidden">Cancel</span>
+            <span class="lang-zh">取消</span>
+        </button>
+    </div>
+</div>
+
 <div class="filters">
     <div class="filter-group">
         <label class="lang-en hidden">Course</label>
         <label class="lang-zh">课程</label>
         <select id="course-filter">
-            <option value="">All Courses</option>
+            <option value="">所有课程</option>
         </select>
     </div>
     <div class="filter-group">
         <label class="lang-en hidden">Difficulty</label>
         <label class="lang-zh">难度</label>
         <select id="difficulty-filter">
-            <option value="">All Levels</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
+            <option value="">所有难度</option>
+            <option value="easy">简单</option>
+            <option value="medium">中等</option>
+            <option value="hard">困难</option>
         </select>
     </div>
+    <button id="favorite-toggle" class="favorite-toggle">
+        <i class="fas fa-star"></i>
+        <span class="lang-en hidden">Favorites</span>
+        <span class="lang-zh">收藏</span>
+    </button>
 </div>
 
 <div class="cards-container" id="cards-container">
@@ -138,34 +324,22 @@
 </div>
 
 <script>
+    let showFavoritesOnly = false;
+    let allCards = [];
+    let isSelecting = false;
+    let selectedCards = new Set();
+
     function loadCards() {
         fetch('/api/cards')
             .then(response => response.json())
-            .then(cards => {
-                const container = document.getElementById('cards-container');
-                container.innerHTML = cards.map(card => `
-                    <div class="card" onclick="flipCard(this)">
-                        <div class="card-inner">
-                            <div class="card-front">
-                                <div class="card-actions">
-                                    <button class="card-action" onclick="toggleFavorite(event, ${card.id})">★</button>
-                                </div>
-                                <div>${card.question}</div>
-                                <div style="margin-top: 1rem; font-size: 0.875rem; color: #6b7280;">
-                                    <span class="lang-en hidden">Difficulty: </span>
-                                    <span class="lang-zh">难度：</span>
-                                    ${card.difficulty}
-                                </div>
-                            </div>
-                            <div class="card-back">
-                                <div class="card-actions">
-                                    <button class="card-action" onclick="toggleFavorite(event, ${card.id})">★</button>
-                                </div>
-                                <div>${card.answer}</div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '加载卡片失败');
+                }
+                allCards = data.cards;
+                console.log('Loaded cards:', allCards); // 调试信息
+                updateCardDisplay();
+                updateFilters();
             })
             .catch(error => {
                 console.error('Error loading cards:', error);
@@ -173,14 +347,250 @@
             });
     }
 
+    function updateCardDisplay() {
+        const courseFilter = document.getElementById('course-filter').value;
+        const difficultyFilter = document.getElementById('difficulty-filter').value;
+        
+        let filteredCards = allCards;
+        if (showFavoritesOnly) {
+            filteredCards = filteredCards.filter(card => card.favorite);
+        }
+        if (courseFilter) {
+            filteredCards = filteredCards.filter(card => card.course === courseFilter);
+        }
+        if (difficultyFilter) {
+            filteredCards = filteredCards.filter(card => card.difficulty === difficultyFilter);
+        }
+
+        const container = document.getElementById('cards-container');
+        container.innerHTML = filteredCards.map(card => `
+            <div class="card" data-card-id="${card.id}" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-actions">
+                            <button class="card-action favorite ${card.favorite ? 'active' : ''}" onclick="toggleFavorite('${card.id}')">
+                                ${card.favorite ? '★' : '☆'}
+                            </button>
+                            <button class="card-action delete" onclick="deleteCard('${card.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div>${card.question}</div>
+                        <div style="margin-top: 1rem; font-size: 0.875rem; color: #6b7280;">
+                            <div>${card.course || '未分类'}</div>
+                            <div>
+                                <span class="lang-en hidden">Difficulty: </span>
+                                <span class="lang-zh">难度：</span>
+                                ${card.difficulty || '未设置'}
+                            </div>
+                            <div>
+                                <span class="lang-en hidden">Review Status: </span>
+                                <span class="lang-zh">复习状态：</span>
+                                ${card.reviewed ? '已复习' : '未复习'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-actions">
+                            <button class="card-action favorite ${card.favorite ? 'active' : ''}" onclick="toggleFavorite('${card.id}')">
+                                ${card.favorite ? '★' : '☆'}
+                            </button>
+                            <button class="card-action delete" onclick="deleteCard('${card.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div>${card.answer}</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateFilters() {
+        // 更新课程过滤器
+        const courses = [...new Set(allCards.map(card => card.course).filter(Boolean))];
+        const courseFilter = document.getElementById('course-filter');
+        courseFilter.innerHTML = `
+            <option value="">所有课程</option>
+            ${courses.map(course => `<option value="${course}">${course}</option>`).join('')}
+        `;
+    }
+
+    function toggleFavoriteView() {
+        showFavoritesOnly = !showFavoritesOnly;
+        const button = document.getElementById('favorite-toggle');
+        button.classList.toggle('active');
+        if (showFavoritesOnly) {
+            button.innerHTML = '<i class="fas fa-star"></i><span class="lang-en hidden">All Cards</span><span class="lang-zh">全部</span>';
+        } else {
+            button.innerHTML = '<i class="fas fa-star"></i><span class="lang-en hidden">Favorites</span><span class="lang-zh">收藏</span>';
+        }
+        updateCardDisplay();
+    }
+
+    // 添加事件监听器
+    document.getElementById('course-filter').addEventListener('change', updateCardDisplay);
+    document.getElementById('difficulty-filter').addEventListener('change', updateCardDisplay);
+    document.getElementById('favorite-toggle').addEventListener('click', toggleFavoriteView);
+
     function flipCard(card) {
         card.classList.toggle('flipped');
     }
 
-    function toggleFavorite(event, cardId) {
+    function toggleFavorite(cardId) {
+        fetch(`/api/cards/${cardId}/toggle-favorite`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadCards();
+            } else {
+                throw new Error(data.message || '操作失败');
+            }
+        })
+        .catch(error => {
+            console.error('Error toggling favorite:', error);
+            alert('操作失败，请重试');
+        });
+    }
+
+    function deleteCard(cardId) {
+        if (confirm('确定要删除这张卡片吗？')) {
+            fetch(`/api/cards/${cardId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadCards();
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('删除失败，请重试');
+            });
+        }
+    }
+
+    function startDeleteSelection() {
+        isSelecting = true;
+        document.querySelector('.delete-all-button').style.display = 'none';
+        document.querySelector('.confirm-buttons').style.display = 'flex';
+        document.querySelectorAll('.card').forEach(card => {
+            card.classList.add('selecting');
+            const checkbox = document.createElement('div');
+            checkbox.className = 'checkbox-wrapper visible';
+            checkbox.innerHTML = '<div class="checkbox" onclick="event.stopPropagation(); toggleCardSelection(this)"></div>';
+            card.appendChild(checkbox);
+        });
+    }
+
+    function toggleCardSelection(checkbox) {
         event.stopPropagation();
-        // TODO: 实现收藏功能
-        console.log('Toggling favorite for card:', cardId);
+        const card = checkbox.closest('.card');
+        const cardId = card.dataset.cardId;
+        console.log('Toggling selection for card:', cardId); // 调试信息
+        
+        checkbox.classList.toggle('checked');
+        
+        if (checkbox.classList.contains('checked')) {
+            selectedCards.add(cardId);
+        } else {
+            selectedCards.delete(cardId);
+        }
+        console.log('Current selected cards:', Array.from(selectedCards)); // 调试信息
+    }
+
+    function confirmDelete() {
+        if (selectedCards.size === 0) {
+            alert('请先选择要删除的卡片');
+            return;
+        }
+
+        const selectedCount = selectedCards.size;
+        if (!confirm(`确定要删除选中的 ${selectedCount} 张卡片吗？此操作不可恢复。`)) {
+            return;
+        }
+
+        const cardIds = Array.from(selectedCards).map(id => parseInt(id));
+        console.log('Preparing to delete cards with IDs:', cardIds); // 调试信息
+
+        fetch('/api/cards/batch-delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ card_ids: cardIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Server response:', data); // 调试信息
+            if (data.success) {
+                console.log('Cards deleted successfully:', data.message);
+                // 从DOM中移除已删除的卡片
+                cardIds.forEach(id => {
+                    const card = document.querySelector(`.card[data-card-id="${id}"]`);
+                    if (card) {
+                        card.remove();
+                    }
+                });
+                // 重置选择状态
+                selectedCards.clear();
+                isSelecting = false;
+                document.querySelector('.delete-all-button').style.display = 'block';
+                document.querySelector('.confirm-buttons').style.display = 'none';
+                document.querySelectorAll('.card').forEach(card => {
+                    card.classList.remove('selecting');
+                    const checkbox = card.querySelector('.checkbox-wrapper');
+                    if (checkbox) {
+                        checkbox.remove();
+                    }
+                });
+                // 重新加载卡片列表
+                loadCards();
+            } else {
+                console.error('Failed to delete cards:', data.message);
+                alert('删除卡片失败：' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting cards:', error);
+            alert('删除卡片失败，请重试');
+        });
+    }
+
+    function cancelDelete() {
+        selectedCards.clear();
+        isSelecting = false;
+        document.querySelector('.delete-all-button').style.display = 'block';
+        document.querySelector('.confirm-buttons').style.display = 'none';
+        document.querySelectorAll('.card').forEach(card => {
+            card.classList.remove('selecting');
+            const checkbox = card.querySelector('.checkbox-wrapper');
+            if (checkbox) {
+                checkbox.remove();
+            }
+        });
+    }
+
+    function updateUnreviewedCount() {
+        fetch('/api/cards/unreviewed-count')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const count = data.count;
+                    const countElement = document.querySelector('.unreviewed-count');
+                    if (countElement) {
+                        countElement.textContent = count;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error updating unreviewed count:', error);
+            });
     }
 
     document.addEventListener('DOMContentLoaded', loadCards);

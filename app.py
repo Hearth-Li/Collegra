@@ -351,12 +351,24 @@ def save_notes(notes):
         json.dump(notes, f, ensure_ascii=False, indent=2)
 
 def load_cards():
-    with open(CARDS_FILE, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    try:
+        if os.path.exists(CARDS_FILE):
+            with open(CARDS_FILE, 'r', encoding='utf-8') as f:
+                cards = json.load(f)
+                print(f"Loaded {len(cards)} cards from file")  # 调试信息
+                return cards
+        return []
+    except Exception as e:
+        print(f"Error loading cards: {str(e)}")
+        return []
 
 def save_cards(cards):
-    with open(CARDS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(cards, f, ensure_ascii=False, indent=2)
+    try:
+        with open(CARDS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(cards, f, ensure_ascii=False, indent=2)
+            print(f"Saved {len(cards)} cards to file")  # 调试信息
+    except Exception as e:
+        print(f"Error saving cards: {str(e)}")
 
 @app.route('/NoteBox')
 def NoteBox():
@@ -367,29 +379,29 @@ def NoteBox():
                          total_cards=len(cards),
                          recent_notes=notes[-5:] if notes else [])
 
-@app.route('/notes')
+@app.route('/notebox/notes')
 def notebox_notes():
     notes = load_notes()
-    return render_template('/Notebox/note_list.html', notes=notes)
+    return render_template('NoteBox/note_list.html', notes=notes)
 
-@app.route('/edit_note')
+@app.route('/notebox/edit_note')
 def notebox_edit_note():
     note_id = request.args.get('id')
     if note_id:
         notes = load_notes()
         note = next((n for n in notes if n['id'] == int(note_id)), None)
         if note:
-            return render_template('edit_note.html', note=note)
-    return render_template('/NoteBox/edit_note.html')
+            return render_template('NoteBox/edit_note.html', note=note)
+    return render_template('NoteBox/edit_note.html')
 
-@app.route('/cards')
+@app.route('/notebox/cards')
 def notebox_cards():
     cards = load_cards()
-    return render_template('/NoteBox/cards.html', cards=cards)
+    return render_template('NoteBox/cards.html', cards=cards)
 
-@app.route('/review')
+@app.route('/notebox/review')
 def notebox_review():
-    return render_template('/NoteBox/review.html')
+    return render_template('NoteBox/review.html')
 
 @app.route('/api/notes', methods=['POST'])
 def save_note():
@@ -419,12 +431,24 @@ def save_card():
         # 添加创建时间和ID
         card_data['id'] = len(cards) + 1
         card_data['created_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        card_data['reviewed'] = False
+        card_data['favorite'] = False
+        card_data['skipped'] = False
+        
+        # 确保必要的字段存在
+        if not all(key in card_data for key in ['question', 'answer']):
+            return jsonify({'success': False, 'message': '卡片必须包含问题和答案'}), 400
         
         cards.append(card_data)
         save_cards(cards)
         
-        return jsonify({'success': True, 'message': '卡片保存成功'})
+        return jsonify({
+            'success': True, 
+            'message': '卡片保存成功',
+            'card': card_data
+        })
     except Exception as e:
+        print(f"Error saving card: {str(e)}")  # 添加错误日志
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/notes', methods=['GET'])
@@ -434,8 +458,24 @@ def get_notes():
 
 @app.route('/api/cards', methods=['GET'])
 def get_cards():
-    cards = load_cards()
-    return jsonify(cards)
+    try:
+        cards = load_cards()
+        # 添加复习状态统计
+        total_cards = len(cards)
+        reviewed_cards = len([c for c in cards if c.get('reviewed', False)])
+        
+        return jsonify({
+            'success': True,
+            'cards': cards,
+            'stats': {
+                'total': total_cards,
+                'reviewed': reviewed_cards,
+                'pending': total_cards - reviewed_cards
+            }
+        })
+    except Exception as e:
+        print(f"Error getting cards: {str(e)}")  # 添加错误日志
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/notes/<int:note_id>', methods=['PUT'])
 def update_note(note_id):
@@ -480,9 +520,130 @@ def get_note_cards(note_id):
         return jsonify(note_cards)
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
-    
 
+@app.route('/api/cards/<int:card_id>/review', methods=['POST'])
+def review_card(card_id):
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': '缺少数据'})
+        
+        cards = load_cards()
+        card = next((c for c in cards if c['id'] == card_id), None)
+        
+        if card:
+            # 更新卡片状态
+            card['reviewed'] = data.get('reviewed', False)
+            card['reviewed_at'] = datetime.utcnow().isoformat()
+            
+            # 保存更新后的卡片
+            save_cards(cards)
+            print(f"Card {card_id} reviewed successfully, reviewed={card['reviewed']}")  # 调试信息
+            return jsonify({'success': True})
+        
+        print(f"Card {card_id} not found")  # 调试信息
+        return jsonify({'success': False, 'message': '卡片不存在'})
+    except Exception as e:
+        print(f"Error reviewing card {card_id}: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
 
+@app.route('/api/cards/<int:card_id>/skip', methods=['POST'])
+def skip_card(card_id):
+    try:
+        cards = load_cards()
+        card = next((c for c in cards if c['id'] == card_id), None)
+        
+        if card:
+            card['skipped'] = True
+            card['skipped_at'] = datetime.utcnow().isoformat()
+            save_cards(cards)
+            print(f"Card {card_id} skipped successfully")  # 调试信息
+            return jsonify({'success': True})
+        
+        print(f"Card {card_id} not found")  # 调试信息
+        return jsonify({'success': False, 'message': '卡片不存在'})
+    except Exception as e:
+        print(f"Error skipping card {card_id}: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/cards/<int:card_id>/toggle-favorite', methods=['POST'])
+def toggle_favorite(card_id):
+    cards = load_cards()
+    card = next((c for c in cards if c['id'] == card_id), None)
+    if card:
+        card['favorite'] = not card.get('favorite', False)
+        save_cards(cards)
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': '卡片不存在'})
+
+@app.route('/api/cards/<int:card_id>', methods=['DELETE'])
+def delete_card(card_id):
+    try:
+        cards = load_cards()
+        card = next((c for c in cards if c['id'] == card_id), None)
+        if card:
+            cards.remove(card)
+            save_cards(cards)
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': '卡片不存在'})
+    except Exception as e:
+        print(f"Error deleting card {card_id}: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
+
+@app.route('/api/cards/batch-delete', methods=['POST'])
+def batch_delete_cards():
+    try:
+        data = request.get_json()
+        if not data or 'card_ids' not in data:
+            return jsonify({'success': False, 'message': '缺少卡片ID列表'})
+        
+        # 确保所有ID都是整数
+        try:
+            card_ids = [int(id) for id in data['card_ids']]
+        except (ValueError, TypeError):
+            return jsonify({'success': False, 'message': '无效的卡片ID格式'})
+        
+        print(f"Received delete request for card IDs: {card_ids}")  # 调试信息
+        
+        cards = load_cards()
+        print(f"Total cards before deletion: {len(cards)}")  # 调试信息
+        
+        # 验证所有要删除的卡片ID是否存在
+        existing_ids = {card['id'] for card in cards}
+        invalid_ids = [id for id in card_ids if id not in existing_ids]
+        if invalid_ids:
+            return jsonify({
+                'success': False,
+                'message': f'以下卡片ID不存在: {invalid_ids}'
+            })
+        
+        # 记录要删除的卡片
+        cards_to_delete = [card for card in cards if card['id'] in card_ids]
+        print(f"Cards to delete: {[card['id'] for card in cards_to_delete]}")  # 调试信息
+        
+        # 过滤掉要删除的卡片
+        remaining_cards = [card for card in cards if card['id'] not in card_ids]
+        print(f"Remaining cards after deletion: {len(remaining_cards)}")  # 调试信息
+        
+        # 验证删除操作
+        deleted_count = len(cards) - len(remaining_cards)
+        if deleted_count != len(card_ids):
+            return jsonify({
+                'success': False,
+                'message': f'删除操作异常：预期删除 {len(card_ids)} 张，实际删除 {deleted_count} 张'
+            })
+        
+        # 保存更新后的卡片列表
+        save_cards(remaining_cards)
+        print(f"Successfully deleted {deleted_count} cards")  # 调试信息
+        
+        return jsonify({
+            'success': True,
+            'message': f'成功删除 {deleted_count} 张卡片'
+        })
+    except Exception as e:
+        print(f"Error in batch delete: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
 
 if __name__ == '__main__':
     init_data_files()

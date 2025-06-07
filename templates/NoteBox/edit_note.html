@@ -137,6 +137,11 @@
         </div>
         <div class="modal-body">
             <div class="form-group" style="margin-bottom: 1rem;">
+                <label class="lang-en hidden">Course</label>
+                <label class="lang-zh">课程</label>
+                <input type="text" id="card-course" class="form-control" placeholder="输入课程名称" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 1rem;">
                 <label class="lang-en hidden">Question</label>
                 <label class="lang-zh">问题</label>
                 <input type="text" id="card-question" class="form-control" placeholder="输入问题" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem;">
@@ -184,31 +189,29 @@
     });
 
     function saveNote() {
-        const noteData = {
-            title: document.getElementById('title').value,
-            course: document.getElementById('course').value,
-            tags: document.getElementById('tags').value.split(',').map(tag => tag.trim()),
-            content: easyMDE.value()
-        };
+        const title = document.getElementById('title').value;
+        const content = easyMDE.value();
+        const course = document.getElementById('course').value;
+        const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
 
-        const noteId = new URLSearchParams(window.location.search).get('id');
-        const url = noteId ? `/api/notes/${noteId}` : '/api/notes';
-        const method = noteId ? 'PUT' : 'POST';
-        
-        fetch(url, {
-            method: method,
+        fetch('/api/notes', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(noteData)
+            body: JSON.stringify({
+                title,
+                content,
+                course,
+                tags
+            })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('笔记保存成功！');
-                window.location.href = '/notes';
+                window.location.href = '/notebox/notes';
             } else {
-                alert('保存失败：' + data.message);
+                alert(data.message || '保存失败');
             }
         })
         .catch(error => {
@@ -258,6 +261,7 @@
             question: document.getElementById('card-question').value,
             answer: document.getElementById('card-answer').value,
             difficulty: document.getElementById('card-difficulty').value,
+            course: document.getElementById('card-course').value,
             noteId: new URLSearchParams(window.location.search).get('id')
         };
         

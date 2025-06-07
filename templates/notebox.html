@@ -99,4 +99,58 @@
         <!-- 笔记列表将通过 JavaScript 动态加载 -->
     </div>
 </div>
+
+<script>
+    function updateStats() {
+        // 获取笔记数量
+        fetch('/api/notes')
+            .then(response => response.json())
+            .then(notes => {
+                document.querySelector('.stat-card:nth-child(1) .stat-number').textContent = notes.length;
+            });
+
+        // 获取卡片数量和未复习数量
+        fetch('/api/cards')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '加载卡片失败');
+                }
+                const cards = data.cards;
+                const totalCards = cards.length;
+                const unreviewedCards = cards.filter(card => !card.reviewed && !card.skipped).length;
+                document.querySelector('.stat-card:nth-child(2) .stat-number').textContent = totalCards;
+                document.querySelector('.stat-card:nth-child(3) .stat-number').textContent = unreviewedCards;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.querySelector('.stat-card:nth-child(2) .stat-number').textContent = '0';
+                document.querySelector('.stat-card:nth-child(3) .stat-number').textContent = '0';
+            });
+    }
+
+    // 加载最近笔记
+    function loadRecentNotes() {
+        fetch('/api/notes')
+            .then(response => response.json())
+            .then(notes => {
+                const recentNotes = notes.slice(-5).reverse();
+                const container = document.getElementById('recent-notes-list');
+                container.innerHTML = recentNotes.map(note => `
+                    <div class="note-card">
+                        <div class="note-title">${note.title}</div>
+                        <div class="note-meta">
+                            <div>${note.course || '未分类'}</div>
+                            <div>${note.updated_at || note.created_at}</div>
+                        </div>
+                    </div>
+                `).join('');
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateStats();
+        loadRecentNotes();
+    });
+</script>
 {% endblock %} 

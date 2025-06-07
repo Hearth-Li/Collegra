@@ -13,25 +13,33 @@
         border-radius: 0.375rem;
         text-decoration: none;
         margin-bottom: 1rem;
+        transition: all 0.3s ease;
     }
     .back-button:hover {
         background: #d1d5db;
+        transform: translateY(-1px);
     }
     .review-container {
-        max-width: 600px;
+        max-width: 800px;
         margin: 0 auto;
         position: relative;
-        padding-top: 2.5rem;  /* 减小顶部间距 */
+        padding: 2rem;
     }
     .flashcard {
         background: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         padding: 2rem;
-        margin-bottom: 2rem;
-        min-height: 300px;
+        margin: 2rem auto;
+        min-height: 400px;
         perspective: 1000px;
         cursor: pointer;
+        position: relative;
+        transition: transform 0.3s ease;
+    }
+    .flashcard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0,0,0,0.15);
     }
     .flashcard-inner {
         position: relative;
@@ -53,15 +61,49 @@
         justify-content: center;
         align-items: center;
         text-align: center;
+        padding: 2rem;
     }
     .flashcard-back {
         transform: rotateY(180deg);
+    }
+    .card-header {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        right: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 10;
+    }
+    .card-tags {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .card-tag {
+        padding: 0.25rem 0.75rem;
+        background: #e5e7eb;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        color: #4b5563;
+    }
+    .favorite-star {
+        color: #f59e0b;
+        font-size: 1.25rem;
+        cursor: pointer;
+    }
+    .card-content {
+        margin-top: 3rem;
+        font-size: 1.25rem;
+        line-height: 1.6;
+        color: #1f2937;
     }
     .progress-bar {
         height: 0.5rem;
         background: #e5e7eb;
         border-radius: 9999px;
-        margin-bottom: 1rem;
+        margin: 1rem 0;
         overflow: hidden;
     }
     .progress-fill {
@@ -69,84 +111,125 @@
         background: #3b82f6;
         transition: width 0.3s ease;
     }
-    .controls {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-    .control-button {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 0.5rem;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.3s;
-    }
-    .difficulty-buttons {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 1rem;
-    }
-    .difficulty-button {
-        padding: 0.5rem 1rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.25rem;
-        background: white;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    .difficulty-button:hover {
-        background: #f3f4f6;
-        transform: translateY(-1px);
-    }
-    .difficulty-button.active {
-        background: #3b82f6;
-        color: white;
-        border-color: #3b82f6;
-    }
-    .difficulty-button.active:hover {
-        background: #2563eb;
-    }
     .stats {
         display: flex;
         justify-content: space-between;
         margin-bottom: 1rem;
         color: #6b7280;
+        font-size: 0.875rem;
+    }
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        padding: 0 1rem;
+    }
+    .nav-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f3f4f6;
+        color: #374151;
+    }
+    .nav-button:hover:not(:disabled) {
+        background: #e5e7eb;
+        transform: translateY(-1px);
+    }
+    .nav-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .nav-button i {
+        font-size: 1.1rem;
+    }
+    .mastery-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        justify-content: center;
+    }
+    .mastery-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .mastery-button::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    .mastery-button:hover::after {
+        transform: translateX(0);
+    }
+    .mastery-button.known {
+        background: #10b981;
+        color: white;
+    }
+    .mastery-button.unknown {
+        background: #ef4444;
+        color: white;
+    }
+    .mastery-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .mastery-button:active {
+        transform: translateY(0);
+    }
+    .mastery-button.selected {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+        transform: scale(1.05);
+    }
+    .mastery-button.selected:hover {
+        transform: scale(1.05) translateY(-1px);
+    }
+    .mastery-button.disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    .mastery-button.disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    .mastery-button.disabled.selected {
+        opacity: 1;
+        cursor: not-allowed;
     }
     .exit-button {
         position: absolute;
-        top: 0.75rem;  /* 调整顶部距离 */
-        right: 0;      /* 与卡片右边界对齐 */
-        padding: 0.35rem 0.75rem;  /* 减小内边距 */
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
         background: rgba(239, 68, 68, 0.1);
         color: #ef4444;
         border: 1px solid rgba(239, 68, 68, 0.2);
         border-radius: 0.5rem;
         cursor: pointer;
-        z-index: 10;
         font-weight: 500;
-        font-size: 0.875rem;  /* 减小字体大小 */
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;  /* 减小图标和文字间距 */
         transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     .exit-button:hover {
-        background: rgba(239, 68, 68, 0.15);
-        border-color: rgba(239, 68, 68, 0.3);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .exit-button:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    .exit-button::before {
-        content: "×";
-        font-size: 1.1rem;  /* 减小图标大小 */
-        line-height: 1;
+        background: rgba(239, 68, 68, 0.2);
     }
     .modal {
         display: none;
@@ -163,7 +246,7 @@
     .modal-content {
         background: white;
         padding: 2rem;
-        border-radius: 0.5rem;
+        border-radius: 1rem;
         max-width: 400px;
         width: 90%;
         text-align: center;
@@ -172,13 +255,15 @@
         display: flex;
         justify-content: center;
         gap: 1rem;
-        margin-top: 1rem;
+        margin-top: 1.5rem;
     }
     .modal-button {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1.5rem;
         border: none;
-        border-radius: 0.25rem;
+        border-radius: 0.5rem;
         cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
     }
     .modal-button.confirm {
         background: #ef4444;
@@ -186,6 +271,7 @@
     }
     .modal-button.cancel {
         background: #e5e7eb;
+        color: #374151;
     }
     .completion-message {
         text-align: center;
@@ -194,6 +280,7 @@
     .completion-message a {
         color: #3b82f6;
         text-decoration: none;
+        font-weight: 500;
     }
     .completion-message a:hover {
         text-decoration: underline;
@@ -202,17 +289,12 @@
 {% endblock %}
 
 {% block content %}
-<a href="{{ url_for('NoteBox') }}" class="back-button">
+<a href="#" class="back-button" onclick="confirmExit(event)">
     <span class="lang-en hidden">← Back to Home</span>
     <span class="lang-zh">← 返回主页</span>
 </a>
 
 <div class="review-container">
-    <button class="exit-button" onclick="confirmExit()">
-        <span class="lang-en hidden">Exit</span>
-        <span class="lang-zh">退出</span>
-    </button>
-
     <div class="stats">
         <div>
             <span class="lang-en hidden">Progress: </span>
@@ -232,28 +314,29 @@
 
     <div id="flashcard-container">
         <div class="flashcard" onclick="flipCard(this)">
+            <div class="card-header">
+                <div class="card-tags">
+                    <span class="card-tag" id="card-course"></span>
+                    <span class="card-tag" id="card-difficulty"></span>
+                </div>
+                <div class="favorite-star" id="card-favorite" style="display: none;">★</div>
+            </div>
             <div class="flashcard-inner">
                 <div class="flashcard-front">
-                    <h2 class="lang-en hidden">Question</h2>
-                    <h2 class="lang-zh">问题</h2>
-                    <div id="card-front-content"></div>
+                    <div class="card-content" id="card-front-content"></div>
                 </div>
                 <div class="flashcard-back">
-                    <h2 class="lang-en hidden">Answer</h2>
-                    <h2 class="lang-zh">答案</h2>
-                    <div id="card-back-content"></div>
-                    <div class="difficulty-buttons">
-                        <button class="difficulty-button" onclick="rateDifficulty(event, 'easy')">
-                            <span class="lang-en hidden">Easy</span>
-                            <span class="lang-zh">简单</span>
+                    <div class="card-content" id="card-back-content"></div>
+                    <div class="mastery-buttons">
+                        <button class="mastery-button known" onclick="rateMastery(true)" id="known-button">
+                            <i class="fas fa-check"></i>
+                            <span class="lang-en hidden">I Know It</span>
+                            <span class="lang-zh">已掌握</span>
                         </button>
-                        <button class="difficulty-button" onclick="rateDifficulty(event, 'medium')">
-                            <span class="lang-en hidden">Medium</span>
-                            <span class="lang-zh">中等</span>
-                        </button>
-                        <button class="difficulty-button" onclick="rateDifficulty(event, 'hard')">
-                            <span class="lang-en hidden">Hard</span>
-                            <span class="lang-zh">困难</span>
+                        <button class="mastery-button unknown" onclick="rateMastery(false)" id="unknown-button">
+                            <i class="fas fa-times"></i>
+                            <span class="lang-en hidden">Need Review</span>
+                            <span class="lang-zh">需复习</span>
                         </button>
                     </div>
                 </div>
@@ -261,12 +344,14 @@
         </div>
     </div>
 
-    <div class="controls">
-        <button class="control-button" onclick="previousCard()">
+    <div class="navigation-buttons">
+        <button class="nav-button" onclick="previousCard()" id="prev-button">
+            <i class="fas fa-arrow-left"></i>
             <span class="lang-en hidden">Previous</span>
             <span class="lang-zh">上一个</span>
         </button>
-        <button class="control-button" onclick="nextCard()">
+        <button class="nav-button" onclick="nextCard()" id="next-button">
+            <i class="fas fa-arrow-right"></i>
             <span class="lang-en hidden">Next</span>
             <span class="lang-zh">下一个</span>
         </button>
@@ -298,10 +383,10 @@
     <div class="modal-content">
         <h3 class="lang-en hidden">Skip this card?</h3>
         <h3 class="lang-zh">跳过这张卡片？</h3>
-        <p class="lang-en hidden">You haven't rated this card yet.</p>
-        <p class="lang-zh">您还没有对这张卡片进行评级。</p>
+        <p class="lang-en hidden">This card will be marked as reviewed.</p>
+        <p class="lang-zh">这张卡片将被标记为已复习。</p>
         <div class="modal-buttons">
-            <button class="modal-button confirm" onclick="confirmSkip()">
+            <button class="modal-button confirm" onclick="skipCard()">
                 <span class="lang-en hidden">Skip</span>
                 <span class="lang-zh">跳过</span>
             </button>
@@ -334,93 +419,192 @@
     let cards = [];
     let startTime = new Date();
     let currentCardRated = false;
-    let currentCardFlipped = false;
+    let cardHistory = [];
 
     function loadCards() {
-        // TODO: 实现卡片加载逻辑
-        cards = [
-            {
-                id: 1,
-                front: "What is the derivative of sin(x)?",
-                back: "cos(x)",
-                difficulty: "medium"
-            },
-            {
-                id: 2,
-                front: "What is the formula for the area of a circle?",
-                back: "πr²",
-                difficulty: "easy"
-            }
-        ];
-        updateCard();
-        startTimer();
+        fetch('/api/cards')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '加载卡片失败');
+                }
+                cards = data.cards.filter(card => !card.reviewed);
+                if (cards.length === 0) {
+                    showModal('completion-modal');
+                    return;
+                }
+                updateCard();
+                startTimer();
+                updateNavigationButtons();
+            })
+            .catch(error => {
+                console.error('Error loading cards:', error);
+                alert('加载卡片失败，请重试');
+            });
     }
 
     function updateCard() {
         const card = cards[currentCardIndex];
-        document.getElementById('card-front-content').textContent = card.front;
-        document.getElementById('card-back-content').textContent = card.back;
+        document.getElementById('card-front-content').textContent = card.question;
+        document.getElementById('card-back-content').textContent = card.answer;
+        document.getElementById('card-course').textContent = card.course || '未分类';
+        document.getElementById('card-difficulty').textContent = card.difficulty || '未设置';
+        document.getElementById('card-favorite').style.display = card.favorite ? 'block' : 'none';
+        
         document.getElementById('progress-text').textContent = `${currentCardIndex + 1}/${cards.length}`;
         document.getElementById('progress-fill').style.width = `${((currentCardIndex + 1) / cards.length) * 100}%`;
         
         // 重置卡片状态
         const flashcard = document.querySelector('.flashcard');
         flashcard.classList.remove('flipped');
-        currentCardFlipped = false;
         currentCardRated = false;
         
-        // 移除所有难度按钮的active类
-        document.querySelectorAll('.difficulty-button').forEach(button => {
-            button.classList.remove('active');
-        });
+        // 更新掌握按钮状态
+        updateMasteryButtons();
+    }
+
+    function updateNavigationButtons() {
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        
+        prevButton.disabled = currentCardIndex === 0;
+        nextButton.disabled = currentCardIndex === cards.length - 1;
+    }
+
+    function updateMasteryButtons() {
+        const knownButton = document.getElementById('known-button');
+        const unknownButton = document.getElementById('unknown-button');
+        
+        // 移除所有状态类
+        knownButton.classList.remove('disabled', 'selected');
+        unknownButton.classList.remove('disabled', 'selected');
+        
+        if (cardHistory[currentCardIndex]) {
+            // 如果卡片已经被评价过
+            knownButton.classList.add('disabled');
+            unknownButton.classList.add('disabled');
+            
+            // 根据历史记录显示选择状态
+            if (cardHistory[currentCardIndex].reviewed) {
+                knownButton.classList.add('selected');
+            } else {
+                unknownButton.classList.add('selected');
+            }
+            
+            // 恢复原始文本
+            knownButton.innerHTML = `
+                <i class="fas fa-check"></i>
+                <span class="lang-en hidden">I Know It</span>
+                <span class="lang-zh">已掌握</span>
+            `;
+            unknownButton.innerHTML = `
+                <i class="fas fa-times"></i>
+                <span class="lang-en hidden">Need Review</span>
+                <span class="lang-zh">需复习</span>
+            `;
+        } else {
+            // 如果卡片未被评价过，恢复原始文本
+            knownButton.innerHTML = `
+                <i class="fas fa-check"></i>
+                <span class="lang-en hidden">I Know It</span>
+                <span class="lang-zh">已掌握</span>
+            `;
+            unknownButton.innerHTML = `
+                <i class="fas fa-times"></i>
+                <span class="lang-en hidden">Need Review</span>
+                <span class="lang-zh">需复习</span>
+            `;
+        }
     }
 
     function flipCard(card) {
-        card.classList.toggle('flipped');
-        currentCardFlipped = !currentCardFlipped;
+        if (!currentCardRated) {
+            card.classList.toggle('flipped');
+        }
     }
 
     function previousCard() {
         if (currentCardIndex > 0) {
             currentCardIndex--;
             updateCard();
+            updateNavigationButtons();
+        } else {
+            alert('没有上一个卡片了');
         }
     }
 
     function nextCard() {
         if (currentCardIndex === cards.length - 1) {
-            showModal('completion-modal');
+            alert('没有下一个卡片了');
             return;
         }
 
-        if (!currentCardFlipped) {
-            showModal('skip-modal');
+        // 如果当前卡片已经被评价过，直接前进到下一张
+        if (cardHistory[currentCardIndex]) {
+            currentCardIndex++;
+            updateCard();
+            updateNavigationButtons();
             return;
         }
 
+        // 如果是新卡片且未评价，才显示跳过确认
         if (!currentCardRated) {
-            alert('请先选择难度等级');
+            showModal('skip-modal');
             return;
         }
 
         currentCardIndex++;
         updateCard();
+        updateNavigationButtons();
     }
 
-    function rateDifficulty(event, difficulty) {
-        event.stopPropagation();
-        currentCardRated = true;
-        
-        // 移除所有按钮的active类
-        document.querySelectorAll('.difficulty-button').forEach(button => {
-            button.classList.remove('active');
+    function rateMastery(known) {
+        const currentCard = cards[currentCardIndex];
+        if (!currentCard) return;
+
+        // 如果卡片已经被评价过，不允许再次评价
+        if (cardHistory[currentCardIndex]) {
+            return;
+        }
+
+        fetch(`/api/cards/${currentCard.id}/review`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                reviewed: known
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentCardRated = true;
+                cardHistory[currentCardIndex] = { reviewed: known };
+                updateMasteryButtons();
+                currentCardIndex++;
+                if (currentCardIndex < cards.length) {
+                    setTimeout(() => {
+                        updateCard();
+                        updateNavigationButtons();
+                    }, 500);
+                } else {
+                    showModal('completion-modal');
+                }
+            } else {
+                console.error('Failed to update card review status:', data.message);
+                alert('更新卡片复习状态失败，请重试');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating card review status:', error);
+            alert('更新卡片复习状态失败，请重试');
         });
-        
-        // 为当前点击的按钮添加active类
-        event.currentTarget.classList.add('active');
-        
-        // TODO: 实现难度评级逻辑
-        console.log('Rating difficulty:', difficulty);
+    }
+
+    function skipCard() {
+        rateMastery(true);
+        closeModal('skip-modal');
     }
 
     function startTimer() {
@@ -441,22 +625,13 @@
         document.getElementById(modalId).style.display = 'none';
     }
 
-    function confirmExit() {
-        if (!currentCardRated && currentCardFlipped) {
-            alert('请先选择难度等级');
-            return;
-        }
+    function confirmExit(event) {
+        event.preventDefault();
         showModal('exit-modal');
     }
 
     function exitReview() {
         window.location.href = "{{ url_for('NoteBox') }}";
-    }
-
-    function confirmSkip() {
-        closeModal('skip-modal');
-        currentCardIndex++;
-        updateCard();
     }
 
     document.addEventListener('DOMContentLoaded', loadCards);
