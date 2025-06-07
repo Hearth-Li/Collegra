@@ -294,7 +294,7 @@ def add_course():
         db.session.add(course)
         db.session.commit()
         flash(_l('课程添加成功！'))
-        return redirect(url_for('index'))
+        return redirect(url_for('course_scheduler'))
     
     days = enumerate(['周一', '周二', '周三', '周四', '周五', '周六', '周日'])
     periods = range(1, 11)
@@ -323,7 +323,7 @@ def edit_course(id):
         
         db.session.commit()
         flash(_l('课程更新成功！'))
-        return redirect(url_for('index'))
+        return redirect(url_for('course_scheduler'))
     
     days = enumerate(['周一', '周二', '周三', '周四', '周五', '周六', '周日'])
     periods = range(1, 11)
@@ -335,7 +335,7 @@ def delete_course(id):
     db.session.delete(course)
     db.session.commit()
     flash(_l('课程删除成功！'))
-    return redirect(url_for('index'))
+    return redirect(url_for('course_scheduler'))
 
 @app.route('/Resources_Collection')
 def Resources_Collection():
