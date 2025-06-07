@@ -705,7 +705,7 @@
             spinButton.disabled = !highPriorityTodos.length && !mediumPriorityTodos.length && !lowPriorityTodos.length;
         }
 
-        function spinWheel() {
+                function spinWheel() {
             if (isSpinning) return;
             isSpinning = true;
             spinButton.disabled = true;
@@ -713,7 +713,7 @@
             // 清除之前的推荐标记
             todos = todos.map(todo => ({...todo, recommended: false}));
             
-            const randomDegrees = 3600 + Math.random() * 720; // 至少转10圈，最多12圈
+            const randomDegrees = 3600 + Math.random() * 720;
             document.getElementById('wheel').style.transform = `rotate(${randomDegrees}deg)`;
             
             setTimeout(() => {
@@ -725,7 +725,7 @@
                 let selectedPriority = '';
                 let selectedTask = null;
                 
-                // 根据新的角度比例计算优先级和具体任务
+                // 根据角度计算选中的任务
                 if (finalRotation >= 0 && finalRotation < 180) {
                     selectedPriority = 'high';
                     const highPriorityTodos = todos.filter(todo => !todo.completed && todo.priority === 'high');
@@ -747,21 +747,18 @@
                 }
                 
                 if (selectedTask) {
-                    // 标记选中的任务
+                    // 标记选中的任务（不再显示提示框）
                     todos = todos.map(todo => 
                         todo.id === selectedTask.id ? {...todo, recommended: true} : todo
                     );
                     saveTodos();
                     renderTodos();
                     
-                    const lang = getCurrentLanguage();
-                    const message = lang === 'zh' ? 
-                        `建议您先完成这个任务：${selectedTask.text}` :
-                        `Suggested task to complete: ${selectedTask.text}`;
-                    alert(message);
+                    // 已删除 alert 提示框代码
                 }
-            }, 2000); // 减少等待时间到2秒
+            }, 2000);
         }
+        
         
         // 更新转盘
         function updateWheel() {
