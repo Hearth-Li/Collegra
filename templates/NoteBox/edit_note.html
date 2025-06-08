@@ -73,7 +73,7 @@
     <div>
         <label class="lang-en hidden">Tags</label>
         <label class="lang-zh">标签</label>
-        <input type="text" id="tags" placeholder="用逗号分隔多个标签" {% if note %}value="{{ note.tags|join(',') }}"{% endif %}>
+        <input type="text" id="tags" placeholder="用逗号分隔多个标签" {% if note %}value="{{ note.tags if note.tags is string else note.tags|join(',') }}"{% endif %}>
     </div>
 </div>
 
@@ -112,7 +112,16 @@
         const title = document.getElementById('title').value;
         const content = easyMDE.value();
         const course = document.getElementById('course').value;
-        const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+        let tags = document.getElementById('tags').value;
+        
+        // 处理标签
+        if (tags) {
+            // 如果标签是字符串，先分割成数组
+            tags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        } else {
+            tags = [];
+        }
+        
         const noteId = new URLSearchParams(window.location.search).get('id');
 
         if (!title || !content) {

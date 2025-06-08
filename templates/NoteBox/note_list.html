@@ -318,7 +318,16 @@
                 }
                 const notes = data.notes;
                 const container = document.getElementById('notes-container');
-                container.innerHTML = notes.map(note => `
+                container.innerHTML = notes.map(note => {
+                    // 处理标签，确保它们是数组格式
+                    let tags = note.tags;
+                    if (typeof tags === 'string') {
+                        tags = tags.split(',').filter(tag => tag.trim());
+                    } else if (!Array.isArray(tags)) {
+                        tags = [];
+                    }
+                    
+                    return `
                     <div class="note-card" data-note-id="${note.id}" onclick="editNote(${note.id})">
                         <div class="note-header">
                             <h3 class="note-title">${note.title}</h3>
@@ -336,10 +345,10 @@
                             <span class="note-date">${new Date(note.updated_at).toLocaleString()}</span>
                         </div>
                         <div class="note-tags">
-                            ${(note.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            ${tags.map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
 
                 // 更新课程过滤器
                 const courses = [...new Set(notes.map(note => note.course).filter(Boolean))];
@@ -350,11 +359,20 @@
                 `;
 
                 // 更新标签过滤器
-                const tags = [...new Set(notes.flatMap(note => note.tags || []))];
+                const allTags = notes.flatMap(note => {
+                    let tags = note.tags;
+                    if (typeof tags === 'string') {
+                        tags = tags.split(',').filter(tag => tag.trim());
+                    } else if (!Array.isArray(tags)) {
+                        tags = [];
+                    }
+                    return tags;
+                });
+                const uniqueTags = [...new Set(allTags)];
                 const tagFilter = document.getElementById('tag-filter');
                 tagFilter.innerHTML = `
                     <option value="">所有标签</option>
-                    ${tags.map(tag => `<option value="${tag}">${tag}</option>`).join('')}
+                    ${uniqueTags.map(tag => `<option value="${tag}">${tag}</option>`).join('')}
                 `;
             })
             .catch(error => {
