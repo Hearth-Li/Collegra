@@ -71,10 +71,11 @@
         .top-bar .right-section {
             display: flex;
             align-items: center;
+            gap: 20px;
         }
         .nav-dropdown {
             position: relative;
-            margin-right: 15px;
+            margin: 0;
         }
         .dropdown-btn {
             background: none; border: none;
@@ -83,6 +84,9 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            height: 40px;
         }
         .dropdown-btn:hover { background-color: #f3f4f6; }
         .dropdown-content {
@@ -110,6 +114,23 @@
             border-radius: 8px;
             border: 1px solid #d1d5db;
             background: #f9fafb;
+            height: 40px;
+        }
+        .chat-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            height: 40px;
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-toggle-btn:hover {
+            background-color: #f3f4f6;
         }
         .container {
             width: 100%;
@@ -273,6 +294,19 @@
         .lang-en.hidden, .lang-zh.hidden {
             display: none !important;
         }
+        .top-right-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        @media (max-width: 768px) {
+            .top-right-controls {
+                gap: 10px;
+            }
+            .dropdown-btn {
+                padding: 8px 12px;
+            }
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
@@ -286,7 +320,7 @@
                 <span class="slogan lang-en {{ 'hidden' if g.lang != 'en' }}">Collegra: All You Need to Thrive in College and Beyond.</span>
                 <span class="slogan lang-zh {{ 'hidden' if g.lang == 'en' }}">Collegra：成就大学生活，开启精彩未来</span>
             </div>
-            <div class="right-section">
+            <div class="top-right-controls">
                 <div class="nav-dropdown">
                     <button class="dropdown-btn">
                         <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Menu</span>
@@ -304,22 +338,9 @@
                         <a href="#"><span class="lang-en {{ 'hidden' if g.lang != 'en' }}">More Coming Soon</span><span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">更多即将推出</span></a>
                     </div>
                 </div>
-                <button id="chat-toggle"
-                        class="dropdown-btn mr-8 p-2 relative group"
-                        style="display: flex; align-items: center;"
-                        aria-label="{{ 'Quick Chat' if g.lang == 'en' else '快速提问' }}">
-                    <img src="{{ url_for('static', filename='icons/robot.png') }}"
-                        alt="Chat Icon"
-                        class="h-6 w-6">
-
-                    <!-- Tooltip ABOVE with language toggle -->
-                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gray-700 text-white text-sm rounded px-2 py-1 whitespace-nowrap z-10">
-                        <span class="lang-en {{ 'hidden' if g.lang != 'en' }}">Quick Chat</span>
-                        <span class="lang-zh {{ 'hidden' if g.lang == 'en' }}">快速提问</span>
-                    </div>
+                <button id="chat-toggle" class="chat-toggle-btn" aria-label="{{ 'Quick Chat' if g.lang == 'en' else '快速提问' }}">
+                    <img src="{{ url_for('static', filename='icons/robot.png') }}" alt="Chat Icon" class="h-6 w-6">
                 </button>
-
-
                 <div class="language-toggle">
                     <select id="languageSelect" onchange="toggleLanguage()">
                         <option value="zh" {{ 'selected' if g.lang != 'en' }}>中文</option>
@@ -392,4 +413,3 @@
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 </body>
 </html>
-
