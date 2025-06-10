@@ -29,4 +29,18 @@ class Card(db.Model):
     is_favorite = db.Column(db.Boolean, default=False)
     reviewed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)) 
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+class Course(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    teacher = db.Column(db.String(100), nullable=False)
+    day_of_week = db.Column(db.Integer, nullable=False)
+    start_period = db.Column(db.Integer, nullable=False)
+    end_period = db.Column(db.Integer, nullable=False)
+    location = db.Column(db.String(100), nullable=False)
+    weeks = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f'<Course {self.name} ({self.day_of_week} {self.start_period}-{self.end_period})'

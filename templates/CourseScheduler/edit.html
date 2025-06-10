@@ -37,7 +37,7 @@
             <span class="lang-en hidden">{{ _('Course Name') }}</span>
             <span class="lang-zh">{{ _('课程名称') }}</span>
         </label>
-        <input type="text" class="w-full" id="name" name="name" value="{{ course.name }}" required>
+        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="name" name="name" value="{{ course.name }}" required>
     </div>
     
     <div class="mb-6">
@@ -45,7 +45,7 @@
             <span class="lang-en hidden">{{ _('Teacher') }}</span>
             <span class="lang-zh">{{ _('任课教师') }}</span>
         </label>
-        <input type="w-full px-4 py-2 border border-gray-300 rounded-lg" id="teacher" name="teacher" value="{{ course.teacher }}" required>
+        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="teacher" name="teacher" value="{{ course.teacher }}" required>
     </div>
 
     <div class="mb-6">

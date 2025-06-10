@@ -8,7 +8,7 @@ import requests
 import json 
 from text2cv import text2Latex, compileLatex
 from flask_babel import Babel, _, lazy_gettext as _l
-from models import db, Note, Card
+from models import db, Note, Card, Course
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
@@ -239,20 +239,6 @@ def generate_cv_route():
     except Exception as e:
         print(f"Error in generate_cv_route: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-class Course(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    teacher = db.Column(db.String(100), nullable=False)
-    day_of_week = db.Column(db.Integer, nullable=False)
-    start_period = db.Column(db.Integer, nullable=False)
-    end_period = db.Column(db.Integer, nullable=False)
-    location = db.Column(db.String(100), nullable=False)
-    weeks = db.Column(db.String(100), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f'<Course {self.name} ({self.day_of_week} {self.start_period}-{self.end_period})'
 
 @app.route('/course_scheduler')
 def course_scheduler():
