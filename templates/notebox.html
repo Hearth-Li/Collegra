@@ -4,60 +4,236 @@
 
 {% block head %}
 <style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .header-section {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 3rem 0;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        border-radius: 1rem;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        animation: fadeInUp 0.8s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+                    linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%);
+        background-size: 20px 20px;
+        opacity: 0.1;
+    }
+
+    .header-section h1 {
+        font-size: 2.8rem;
+        color: white;
+        margin-bottom: 1rem;
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        letter-spacing: 1px;
+    }
+
+    .header-section p {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 1.3rem;
+        font-weight: 300;
+        letter-spacing: 1.5px;
+    }
+
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
     }
+
     .stat-card {
         background: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
     }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(to right, #3b82f6, #2563eb);
+    }
+
     .stat-number {
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: bold;
         color: #3b82f6;
+        margin-bottom: 0.5rem;
+        animation: pulse 2s infinite;
     }
-    .recent-notes {
-        margin-top: 2rem;
-    }
-    .note-card {
-        background: white;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
+
     .quick-actions {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-        margin: 2rem 0;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        margin: 3rem 0;
+        animation: fadeInUp 0.8s ease-out 0.4s both;
     }
+
     .action-button {
-        background: #3b82f6;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
         color: white;
-        padding: 1rem;
-        border-radius: 0.5rem;
+        padding: 1.2rem;
+        border-radius: 1rem;
         text-align: center;
         cursor: pointer;
-        transition: background-color 0.3s;
+        transition: all 0.3s ease;
         text-decoration: none;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        position: relative;
+        overflow: hidden;
     }
+
     .action-button:hover {
-        background: #2563eb;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .action-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+        );
+        transition: 0.5s;
+    }
+
+    .action-button:hover::before {
+        left: 100%;
+    }
+
+    .recent-notes {
+        margin-top: 3rem;
+        animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+
+    .recent-notes h2 {
+        font-size: 1.8rem;
+        color: #1f2937;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+    }
+
+    .note-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .note-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .note-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .note-meta {
+        display: flex;
+        justify-content: space-between;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .header-section {
+            padding: 2rem 0;
+        }
+        
+        .header-section h1 {
+            font-size: 2rem;
+        }
+        
+        .header-section p {
+            font-size: 1.1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="text-align: center; margin-bottom: 3rem; padding: 2rem 0; background: linear-gradient(to right, #3b82f6, #2563eb); border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-    <h1 style="font-size: 2.5rem; color: white; margin-bottom: 1rem; font-weight: 600; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);">笔记与知识卡片整理</h1>
-    <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.2rem; font-weight: 300; letter-spacing: 1px;">高效管理你的学习笔记和知识卡片</p>
+<div class="header-section">
+    <h1 class="lang-en hidden">NoteBox - Note Management</h1>
+    <h1 class="lang-zh">笔记与知识卡片整理</h1>
+    <p class="lang-en hidden">Efficiently manage your study notes and knowledge cards</p>
+    <p class="lang-zh">高效管理你的学习笔记和知识卡片</p>
 </div>
 
 <div class="stats-grid">
