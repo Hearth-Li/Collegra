@@ -117,10 +117,36 @@
 
     .quick-actions {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3rem;
         margin: 3rem 0;
         animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+
+    .action-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .action-group:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+
+    .action-group-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1rem;
+        text-align: center;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.5rem;
     }
 
     .action-button {
@@ -136,6 +162,12 @@
         box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
         position: relative;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 120px;
     }
 
     .action-button:hover {
@@ -161,6 +193,12 @@
 
     .action-button:hover::before {
         left: 100%;
+    }
+
+    .action-icon {
+        width: 48px;
+        height: 48px;
+        filter: brightness(0) invert(1);
     }
 
     .recent-notes {
@@ -223,6 +261,26 @@
         
         .quick-actions {
             grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .action-group {
+            padding: 1rem;
+        }
+
+        .action-group-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-button {
+            height: 100px;
+            padding: 1rem;
+        }
+
+        .action-icon {
+            width: 40px;
+            height: 40px;
         }
     }
 </style>
@@ -255,27 +313,50 @@
 </div>
 
 <div class="quick-actions">
-    <a href="{{ url_for('notebox_edit_note') }}" class="action-button">
-        <div class="lang-en hidden">New Note</div>
-        <div class="lang-zh">新建笔记</div>
-    </a>
-    <a href="{{ url_for('notebox_notes') }}" class="action-button">
-        <div class="lang-en hidden">View Notes</div>
-        <div class="lang-zh">查看笔记</div>
-    </a>
-    <a href="{{ url_for('notebox_cards') }}" class="action-button">
-        <div class="lang-en hidden">View Cards</div>
-        <div class="lang-zh">查看卡片</div>
-    </a>
-    <a href="{{ url_for('notebox_generate_card') }}" class="action-button">
-        <i class="fas fa-plus"></i>
-        <div class="lang-en hidden">Generate Card</div>
-        <div class="lang-zh">生成卡片</div>
-    </a>
-    <a href="{{ url_for('notebox_review') }}" class="action-button">
-        <div class="lang-en hidden">Start Review</div>
-        <div class="lang-zh">开始复习</div>
-    </a>
+    <div class="action-group">
+        <h3 class="action-group-title lang-en hidden">Notes</h3>
+        <h3 class="action-group-title lang-zh">笔记</h3>
+        <a href="{{ url_for('notebox_edit_note') }}" class="action-button">
+            <img src="/static/icons/xinjianbiji.png" alt="New Note Icon" class="action-icon">
+            <div class="lang-en hidden">New Note</div>
+            <div class="lang-zh">新建笔记</div>
+        </a>
+        <a href="{{ url_for('notebox_notes') }}" class="action-button">
+            <img src="/static/icons/chakanbiji.png" alt="View Notes Icon" class="action-icon">
+            <div class="lang-en hidden">View Notes</div>
+            <div class="lang-zh">查看笔记</div>
+        </a>
+    </div>
+
+    <div class="action-group">
+        <h3 class="action-group-title lang-en hidden">Cards</h3>
+        <h3 class="action-group-title lang-zh">卡片</h3>
+        <a href="{{ url_for('notebox_generate_card') }}" class="action-button">
+            <img src="/static/icons/shengchengkapian.png" alt="Generate Card Icon" class="action-icon">
+            <div class="lang-en hidden">Generate Card</div>
+            <div class="lang-zh">生成卡片</div>
+        </a>
+        <a href="{{ url_for('notebox_cards') }}" class="action-button">
+            <img src="/static/icons/chakankapianneirong.png" alt="View Cards Icon" class="action-icon">
+            <div class="lang-en hidden">View Cards</div>
+            <div class="lang-zh">查看卡片</div>
+        </a>
+    </div>
+
+    <div class="action-group">
+        <h3 class="action-group-title lang-en hidden">Review</h3>
+        <h3 class="action-group-title lang-zh">复习</h3>
+        <a href="{{ url_for('notebox_review') }}" class="action-button">
+            <img src="/static/icons/kuaisufuxi.png" alt="Start Review Icon" class="action-icon">
+            <div class="lang-en hidden">Start Review</div>
+            <div class="lang-zh">开始复习</div>
+        </a>
+        <a href="{{ url_for('notebox_review_records') }}" class="action-button">
+            <img src="/static/icons/lishijilu.png" alt="Review Records Icon" class="action-icon">
+            <div class="lang-en hidden">Review Records</div>
+            <div class="lang-zh">复习记录</div>
+        </a>
+    </div>
 </div>
 
 <div class="recent-notes">

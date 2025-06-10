@@ -433,6 +433,8 @@
                     showModal('completion-modal');
                     return;
                 }
+                // 重置开始时间
+                startTime = new Date();
                 updateCard();
                 startTimer();
                 updateNavigationButtons();
@@ -589,7 +591,44 @@
                         updateNavigationButtons();
                     }, 500);
                 } else {
-                    showModal('completion-modal');
+                    // 保存复习记录
+                    const endTime = new Date();
+                    const duration = Math.floor((endTime - startTime) / 1000);
+                    const masteredCount = cardHistory.filter(card => card && card.reviewed).length;
+                    const notMasteredCount = cardHistory.filter(card => card && !card.reviewed).length;
+
+                    const reviewData = {
+                        start_time: startTime.toISOString(),
+                        end_time: endTime.toISOString(),
+                        duration: duration,
+                        mastered_count: masteredCount,
+                        not_mastered_count: notMasteredCount,
+                        cards: cards.map((card, index) => ({
+                            id: card.id,
+                            is_mastered: cardHistory[index] ? cardHistory[index].reviewed : false
+                        }))
+                    };
+
+                    console.log('Saving review record:', reviewData);
+
+                    fetch('/api/review-records', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(reviewData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('Failed to save review record:', data.message);
+                        }
+                        showModal('completion-modal');
+                    })
+                    .catch(error => {
+                        console.error('Error saving review record:', error);
+                        showModal('completion-modal');
+                    });
                 }
             } else {
                 console.error('Failed to update card review status:', data.message);
@@ -608,12 +647,15 @@
     }
 
     function startTimer() {
+        const timerElement = document.getElementById('timer');
+        const startTime = new Date();
+        
         setInterval(() => {
             const now = new Date();
             const diff = Math.floor((now - startTime) / 1000);
             const minutes = Math.floor(diff / 60).toString().padStart(2, '0');
             const seconds = (diff % 60).toString().padStart(2, '0');
-            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            timerElement.textContent = `${minutes}:${seconds}`;
         }, 1000);
     }
 
@@ -631,7 +673,42 @@
     }
 
     function exitReview() {
-        window.location.href = "{{ url_for('notebox') }}";
+        // 保存复习记录
+        const endTime = new Date();
+        const duration = Math.floor((endTime - startTime) / 1000);
+        const masteredCount = cardHistory.filter(card => card && card.reviewed).length;
+        const notMasteredCount = cardHistory.filter(card => card && !card.reviewed).length;
+
+        const reviewData = {
+            start_time: startTime.toISOString(),
+            end_time: endTime.toISOString(),
+            duration: duration,
+            mastered_count: masteredCount,
+            not_mastered_count: notMasteredCount,
+            cards: cards.map((card, index) => ({
+                id: card.id,
+                is_mastered: cardHistory[index] ? cardHistory[index].reviewed : false
+            }))
+        };
+
+        fetch('/api/review-records', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reviewData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Failed to save review record:', data.message);
+            }
+            window.location.href = "{{ url_for('notebox') }}";
+        })
+        .catch(error => {
+            console.error('Error saving review record:', error);
+            window.location.href = "{{ url_for('notebox') }}";
+        });
     }
 
     document.addEventListener('DOMContentLoaded', loadCards);

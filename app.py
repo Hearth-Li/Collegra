@@ -2,13 +2,13 @@ from flask import Flask, render_template, request, send_file, jsonify, redirect,
 import os
 from flask_sqlalchemy import SQLAlchemy
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import base64
 import requests
 import json 
 from text2cv import text2Latex, compileLatex
 from flask_babel import Babel, _, lazy_gettext as _l
-from models import db, Note, Card, Course
+from models import db, Note, Card, Course, ReviewRecord
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
@@ -417,6 +417,10 @@ def notebox_cards():
 def notebox_review():
     return render_template('NoteBox/review.html')
 
+@app.route('/notebox/review-records')
+def notebox_review_records():
+    return render_template('NoteBox/notebox_review_records.html')
+
 @app.route('/api/notes', methods=['POST'])
 def create_note():
     try:
@@ -666,6 +670,132 @@ def batch_delete_cards():
 @app.route('/notebox/generate-card')
 def notebox_generate_card():
     return render_template('NoteBox/generate_card.html')
+
+@app.route('/api/review-records', methods=['GET'])
+def get_review_records():
+    try:
+        print('Fetching review records...')
+        sort_by = request.args.get('sort_by', 'newest')
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+
+        print(f'Parameters: sort_by={sort_by}, start_date={start_date}, end_date={end_date}')
+
+        query = ReviewRecord.query
+
+        if start_date and end_date:
+            try:
+                # 将 ISO 格式的时间字符串转换为带时区的 datetime 对象
+                start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+                end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                query = query.filter(
+                    ReviewRecord.start_time >= start,
+                    ReviewRecord.end_time <= end
+                )
+                print(f'Filtered by date range: {start} to {end}')
+            except ValueError as e:
+                print(f'Invalid date format: {e}')
+                return jsonify({'success': False, 'message': 'Invalid date format'}), 400
+
+        if sort_by == 'newest':
+            query = query.order_by(ReviewRecord.start_time.desc())
+        elif sort_by == 'oldest':
+            query = query.order_by(ReviewRecord.start_time.asc())
+        elif sort_by == 'duration':
+            query = query.order_by(ReviewRecord.duration.desc())
+
+        records = query.all()
+        print(f'Found {len(records)} review records')
+
+        records_data = []
+        for record in records:
+            try:
+                # 将 UTC 时间转换为本地时间
+                local_start_time = record.start_time.astimezone()
+                local_end_time = record.end_time.astimezone()
+                
+                record_data = {
+                    'id': record.id,
+                    'start_time': local_start_time.isoformat(),
+                    'end_time': local_end_time.isoformat(),
+                    'duration': record.duration,
+                    'mastered_count': record.mastered_count,
+                    'not_mastered_count': record.not_mastered_count,
+                    'cards': []
+                }
+                
+                for card in record.cards:
+                    try:
+                        card_data = {
+                            'id': card.id,
+                            'question': card.question,
+                            'answer': card.answer,
+                            'is_mastered': card.is_mastered if hasattr(card, 'is_mastered') else False
+                        }
+                        record_data['cards'].append(card_data)
+                    except Exception as e:
+                        print(f'Error processing card {card.id}: {e}')
+                        continue
+
+                records_data.append(record_data)
+            except Exception as e:
+                print(f'Error processing record {record.id}: {e}')
+                continue
+
+        print('Successfully processed all records')
+        return jsonify({
+            'success': True,
+            'records': records_data
+        })
+    except Exception as e:
+        print(f"Error getting review records: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/review-records', methods=['POST'])
+def create_review_record():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+        print('Creating review record with data:', data)
+
+        # 获取卡片列表
+        cards = []
+        for card_data in data['cards']:
+            card = Card.query.get(card_data['id'])
+            if card:
+                # 设置卡片的掌握状态
+                card.is_mastered = card_data.get('is_mastered', False)
+                cards.append(card)
+
+        # 将 ISO 格式的时间字符串转换为带时区的 datetime 对象
+        start_time = datetime.fromisoformat(data['start_time'].replace('Z', '+00:00'))
+        end_time = datetime.fromisoformat(data['end_time'].replace('Z', '+00:00'))
+
+        # 创建复习记录
+        record = ReviewRecord.create(
+            start_time=start_time,
+            end_time=end_time,
+            duration=data['duration'],
+            mastered_count=data['mastered_count'],
+            not_mastered_count=data['not_mastered_count'],
+            cards=cards
+        )
+
+        db.session.add(record)
+        db.session.commit()
+
+        print(f'Successfully created review record {record.id}')
+        return jsonify({
+            'success': True,
+            'message': 'Review record created successfully',
+            'record_id': record.id
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating review record: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
     init_data_files()

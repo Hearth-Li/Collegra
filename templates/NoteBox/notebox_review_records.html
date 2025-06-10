@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Review Records - 复习记录{% endblock %}
+
+{% block head %}
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background: #e5e7eb;
+        color: #374151;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        margin-right: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+        background: #d1d5db;
+        transform: translateY(-1px);
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    .filter-section {
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        background: white;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .filter-input {
+        padding: 0.5rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        color: #1f2937;
+        background: white;
+    }
+
+    .filter-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .review-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .review-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .review-time {
+        font-size: 1.1rem;
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    .review-duration {
+        color: #3b82f6;
+        font-weight: 500;
+    }
+
+    .review-stats {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .stat-value {
+        color: #1f2937;
+        font-weight: 600;
+    }
+
+    .stat-value.mastered {
+        color: #10b981;
+    }
+
+    .stat-value.not-mastered {
+        color: #ef4444;
+    }
+
+    .review-cards {
+        background: #f9fafb;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .review-card-item {
+        padding: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .review-card-item:last-child {
+        border-bottom: none;
+    }
+
+    .card-question {
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .card-answer {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .no-records {
+        text-align: center;
+        padding: 2rem;
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+        .review-stats {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .filter-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="{{ url_for('notebox') }}" class="back-button">
+        <span class="lang-en hidden">← Back to Home</span>
+        <span class="lang-zh">← 返回主页</span>
+    </a>
+    <h1 class="page-title">
+        <span class="lang-en hidden">Review Records</span>
+        <span class="lang-zh">复习记录</span>
+    </h1>
+</div>
+
+<div class="filter-section">
+    <input type="date" class="filter-input" id="review-date" placeholder="选择日期">
+    <select class="filter-input" id="sort-by">
+        <option value="newest" class="lang-en hidden">Newest First</option>
+        <option value="newest" class="lang-zh">最新优先</option>
+        <option value="oldest" class="lang-en hidden">Oldest First</option>
+        <option value="oldest" class="lang-zh">最早优先</option>
+        <option value="duration" class="lang-en hidden">Longest Duration</option>
+        <option value="duration" class="lang-zh">时长最长</option>
+    </select>
+</div>
+
+<div class="review-records">
+    <div id="review-records-list">
+        <!-- 复习记录将通过 JavaScript 动态加载 -->
+    </div>
+</div>
+
+<script>
+    // 格式化持续时间
+    function formatDuration(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+
+        if (hours > 0) {
+            return `用时: ${hours}小时 ${minutes}分钟`;
+        } else if (minutes > 0) {
+            return `用时: ${minutes}分钟 ${remainingSeconds}秒`;
+        } else {
+            return `用时: ${remainingSeconds}秒`;
+        }
+    }
+
+    // 格式化日期时间
+    function formatDateTime(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    }
+
+    // 加载复习记录
+    function loadReviewRecords() {
+        const reviewDate = document.getElementById('review-date').value;
+        const sortBy = document.getElementById('sort-by').value;
+
+        let url = `/api/review-records?sort_by=${sortBy}`;
+        if (reviewDate) {
+            const startDate = new Date(reviewDate);
+            const endDate = new Date(reviewDate);
+            endDate.setDate(endDate.getDate() + 1);
+            url += `&start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`;
+        }
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '加载复习记录失败');
+                }
+                const container = document.getElementById('review-records-list');
+                
+                if (data.records.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-records">
+                            <div class="lang-en hidden">No review records found</div>
+                            <div class="lang-zh">未找到复习记录</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.records.map(record => `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="review-time">
+                                ${formatDateTime(record.start_time)} - 
+                                ${formatDateTime(record.end_time)}
+                            </div>
+                            <div class="review-duration">
+                                ${formatDuration(record.duration)}
+                            </div>
+                        </div>
+                        <div class="review-stats">
+                            <div class="stat-item">
+                                <span class="stat-label lang-en hidden">Mastered:</span>
+                                <span class="stat-label lang-zh">已掌握:</span>
+                                <span class="stat-value mastered">${record.mastered_count}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label lang-en hidden">Not Mastered:</span>
+                                <span class="stat-label lang-zh">未掌握:</span>
+                                <span class="stat-value not-mastered">${record.not_mastered_count}</span>
+                            </div>
+                        </div>
+                        <div class="review-cards">
+                            ${record.cards.slice(0, 3).map(card => `
+                                <div class="review-card-item">
+                                    <div class="card-question">${card.question}</div>
+                                    <div class="card-answer">${card.answer}</div>
+                                    <div class="card-status">
+                                        <span class="lang-en hidden">Status: </span>
+                                        <span class="lang-zh">状态：</span>
+                                        <span class="${card.is_mastered ? 'mastered' : 'not-mastered'}">
+                                            ${card.is_mastered ? '已掌握' : '需复习'}
+                                        </span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('review-records-list').innerHTML = `
+                    <div class="no-records">
+                        <div class="lang-en hidden">Failed to load review records</div>
+                        <div class="lang-zh">加载复习记录失败</div>
+                    </div>
+                `;
+            });
+    }
+
+    // 添加筛选器事件监听
+    document.getElementById('review-date').addEventListener('change', loadReviewRecords);
+    document.getElementById('sort-by').addEventListener('change', loadReviewRecords);
+
+    // 页面加载时获取记录
+    document.addEventListener('DOMContentLoaded', loadReviewRecords);
+</script>
+{% endblock %} 
