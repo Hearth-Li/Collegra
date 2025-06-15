@@ -36,8 +36,9 @@
     }
     .notes-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
+        margin-bottom: 2rem;
     }
     .note-card {
         position: relative;
@@ -106,11 +107,11 @@
         gap: 1rem;
         margin-bottom: 1rem;
     }
-    .delete-all-button {
+    .delete-all-button, .delete-everything-button {
         background: #ef4444;
         color: white;
     }
-    .delete-all-button:hover {
+    .delete-all-button:hover, .delete-everything-button:hover {
         background: #dc2626;
     }
     .confirm-buttons {
@@ -180,6 +181,33 @@
     .note-card.selecting .note-tags {
         opacity: 0.7;
     }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    .pagination button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .pagination button:hover:not(:disabled) {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .pagination-info {
+        color: #6b7280;
+    }
 </style>
 {% endblock %}
 
@@ -194,6 +222,11 @@
         <i class="fas fa-trash"></i>
         <span class="lang-en hidden">Delete Selected</span>
         <span class="lang-zh">批量删除</span>
+    </button>
+    <button class="action-button delete-everything-button" onclick="deleteAllNotes()">
+        <i class="fas fa-trash-alt"></i>
+        <span class="lang-en hidden">Delete All</span>
+        <span class="lang-zh">一键删除</span>
     </button>
     <div class="confirm-buttons">
         <button class="confirm-button confirm-delete" onclick="confirmDelete()">
@@ -234,12 +267,125 @@
 </div>
 
 <script>
+    let currentPage = 1;
+    const notesPerPage = 6;
+    let allNotes = [];
     let isSelecting = false;
     let selectedNotes = new Set();
+
+    function loadNotes() {
+        fetch('/api/notes')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || '加载笔记失败');
+                }
+                allNotes = data.notes;
+                updateNotesDisplay();
+                updateFilters();
+            })
+            .catch(error => {
+                console.error('Error loading notes:', error);
+                alert('加载笔记失败，请重试');
+            });
+    }
+
+    function updateNotesDisplay() {
+        const courseFilter = document.getElementById('course-filter').value;
+        const tagFilter = document.getElementById('tag-filter').value;
+        const searchText = document.getElementById('search').value.toLowerCase();
+
+        let filteredNotes = allNotes;
+        if (courseFilter) {
+            filteredNotes = filteredNotes.filter(note => note.course === courseFilter);
+        }
+        if (tagFilter) {
+            filteredNotes = filteredNotes.filter(note => {
+                const tags = typeof note.tags === 'string' ? note.tags.split(',').map(t => t.trim()) : note.tags;
+                return tags.includes(tagFilter);
+            });
+        }
+        if (searchText) {
+            filteredNotes = filteredNotes.filter(note => note.title.toLowerCase().includes(searchText));
+        }
+
+        const totalPages = Math.ceil(filteredNotes.length / notesPerPage);
+        
+        // 如果当前页大于总页数，自动跳转到最后一页
+        if (currentPage > totalPages && totalPages > 0) {
+            currentPage = totalPages;
+        }
+        
+        const startIndex = (currentPage - 1) * notesPerPage;
+        const endIndex = startIndex + notesPerPage;
+        const currentNotes = filteredNotes.slice(startIndex, endIndex);
+
+        const container = document.getElementById('notes-container');
+        container.innerHTML = currentNotes.map(note => {
+            const tags = typeof note.tags === 'string' ? note.tags.split(',').map(t => t.trim()) : note.tags;
+            return `
+                <div class="note-card" data-note-id="${note.id}" onclick="editNote(${note.id})">
+                    <div class="note-header">
+                        <h3 class="note-title">${note.title}</h3>
+                        <div class="note-actions">
+                            <button class="action-button edit-button" onclick="event.stopPropagation(); editNote(${note.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-button delete-button" onclick="event.stopPropagation(); deleteNote(${note.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="note-meta">
+                        <span class="note-course">${note.course || '未分类'}</span>
+                        <span class="note-date">${new Date(note.updated_at).toLocaleString()}</span>
+                    </div>
+                    <div class="note-tags">
+                        ${tags.map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // 移除旧的分页控件
+        const oldPagination = document.querySelector('.pagination');
+        if (oldPagination) {
+            oldPagination.remove();
+        }
+
+        // 更新分页控件
+        const pagination = document.createElement('div');
+        pagination.className = 'pagination';
+        pagination.innerHTML = `
+            <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>
+            <button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+            <span class="pagination-info">${currentPage} / ${totalPages}</span>
+            <button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
+            <button onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>末页</button>
+        `;
+        container.after(pagination);
+
+        // 如果正在选择模式，重新添加复选框
+        if (isSelecting) {
+            document.querySelectorAll('.note-card').forEach(note => {
+                note.classList.add('selecting');
+                const checkbox = document.createElement('div');
+                checkbox.className = 'checkbox-wrapper visible';
+                checkbox.innerHTML = '<div class="checkbox" onclick="event.stopPropagation(); toggleNoteSelection(this)"></div>';
+                note.appendChild(checkbox);
+            });
+        }
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        updateNotesDisplay();
+    }
 
     function startDeleteSelection() {
         isSelecting = true;
         document.querySelector('.delete-all-button').style.display = 'none';
+        document.querySelector('.delete-everything-button').style.display = 'none';
         document.querySelector('.confirm-buttons').style.display = 'flex';
         document.querySelectorAll('.note-card').forEach(note => {
             note.classList.add('selecting');
@@ -280,6 +426,7 @@
                 .then(results => {
                     if (results.every(result => result.success)) {
                         alert('删除成功！');
+                        selectedNotes.clear();
                         loadNotes();
                     } else {
                         alert('部分笔记删除失败，请重试');
@@ -299,105 +446,36 @@
         isSelecting = false;
         selectedNotes.clear();
         document.querySelector('.delete-all-button').style.display = 'flex';
+        document.querySelector('.delete-everything-button').style.display = 'flex';
         document.querySelector('.confirm-buttons').style.display = 'none';
-        document.querySelectorAll('.note-card').forEach(note => {
-            note.classList.remove('selecting');
-            const checkbox = note.querySelector('.checkbox-wrapper');
-            if (checkbox) {
-                checkbox.remove();
+        updateNotesDisplay();
+    }
+
+    function updateFilters() {
+        // 更新课程过滤器
+        const courses = [...new Set(allNotes.map(note => note.course).filter(Boolean))];
+        const courseFilter = document.getElementById('course-filter');
+        courseFilter.innerHTML = `
+            <option value="">所有课程</option>
+            ${courses.map(course => `<option value="${course}">${course}</option>`).join('')}
+        `;
+
+        // 更新标签过滤器
+        const allTags = allNotes.flatMap(note => {
+            let tags = note.tags;
+            if (typeof tags === 'string') {
+                tags = tags.split(',').filter(tag => tag.trim());
+            } else if (!Array.isArray(tags)) {
+                tags = [];
             }
+            return tags;
         });
-    }
-
-    function loadNotes() {
-        fetch('/api/notes')
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    throw new Error(data.message || '加载笔记失败');
-                }
-                const notes = data.notes;
-                const container = document.getElementById('notes-container');
-                container.innerHTML = notes.map(note => {
-                    // 处理标签，确保它们是数组格式
-                    let tags = note.tags;
-                    if (typeof tags === 'string') {
-                        tags = tags.split(',').filter(tag => tag.trim());
-                    } else if (!Array.isArray(tags)) {
-                        tags = [];
-                    }
-                    
-                    return `
-                    <div class="note-card" data-note-id="${note.id}" onclick="editNote(${note.id})">
-                        <div class="note-header">
-                            <h3 class="note-title">${note.title}</h3>
-                            <div class="note-actions">
-                                <button class="action-button edit-button" onclick="event.stopPropagation(); editNote(${note.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-button delete-button" onclick="event.stopPropagation(); deleteNote(${note.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="note-meta">
-                            <span class="note-course">${note.course || '未分类'}</span>
-                            <span class="note-date">${new Date(note.updated_at).toLocaleString()}</span>
-                        </div>
-                        <div class="note-tags">
-                            ${tags.map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-                        </div>
-                    </div>
-                `}).join('');
-
-                // 更新课程过滤器
-                const courses = [...new Set(notes.map(note => note.course).filter(Boolean))];
-                const courseFilter = document.getElementById('course-filter');
-                courseFilter.innerHTML = `
-                    <option value="">所有课程</option>
-                    ${courses.map(course => `<option value="${course}">${course}</option>`).join('')}
-                `;
-
-                // 更新标签过滤器
-                const allTags = notes.flatMap(note => {
-                    let tags = note.tags;
-                    if (typeof tags === 'string') {
-                        tags = tags.split(',').filter(tag => tag.trim());
-                    } else if (!Array.isArray(tags)) {
-                        tags = [];
-                    }
-                    return tags;
-                });
-                const uniqueTags = [...new Set(allTags)];
-                const tagFilter = document.getElementById('tag-filter');
-                tagFilter.innerHTML = `
-                    <option value="">所有标签</option>
-                    ${uniqueTags.map(tag => `<option value="${tag}">${tag}</option>`).join('')}
-                `;
-            })
-            .catch(error => {
-                console.error('Error loading notes:', error);
-                alert('加载笔记失败，请重试');
-            });
-    }
-
-    function filterNotes() {
-        const courseFilter = document.getElementById('course-filter').value;
-        const tagFilter = document.getElementById('tag-filter').value;
-        const searchText = document.getElementById('search').value.toLowerCase();
-
-        const cards = document.querySelectorAll('.note-card');
-        cards.forEach(card => {
-            const title = card.querySelector('.note-title').textContent.toLowerCase();
-            const course = card.querySelector('.note-meta .note-course').textContent;
-            const tags = Array.from(card.querySelectorAll('.tag')).map(tag => tag.textContent);
-
-            const matchesCourse = !courseFilter || course === courseFilter;
-            const matchesTag = !tagFilter || tags.includes(tagFilter);
-            const matchesSearch = !searchText || title.includes(searchText);
-
-            card.style.display = matchesCourse && matchesTag && matchesSearch ? 'block' : 'none';
-        });
+        const uniqueTags = [...new Set(allTags)];
+        const tagFilter = document.getElementById('tag-filter');
+        tagFilter.innerHTML = `
+            <option value="">所有标签</option>
+            ${uniqueTags.map(tag => `<option value="${tag}">${tag}</option>`).join('')}
+        `;
     }
 
     function editNote(id) {
@@ -425,10 +503,40 @@
         }
     }
 
+    function deleteAllNotes() {
+        if (confirm('确定要删除所有笔记吗？此操作不可恢复！')) {
+            fetch('/api/notes/delete-all', {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('所有笔记已删除！');
+                    loadNotes();
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('删除失败，请重试');
+            });
+        }
+    }
+
     // 添加事件监听器
-    document.getElementById('course-filter').addEventListener('change', filterNotes);
-    document.getElementById('tag-filter').addEventListener('change', filterNotes);
-    document.getElementById('search').addEventListener('input', filterNotes);
+    document.getElementById('course-filter').addEventListener('change', () => {
+        currentPage = 1;
+        updateNotesDisplay();
+    });
+    document.getElementById('tag-filter').addEventListener('change', () => {
+        currentPage = 1;
+        updateNotesDisplay();
+    });
+    document.getElementById('search').addEventListener('input', () => {
+        currentPage = 1;
+        updateNotesDisplay();
+    });
 
     document.addEventListener('DOMContentLoaded', loadNotes);
 </script>

@@ -8,7 +8,7 @@ import requests
 import json 
 from text2cv import text2Latex, compileLatex
 from flask_babel import Babel, _, lazy_gettext as _l
-from models import db, Note, Card, Course, ReviewRecord
+from models import db, Note, Card, Course, ReviewRecord, UTC_8
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key'
@@ -453,33 +453,79 @@ def update_note(note_id):
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)})
 
+@app.route('/api/cards', methods=['GET'])
+def get_cards():
+    try:
+        cards = Card.query.all()
+        cards_data = [{
+            'id': card.id,
+            'question': card.question,
+            'answer': card.answer,
+            'difficulty': card.difficulty,
+            'course': card.course,
+            'favorite': card.is_favorite,
+            'reviewed': card.reviewed,
+            'created_at': card.created_at.isoformat(),
+            'updated_at': card.updated_at.isoformat()
+        } for card in cards]
+        
+        # 添加复习状态统计
+        total_cards = len(cards)
+        reviewed_cards = len([c for c in cards if c.reviewed])
+        
+        return jsonify({
+            'success': True,
+            'cards': cards_data,
+            'stats': {
+                'total': total_cards,
+                'reviewed': reviewed_cards,
+                'pending': total_cards - reviewed_cards
+            }
+        })
+    except Exception as e:
+        print(f"Error getting cards: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @app.route('/api/cards', methods=['POST'])
 def save_card():
     try:
         card_data = request.json
-        cards = load_cards()
-        
-        # 添加创建时间和ID
-        card_data['id'] = len(cards) + 1
-        card_data['created_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        card_data['reviewed'] = False
-        card_data['favorite'] = False
-        card_data['skipped'] = False
         
         # 确保必要的字段存在
         if not all(key in card_data for key in ['question', 'answer']):
             return jsonify({'success': False, 'message': '卡片必须包含问题和答案'}), 400
         
-        cards.append(card_data)
-        save_cards(cards)
+        # 创建新卡片
+        card = Card(
+            question=card_data['question'],
+            answer=card_data['answer'],
+            difficulty=card_data.get('difficulty', 'medium'),
+            course=card_data.get('course'),
+            is_favorite=card_data.get('favorite', False),
+            reviewed=card_data.get('reviewed', False)
+        )
+        
+        db.session.add(card)
+        db.session.commit()
         
         return jsonify({
             'success': True, 
             'message': '卡片保存成功',
-            'card': card_data
+            'card': {
+                'id': card.id,
+                'question': card.question,
+                'answer': card.answer,
+                'difficulty': card.difficulty,
+                'course': card.course,
+                'favorite': card.is_favorite,
+                'reviewed': card.reviewed,
+                'created_at': card.created_at.isoformat(),
+                'updated_at': card.updated_at.isoformat()
+            }
         })
     except Exception as e:
-        print(f"Error saving card: {str(e)}")  # 添加错误日志
+        db.session.rollback()
+        print(f"Error saving card: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/notes', methods=['GET'])
@@ -501,27 +547,6 @@ def get_notes():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
-@app.route('/api/cards', methods=['GET'])
-def get_cards():
-    try:
-        cards = load_cards()
-        # 添加复习状态统计
-        total_cards = len(cards)
-        reviewed_cards = len([c for c in cards if c.get('reviewed', False)])
-        
-        return jsonify({
-            'success': True,
-            'cards': cards,
-            'stats': {
-                'total': total_cards,
-                'reviewed': reviewed_cards,
-                'pending': total_cards - reviewed_cards
-            }
-        })
-    except Exception as e:
-        print(f"Error getting cards: {str(e)}")  # 添加错误日志
-        return jsonify({'success': False, 'message': str(e)}), 500
-
 @app.route('/api/notes/<int:note_id>', methods=['DELETE'])
 def delete_note(note_id):
     try:
@@ -537,7 +562,7 @@ def delete_note(note_id):
 @app.route('/api/notes/<int:note_id>/cards', methods=['GET'])
 def get_note_cards(note_id):
     try:
-        cards = load_cards()
+        cards = Card.query.all()
         note_cards = [card for card in cards if card.get('noteId') == note_id]
         return jsonify(note_cards)
     except Exception as e:
@@ -550,29 +575,22 @@ def review_card(card_id):
         if not data:
             return jsonify({'success': False, 'message': '缺少数据'})
         
-        cards = load_cards()
-        card = next((c for c in cards if c['id'] == card_id), None)
-        
+        card = Card.query.get(card_id)
         if card:
-            # 更新卡片状态
-            card['reviewed'] = data.get('reviewed', False)
-            card['reviewed_at'] = datetime.utcnow().isoformat()
-            
-            # 保存更新后的卡片
-            save_cards(cards)
-            print(f"Card {card_id} reviewed successfully, reviewed={card['reviewed']}")  # 调试信息
+            card.reviewed = data.get('reviewed', False)
+            db.session.commit()
             return jsonify({'success': True})
         
-        print(f"Card {card_id} not found")  # 调试信息
         return jsonify({'success': False, 'message': '卡片不存在'})
     except Exception as e:
+        db.session.rollback()
         print(f"Error reviewing card {card_id}: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/cards/<int:card_id>/skip', methods=['POST'])
 def skip_card(card_id):
     try:
-        cards = load_cards()
+        cards = Card.query.all()
         card = next((c for c in cards if c['id'] == card_id), None)
         
         if card:
@@ -590,25 +608,29 @@ def skip_card(card_id):
 
 @app.route('/api/cards/<int:card_id>/toggle-favorite', methods=['POST'])
 def toggle_favorite(card_id):
-    cards = load_cards()
-    card = next((c for c in cards if c['id'] == card_id), None)
-    if card:
-        card['favorite'] = not card.get('favorite', False)
-        save_cards(cards)
-        return jsonify({'success': True})
-    return jsonify({'success': False, 'message': '卡片不存在'})
+    try:
+        card = Card.query.get(card_id)
+        if card:
+            card.is_favorite = not card.is_favorite
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': '卡片不存在'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error toggling favorite for card {card_id}: {str(e)}")
+        return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/cards/<int:card_id>', methods=['DELETE'])
 def delete_card(card_id):
     try:
-        cards = load_cards()
-        card = next((c for c in cards if c['id'] == card_id), None)
+        card = Card.query.get(card_id)
         if card:
-            cards.remove(card)
-            save_cards(cards)
+            db.session.delete(card)
+            db.session.commit()
             return jsonify({'success': True})
         return jsonify({'success': False, 'message': '卡片不存在'})
     except Exception as e:
+        db.session.rollback()
         print(f"Error deleting card {card_id}: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
 
@@ -625,46 +647,17 @@ def batch_delete_cards():
         except (ValueError, TypeError):
             return jsonify({'success': False, 'message': '无效的卡片ID格式'})
         
-        print(f"Received delete request for card IDs: {card_ids}")  # 调试信息
-        
-        cards = load_cards()
-        print(f"Total cards before deletion: {len(cards)}")  # 调试信息
-        
-        # 验证所有要删除的卡片ID是否存在
-        existing_ids = {card['id'] for card in cards}
-        invalid_ids = [id for id in card_ids if id not in existing_ids]
-        if invalid_ids:
-            return jsonify({
-                'success': False,
-                'message': f'以下卡片ID不存在: {invalid_ids}'
-            })
-        
-        # 记录要删除的卡片
-        cards_to_delete = [card for card in cards if card['id'] in card_ids]
-        print(f"Cards to delete: {[card['id'] for card in cards_to_delete]}")  # 调试信息
-        
-        # 过滤掉要删除的卡片
-        remaining_cards = [card for card in cards if card['id'] not in card_ids]
-        print(f"Remaining cards after deletion: {len(remaining_cards)}")  # 调试信息
-        
-        # 验证删除操作
-        deleted_count = len(cards) - len(remaining_cards)
-        if deleted_count != len(card_ids):
-            return jsonify({
-                'success': False,
-                'message': f'删除操作异常：预期删除 {len(card_ids)} 张，实际删除 {deleted_count} 张'
-            })
-        
-        # 保存更新后的卡片列表
-        save_cards(remaining_cards)
-        print(f"Successfully deleted {deleted_count} cards")  # 调试信息
+        # 删除选中的卡片
+        Card.query.filter(Card.id.in_(card_ids)).delete(synchronize_session=False)
+        db.session.commit()
         
         return jsonify({
             'success': True,
-            'message': f'成功删除 {deleted_count} 张卡片'
+            'message': f'成功删除 {len(card_ids)} 张卡片'
         })
     except Exception as e:
-        print(f"Error in batch delete: {str(e)}")
+        db.session.rollback()
+        print(f"Error batch deleting cards: {str(e)}")
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/notebox/generate-card')
@@ -688,6 +681,9 @@ def get_review_records():
                 # 将 ISO 格式的时间字符串转换为带时区的 datetime 对象
                 start = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
                 end = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                # 转换为 UTC+8
+                start = start.astimezone(UTC_8)
+                end = end.astimezone(UTC_8)
                 query = query.filter(
                     ReviewRecord.start_time >= start,
                     ReviewRecord.end_time <= end
@@ -710,14 +706,11 @@ def get_review_records():
         records_data = []
         for record in records:
             try:
-                # 将 UTC 时间转换为本地时间
-                local_start_time = record.start_time.astimezone()
-                local_end_time = record.end_time.astimezone()
-                
+                # 时间已经是 UTC+8，直接使用
                 record_data = {
                     'id': record.id,
-                    'start_time': local_start_time.isoformat(),
-                    'end_time': local_end_time.isoformat(),
+                    'start_time': record.start_time.isoformat(),
+                    'end_time': record.end_time.isoformat(),
                     'duration': record.duration,
                     'mastered_count': record.mastered_count,
                     'not_mastered_count': record.not_mastered_count,
@@ -773,7 +766,7 @@ def create_review_record():
         start_time = datetime.fromisoformat(data['start_time'].replace('Z', '+00:00'))
         end_time = datetime.fromisoformat(data['end_time'].replace('Z', '+00:00'))
 
-        # 创建复习记录
+        # 创建复习记录（ReviewRecord.create 会自动转换为 UTC+8）
         record = ReviewRecord.create(
             start_time=start_time,
             end_time=end_time,
@@ -796,6 +789,72 @@ def create_review_record():
         db.session.rollback()
         print(f"Error creating review record: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/review-records/<int:record_id>', methods=['DELETE'])
+def delete_review_record(record_id):
+    try:
+        record = ReviewRecord.query.get_or_404(record_id)
+        db.session.delete(record)
+        db.session.commit()
+        return jsonify({'success': True, 'message': '复习记录删除成功'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting review record: {str(e)}")
+        return jsonify({'success': False, 'message': '删除复习记录失败'})
+
+@app.route('/api/notes/delete-all', methods=['DELETE'])
+def delete_all_notes():
+    try:
+        # 删除所有笔记
+        Note.query.delete()
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': '所有笔记已删除'
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting all notes: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'删除失败: {str(e)}'
+        }), 500
+
+@app.route('/api/cards/delete-all', methods=['DELETE'])
+def delete_all_cards():
+    try:
+        # 删除所有卡片
+        Card.query.delete()
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': '所有卡片已删除'
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting all cards: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'删除失败: {str(e)}'
+        }), 500
+
+@app.route('/api/review-records/delete-all', methods=['DELETE'])
+def delete_all_review_records():
+    try:
+        # 删除所有复习记录
+        ReviewRecord.query.delete()
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': '所有复习记录已删除'
+        })
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting all review records: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'删除失败: {str(e)}'
+        }), 500
 
 if __name__ == '__main__':
     init_data_files()

@@ -19,7 +19,7 @@
     }
     .cards-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
@@ -53,7 +53,7 @@
     }
     .card-actions {
         position: absolute;
-        top: 1rem;
+        bottom: 1rem;
         right: 1rem;
         display: flex;
         gap: 0.5rem;
@@ -82,7 +82,8 @@
     .pagination {
         display: flex;
         justify-content: center;
-        gap: 0.5rem;
+        align-items: center;
+        gap: 1rem;
         margin-top: 2rem;
     }
     .pagination button {
@@ -91,26 +92,56 @@
         border-radius: 0.25rem;
         background: white;
         cursor: pointer;
+        transition: all 0.3s;
     }
-    .pagination button.active {
+    .pagination button:hover:not(:disabled) {
         background: #3b82f6;
         color: white;
         border-color: #3b82f6;
+    }
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .pagination-info {
+        color: #6b7280;
     }
     .filters {
         display: flex;
         gap: 1rem;
         margin-bottom: 2rem;
         align-items: flex-end;
+        flex-wrap: wrap;
     }
     .filter-group {
         flex: 1;
+        min-width: 200px;
     }
     .filter-group select {
         width: 100%;
         padding: 0.5rem;
         border: 1px solid #d1d5db;
         border-radius: 0.25rem;
+    }
+    .search-group {
+        flex: 2;
+        min-width: 300px;
+    }
+    .search-group input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+    }
+    .card-content {
+        margin-bottom: 2.5rem;
+    }
+    .card-meta {
+        position: absolute;
+        bottom: 1rem;
+        left: 1rem;
+        font-size: 0.875rem;
+        color: #6b7280;
     }
     .favorite-toggle {
         padding: 0.5rem 1.5rem;
@@ -191,11 +222,11 @@
         align-items: center;
         gap: 0.5rem;
     }
-    .delete-all-button {
+    .delete-all-button, .delete-everything-button {
         background: #ef4444;
         color: white;
     }
-    .delete-all-button:hover {
+    .delete-all-button:hover, .delete-everything-button:hover {
         background: #dc2626;
     }
     .confirm-buttons {
@@ -278,6 +309,11 @@
         <span class="lang-en hidden">Delete Selected</span>
         <span class="lang-zh">批量删除</span>
     </button>
+    <button class="action-button delete-everything-button" onclick="deleteAllCards()">
+        <i class="fas fa-trash-alt"></i>
+        <span class="lang-en hidden">Delete All</span>
+        <span class="lang-zh">一键删除</span>
+    </button>
     <div class="confirm-buttons">
         <button class="confirm-button confirm-delete" onclick="confirmDelete()">
             <span class="lang-en hidden">Confirm</span>
@@ -308,6 +344,15 @@
             <option value="hard">困难</option>
         </select>
     </div>
+    <div class="filter-group">
+        <label class="lang-en hidden">Review Status</label>
+        <label class="lang-zh">复习状态</label>
+        <select id="review-status-filter">
+            <option value="">全部</option>
+            <option value="reviewed">已复习</option>
+            <option value="unreviewed">未复习</option>
+        </select>
+    </div>
     <button id="favorite-toggle" class="favorite-toggle">
         <i class="fas fa-star"></i>
         <span class="lang-en hidden">Favorites</span>
@@ -325,6 +370,8 @@
 
 <script>
     let showFavoritesOnly = false;
+    let currentPage = 1;
+    const cardsPerPage = 6;
     let allCards = [];
     let isSelecting = false;
     let selectedCards = new Set();
@@ -337,7 +384,7 @@
                     throw new Error(data.message || '加载卡片失败');
                 }
                 allCards = data.cards;
-                console.log('Loaded cards:', allCards); // 调试信息
+                console.log('Loaded cards:', allCards);
                 updateCardDisplay();
                 updateFilters();
             })
@@ -350,6 +397,7 @@
     function updateCardDisplay() {
         const courseFilter = document.getElementById('course-filter').value;
         const difficultyFilter = document.getElementById('difficulty-filter').value;
+        const reviewStatusFilter = document.getElementById('review-status-filter').value;
         
         let filteredCards = allCards;
         if (showFavoritesOnly) {
@@ -361,22 +409,29 @@
         if (difficultyFilter) {
             filteredCards = filteredCards.filter(card => card.difficulty === difficultyFilter);
         }
+        if (reviewStatusFilter) {
+            filteredCards = filteredCards.filter(card => 
+                reviewStatusFilter === 'reviewed' ? card.reviewed : !card.reviewed
+            );
+        }
+
+        const totalPages = Math.ceil(filteredCards.length / cardsPerPage);
+        
+        if (currentPage > totalPages && totalPages > 0) {
+            currentPage = totalPages;
+        }
+        
+        const startIndex = (currentPage - 1) * cardsPerPage;
+        const endIndex = startIndex + cardsPerPage;
+        const currentCards = filteredCards.slice(startIndex, endIndex);
 
         const container = document.getElementById('cards-container');
-        container.innerHTML = filteredCards.map(card => `
+        container.innerHTML = currentCards.map(card => `
             <div class="card" data-card-id="${card.id}" onclick="flipCard(this)">
                 <div class="card-inner">
                     <div class="card-front">
-                        <div class="card-actions">
-                            <button class="card-action favorite ${card.favorite ? 'active' : ''}" onclick="toggleFavorite('${card.id}')">
-                                ${card.favorite ? '★' : '☆'}
-                            </button>
-                            <button class="card-action delete" onclick="deleteCard('${card.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                        <div>${card.question}</div>
-                        <div style="margin-top: 1rem; font-size: 0.875rem; color: #6b7280;">
+                        <div class="card-content">${card.question}</div>
+                        <div class="card-meta">
                             <div>${card.course || '未分类'}</div>
                             <div>
                                 <span class="lang-en hidden">Difficulty: </span>
@@ -389,8 +444,6 @@
                                 ${card.reviewed ? '已复习' : '未复习'}
                             </div>
                         </div>
-                    </div>
-                    <div class="card-back">
                         <div class="card-actions">
                             <button class="card-action favorite ${card.favorite ? 'active' : ''}" onclick="toggleFavorite('${card.id}')">
                                 ${card.favorite ? '★' : '☆'}
@@ -399,11 +452,50 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
-                        <div>${card.answer}</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-content">${card.answer}</div>
+                        <div class="card-actions">
+                            <button class="card-action favorite ${card.favorite ? 'active' : ''}" onclick="toggleFavorite('${card.id}')">
+                                ${card.favorite ? '★' : '☆'}
+                            </button>
+                            <button class="card-action delete" onclick="deleteCard('${card.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         `).join('');
+
+        // 移除旧的分页控件
+        const oldPagination = document.querySelector('.pagination');
+        if (oldPagination) {
+            oldPagination.remove();
+        }
+
+        // 更新分页控件
+        const pagination = document.createElement('div');
+        pagination.className = 'pagination';
+        pagination.innerHTML = `
+            <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>
+            <button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+            <span class="pagination-info">${currentPage} / ${totalPages}</span>
+            <button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
+            <button onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>末页</button>
+        `;
+        container.after(pagination);
+
+        // 如果正在选择模式，重新添加复选框
+        if (isSelecting) {
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.add('selecting');
+                const checkbox = document.createElement('div');
+                checkbox.className = 'checkbox-wrapper visible';
+                checkbox.innerHTML = '<div class="checkbox" onclick="event.stopPropagation(); toggleCardSelection(this)"></div>';
+                card.appendChild(checkbox);
+            });
+        }
     }
 
     function updateFilters() {
@@ -428,10 +520,30 @@
         updateCardDisplay();
     }
 
+    function goToPage(page) {
+        currentPage = page;
+        updateCardDisplay();
+    }
+
+    // 移除搜索框的事件监听器
+    document.getElementById('review-status-filter').addEventListener('change', () => {
+        currentPage = 1;
+        updateCardDisplay();
+    });
+
     // 添加事件监听器
-    document.getElementById('course-filter').addEventListener('change', updateCardDisplay);
-    document.getElementById('difficulty-filter').addEventListener('change', updateCardDisplay);
-    document.getElementById('favorite-toggle').addEventListener('click', toggleFavoriteView);
+    document.getElementById('course-filter').addEventListener('change', () => {
+        currentPage = 1;
+        updateCardDisplay();
+    });
+    document.getElementById('difficulty-filter').addEventListener('change', () => {
+        currentPage = 1;
+        updateCardDisplay();
+    });
+    document.getElementById('favorite-toggle').addEventListener('click', () => {
+        currentPage = 1;
+        toggleFavoriteView();
+    });
 
     function flipCard(card) {
         card.classList.toggle('flipped');
@@ -478,6 +590,7 @@
     function startDeleteSelection() {
         isSelecting = true;
         document.querySelector('.delete-all-button').style.display = 'none';
+        document.querySelector('.delete-everything-button').style.display = 'none';
         document.querySelector('.confirm-buttons').style.display = 'flex';
         document.querySelectorAll('.card').forEach(card => {
             card.classList.add('selecting');
@@ -540,7 +653,8 @@
                 // 重置选择状态
                 selectedCards.clear();
                 isSelecting = false;
-                document.querySelector('.delete-all-button').style.display = 'block';
+                document.querySelector('.delete-all-button').style.display = 'flex';
+                document.querySelector('.delete-everything-button').style.display = 'flex';
                 document.querySelector('.confirm-buttons').style.display = 'none';
                 document.querySelectorAll('.card').forEach(card => {
                     card.classList.remove('selecting');
@@ -565,7 +679,8 @@
     function cancelDelete() {
         selectedCards.clear();
         isSelecting = false;
-        document.querySelector('.delete-all-button').style.display = 'block';
+        document.querySelector('.delete-all-button').style.display = 'flex';
+        document.querySelector('.delete-everything-button').style.display = 'flex';
         document.querySelector('.confirm-buttons').style.display = 'none';
         document.querySelectorAll('.card').forEach(card => {
             card.classList.remove('selecting');
@@ -591,6 +706,30 @@
             .catch(error => {
                 console.error('Error updating unreviewed count:', error);
             });
+    }
+
+    function deleteAllCards() {
+        if (confirm('确定要删除所有卡片吗？此操作不可恢复！')) {
+            fetch('/api/cards/delete-all', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('所有卡片已删除！');
+                    loadCards();
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('删除失败，请重试');
+            });
+        }
     }
 
     document.addEventListener('DOMContentLoaded', loadCards);

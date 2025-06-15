@@ -94,6 +94,7 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
         animation: slideIn 0.5s ease-out;
+        position: relative;
     }
 
     .review-card:hover {
@@ -185,6 +186,144 @@
         font-style: italic;
     }
 
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .delete-all-button, .delete-everything-button {
+        background: #ef4444;
+        color: white;
+    }
+
+    .delete-all-button:hover, .delete-everything-button:hover {
+        background: #dc2626;
+    }
+
+    .confirm-buttons {
+        display: none;
+        gap: 1rem;
+    }
+
+    .confirm-button {
+        padding: 0.5rem 1.5rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+
+    .confirm-delete {
+        background: #ef4444;
+        color: white;
+    }
+
+    .confirm-delete:hover {
+        background: #dc2626;
+    }
+
+    .cancel-delete {
+        background: #6b7280;
+        color: white;
+    }
+
+    .cancel-delete:hover {
+        background: #4b5563;
+    }
+
+    .checkbox-wrapper {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        z-index: 10;
+        display: none;
+        pointer-events: auto;
+    }
+
+    .checkbox-wrapper.visible {
+        display: block;
+    }
+
+    .checkbox {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #6b7280;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        transition: all 0.2s;
+        pointer-events: auto;
+    }
+
+    .checkbox.checked {
+        background: #3b82f6;
+        border-color: #3b82f6;
+    }
+
+    .checkbox.checked::after {
+        content: '✓';
+        color: white;
+        font-size: 12px;
+    }
+
+    .review-card.selecting {
+        pointer-events: none;
+    }
+
+    .review-card.selecting .review-header,
+    .review-card.selecting .review-stats,
+    .review-card.selecting .review-cards {
+        opacity: 0.7;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .pagination button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .pagination button:hover:not(:disabled) {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination-info {
+        color: #6b7280;
+    }
+
     @media (max-width: 768px) {
         .review-stats {
             flex-direction: column;
@@ -209,6 +348,29 @@
         <span class="lang-en hidden">Review Records</span>
         <span class="lang-zh">复习记录</span>
     </h1>
+</div>
+
+<div class="action-buttons">
+    <button class="action-button delete-all-button" onclick="startDeleteSelection()">
+        <i class="fas fa-trash"></i>
+        <span class="lang-en hidden">Delete Selected</span>
+        <span class="lang-zh">批量删除</span>
+    </button>
+    <button class="action-button delete-everything-button" onclick="deleteAllRecords()">
+        <i class="fas fa-trash-alt"></i>
+        <span class="lang-en hidden">Delete All</span>
+        <span class="lang-zh">一键删除</span>
+    </button>
+    <div class="confirm-buttons">
+        <button class="confirm-button confirm-delete" onclick="confirmDelete()">
+            <span class="lang-en hidden">Confirm</span>
+            <span class="lang-zh">确认</span>
+        </button>
+        <button class="confirm-button cancel-delete" onclick="cancelDelete()">
+            <span class="lang-en hidden">Cancel</span>
+            <span class="lang-zh">取消</span>
+        </button>
+    </div>
 </div>
 
 <div class="filter-section">
@@ -245,9 +407,10 @@
         }
     }
 
-    // 格式化日期时间
+    // 格式化日期时间（已经是 UTC+8）
     function formatDateTime(isoString) {
         const date = new Date(isoString);
+        // 使用 zh-CN 区域设置，不指定时区（因为后端已经返回 UTC+8 时间）
         return date.toLocaleString('zh-CN', {
             year: 'numeric',
             month: '2-digit',
@@ -259,7 +422,12 @@
         });
     }
 
-    // 加载复习记录
+    let currentPage = 1;
+    const recordsPerPage = 5;
+    let allRecords = [];
+    let isSelecting = false;
+    let selectedRecords = new Set();
+
     function loadReviewRecords() {
         const reviewDate = document.getElementById('review-date').value;
         const sortBy = document.getElementById('sort-by').value;
@@ -278,58 +446,8 @@
                 if (!data.success) {
                     throw new Error(data.message || '加载复习记录失败');
                 }
-                const container = document.getElementById('review-records-list');
-                
-                if (data.records.length === 0) {
-                    container.innerHTML = `
-                        <div class="no-records">
-                            <div class="lang-en hidden">No review records found</div>
-                            <div class="lang-zh">未找到复习记录</div>
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = data.records.map(record => `
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="review-time">
-                                ${formatDateTime(record.start_time)} - 
-                                ${formatDateTime(record.end_time)}
-                            </div>
-                            <div class="review-duration">
-                                ${formatDuration(record.duration)}
-                            </div>
-                        </div>
-                        <div class="review-stats">
-                            <div class="stat-item">
-                                <span class="stat-label lang-en hidden">Mastered:</span>
-                                <span class="stat-label lang-zh">已掌握:</span>
-                                <span class="stat-value mastered">${record.mastered_count}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label lang-en hidden">Not Mastered:</span>
-                                <span class="stat-label lang-zh">未掌握:</span>
-                                <span class="stat-value not-mastered">${record.not_mastered_count}</span>
-                            </div>
-                        </div>
-                        <div class="review-cards">
-                            ${record.cards.slice(0, 3).map(card => `
-                                <div class="review-card-item">
-                                    <div class="card-question">${card.question}</div>
-                                    <div class="card-answer">${card.answer}</div>
-                                    <div class="card-status">
-                                        <span class="lang-en hidden">Status: </span>
-                                        <span class="lang-zh">状态：</span>
-                                        <span class="${card.is_mastered ? 'mastered' : 'not-mastered'}">
-                                            ${card.is_mastered ? '已掌握' : '需复习'}
-                                        </span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('');
+                allRecords = data.records;
+                updateRecordsDisplay();
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -342,9 +460,220 @@
             });
     }
 
+    function updateRecordsDisplay() {
+        const totalPages = Math.ceil(allRecords.length / recordsPerPage);
+        
+        // 如果当前页大于总页数，自动跳转到最后一页
+        if (currentPage > totalPages && totalPages > 0) {
+            currentPage = totalPages;
+        }
+        
+        const startIndex = (currentPage - 1) * recordsPerPage;
+        const endIndex = startIndex + recordsPerPage;
+        const currentRecords = allRecords.slice(startIndex, endIndex);
+
+        const container = document.getElementById('review-records-list');
+        
+        if (currentRecords.length === 0) {
+            container.innerHTML = `
+                <div class="no-records">
+                    <div class="lang-en hidden">No review records found</div>
+                    <div class="lang-zh">未找到复习记录</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = currentRecords.map(record => `
+            <div class="review-card" data-record-id="${record.id}">
+                <div class="review-header">
+                    <div class="review-time">
+                        ${formatDateTime(record.start_time)} - 
+                        ${formatDateTime(record.end_time)}
+                    </div>
+                    <div class="review-duration">
+                        ${formatDuration(record.duration)}
+                    </div>
+                </div>
+                <div class="review-stats">
+                    <div class="stat-item">
+                        <span class="stat-label lang-en hidden">Mastered:</span>
+                        <span class="stat-label lang-zh">已掌握:</span>
+                        <span class="stat-value mastered">${record.mastered_count}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label lang-en hidden">Not Mastered:</span>
+                        <span class="stat-label lang-zh">未掌握:</span>
+                        <span class="stat-value not-mastered">${record.not_mastered_count}</span>
+                    </div>
+                </div>
+                <div class="review-cards">
+                    ${record.cards.slice(0, 3).map(card => `
+                        <div class="review-card-item">
+                            <div class="card-question">${card.question}</div>
+                            <div class="card-answer">${card.answer}</div>
+                            <div class="card-status">
+                                <span class="lang-en hidden">Status: </span>
+                                <span class="lang-zh">状态：</span>
+                                <span class="${card.is_mastered ? 'mastered' : 'not-mastered'}">
+                                    ${card.is_mastered ? '已掌握' : '需复习'}
+                                </span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        // 移除旧的分页控件
+        const oldPagination = document.querySelector('.pagination');
+        if (oldPagination) {
+            oldPagination.remove();
+        }
+
+        // 更新分页控件
+        const pagination = document.createElement('div');
+        pagination.className = 'pagination';
+        pagination.innerHTML = `
+            <button onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>
+            <button onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+            <span class="pagination-info">${currentPage} / ${totalPages}</span>
+            <button onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>
+            <button onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>末页</button>
+        `;
+        container.after(pagination);
+
+        // 如果正在选择模式，重新添加复选框
+        if (isSelecting) {
+            document.querySelectorAll('.review-card').forEach(record => {
+                record.classList.add('selecting');
+                const checkbox = document.createElement('div');
+                checkbox.className = 'checkbox-wrapper visible';
+                checkbox.innerHTML = '<div class="checkbox" onclick="event.stopPropagation(); toggleRecordSelection(this)"></div>';
+                record.insertBefore(checkbox, record.firstChild);
+            });
+        }
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        updateRecordsDisplay();
+    }
+
+    function startDeleteSelection() {
+        isSelecting = true;
+        document.querySelector('.delete-all-button').style.display = 'none';
+        document.querySelector('.delete-everything-button').style.display = 'none';
+        document.querySelector('.confirm-buttons').style.display = 'flex';
+        document.querySelectorAll('.review-card').forEach(record => {
+            record.classList.add('selecting');
+            const checkbox = document.createElement('div');
+            checkbox.className = 'checkbox-wrapper visible';
+            checkbox.innerHTML = '<div class="checkbox" onclick="event.stopPropagation(); toggleRecordSelection(this)"></div>';
+            record.insertBefore(checkbox, record.firstChild);
+        });
+    }
+
+    function toggleRecordSelection(checkbox) {
+        event.stopPropagation();
+        const record = checkbox.closest('.review-card');
+        const recordId = record.dataset.recordId;
+        checkbox.classList.toggle('checked');
+        
+        if (checkbox.classList.contains('checked')) {
+            selectedRecords.add(recordId);
+        } else {
+            selectedRecords.delete(recordId);
+        }
+    }
+
+    function confirmDelete() {
+        if (selectedRecords.size === 0) {
+            alert('请选择要删除的复习记录');
+            return;
+        }
+
+        if (confirm(`确定要删除选中的 ${selectedRecords.size} 条复习记录吗？此操作不可恢复！`)) {
+            const promises = Array.from(selectedRecords).map(recordId => 
+                fetch(`/api/review-records/${recordId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+            );
+
+            Promise.all(promises)
+                .then(results => {
+                    if (results.every(result => result.success)) {
+                        alert('删除成功！');
+                        selectedRecords.clear();
+                        loadReviewRecords();
+                    } else {
+                        const failedCount = results.filter(result => !result.success).length;
+                        alert(`部分复习记录删除失败（${failedCount}条），请重试`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('删除失败，请重试');
+                })
+                .finally(() => {
+                    cancelDelete();
+                });
+        }
+    }
+
+    function cancelDelete() {
+        isSelecting = false;
+        selectedRecords.clear();
+        document.querySelector('.delete-all-button').style.display = 'flex';
+        document.querySelector('.delete-everything-button').style.display = 'flex';
+        document.querySelector('.confirm-buttons').style.display = 'none';
+        document.querySelectorAll('.review-card').forEach(card => {
+            card.classList.remove('selecting');
+            const checkbox = card.querySelector('.checkbox-wrapper');
+            if (checkbox) {
+                checkbox.remove();
+            }
+        });
+    }
+
+    function deleteAllRecords() {
+        if (confirm('确定要删除所有复习记录吗？此操作不可恢复！')) {
+            fetch('/api/review-records/delete-all', {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('所有复习记录已删除！');
+                    loadReviewRecords();
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('删除失败，请重试');
+            });
+        }
+    }
+
     // 添加筛选器事件监听
-    document.getElementById('review-date').addEventListener('change', loadReviewRecords);
-    document.getElementById('sort-by').addEventListener('change', loadReviewRecords);
+    document.getElementById('review-date').addEventListener('change', () => {
+        currentPage = 1;
+        loadReviewRecords();
+    });
+    document.getElementById('sort-by').addEventListener('change', () => {
+        currentPage = 1;
+        loadReviewRecords();
+    });
 
     // 页面加载时获取记录
     document.addEventListener('DOMContentLoaded', loadReviewRecords);

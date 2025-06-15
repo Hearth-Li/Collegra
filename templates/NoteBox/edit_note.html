@@ -54,9 +54,9 @@
 {% endblock %}
 
 {% block content %}
-<a href="{{ url_for('notebox') }}" class="back-button">
-    <span class="lang-en hidden">← Back to Home</span>
-    <span class="lang-zh">← 返回主页</span>
+<a href="{{ url_for('notebox_notes') if request.args.get('id') else url_for('notebox') }}" class="back-button">
+    <span class="lang-en hidden">← {{ 'Back to Notes' if request.args.get('id') else 'Back to Home' }}</span>
+    <span class="lang-zh">← {{ '返回笔记列表' if request.args.get('id') else '返回主页' }}</span>
 </a>
 
 <div class="metadata">
@@ -147,7 +147,8 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                window.location.href = '/notebox';
+                // 根据是否有id参数决定返回页面
+                window.location.href = noteId ? '/notebox/notes' : '/notebox';
             } else {
                 alert(data.message || '保存失败');
             }
@@ -175,7 +176,7 @@
         .then(data => {
             if (data.success) {
                 alert('笔记删除成功！');
-                window.location.href = '/notebox';
+                window.location.href = '/notebox/notes';  // 删除后返回笔记列表
             } else {
                 alert('删除失败：' + data.message);
             }

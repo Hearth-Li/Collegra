@@ -58,7 +58,7 @@
         backface-visibility: hidden;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
         text-align: center;
         padding: 2rem;
@@ -98,6 +98,10 @@
         font-size: 1.25rem;
         line-height: 1.6;
         color: #1f2937;
+        width: 100%;
+    }
+    .flashcard-back .card-content {
+        margin-bottom: 6rem;  /* 为底部的掌握按钮留出空间 */
     }
     .progress-bar {
         height: 0.5rem;
@@ -433,7 +437,7 @@
                     showModal('completion-modal');
                     return;
                 }
-                // 重置开始时间
+                // 重置开始时间（使用 UTC+8）
                 startTime = new Date();
                 updateCard();
                 startTimer();
@@ -569,6 +573,9 @@
             return;
         }
 
+        // 阻止事件冒泡，防止触发卡片翻转
+        event.stopPropagation();
+
         fetch(`/api/cards/${currentCard.id}/review`, {
             method: 'POST',
             headers: {
@@ -584,51 +591,18 @@
                 currentCardRated = true;
                 cardHistory[currentCardIndex] = { reviewed: known };
                 updateMasteryButtons();
-                currentCardIndex++;
-                if (currentCardIndex < cards.length) {
+                
+                // 检查是否是最后一张卡片
+                if (currentCardIndex === cards.length - 1) {
+                    // 完成所有卡片复习，保存记录
+                    saveReviewRecord();
+                    showModal('completion-modal');
+                } else {
+                    currentCardIndex++;
                     setTimeout(() => {
                         updateCard();
                         updateNavigationButtons();
                     }, 500);
-                } else {
-                    // 保存复习记录
-                    const endTime = new Date();
-                    const duration = Math.floor((endTime - startTime) / 1000);
-                    const masteredCount = cardHistory.filter(card => card && card.reviewed).length;
-                    const notMasteredCount = cardHistory.filter(card => card && !card.reviewed).length;
-
-                    const reviewData = {
-                        start_time: startTime.toISOString(),
-                        end_time: endTime.toISOString(),
-                        duration: duration,
-                        mastered_count: masteredCount,
-                        not_mastered_count: notMasteredCount,
-                        cards: cards.map((card, index) => ({
-                            id: card.id,
-                            is_mastered: cardHistory[index] ? cardHistory[index].reviewed : false
-                        }))
-                    };
-
-                    console.log('Saving review record:', reviewData);
-
-                    fetch('/api/review-records', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(reviewData)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success) {
-                            console.error('Failed to save review record:', data.message);
-                        }
-                        showModal('completion-modal');
-                    })
-                    .catch(error => {
-                        console.error('Error saving review record:', error);
-                        showModal('completion-modal');
-                    });
                 }
             } else {
                 console.error('Failed to update card review status:', data.message);
@@ -639,6 +613,60 @@
             console.error('Error updating card review status:', error);
             alert('更新卡片复习状态失败，请重试');
         });
+    }
+
+    // 新增保存复习记录的函数
+    function saveReviewRecord() {
+        const endTime = new Date();
+        const duration = Math.floor((endTime - startTime) / 1000);
+        const masteredCount = cardHistory.filter(card => card && card.reviewed).length;
+        const notMasteredCount = cardHistory.filter(card => card && !card.reviewed).length;
+
+        const reviewData = {
+            start_time: startTime.toISOString(),
+            end_time: endTime.toISOString(),
+            duration: duration,
+            mastered_count: masteredCount,
+            not_mastered_count: notMasteredCount,
+            cards: cards.map((card, index) => ({
+                id: card.id,
+                is_mastered: cardHistory[index] ? cardHistory[index].reviewed : false
+            }))
+        };
+
+        console.log('Saving review record:', reviewData);
+
+        return fetch('/api/review-records', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reviewData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Failed to save review record:', data.message);
+                throw new Error(data.message);
+            }
+            return data;
+        });
+    }
+
+    function exitReview() {
+        // 只有在有评价过的卡片时才保存记录
+        if (cardHistory.some(card => card)) {
+            saveReviewRecord()
+                .then(() => {
+                    window.location.href = "{{ url_for('notebox') }}";
+                })
+                .catch(error => {
+                    console.error('Error saving review record:', error);
+                    window.location.href = "{{ url_for('notebox') }}";
+                });
+        } else {
+            window.location.href = "{{ url_for('notebox') }}";
+        }
     }
 
     function skipCard() {
@@ -670,45 +698,6 @@
     function confirmExit(event) {
         event.preventDefault();
         showModal('exit-modal');
-    }
-
-    function exitReview() {
-        // 保存复习记录
-        const endTime = new Date();
-        const duration = Math.floor((endTime - startTime) / 1000);
-        const masteredCount = cardHistory.filter(card => card && card.reviewed).length;
-        const notMasteredCount = cardHistory.filter(card => card && !card.reviewed).length;
-
-        const reviewData = {
-            start_time: startTime.toISOString(),
-            end_time: endTime.toISOString(),
-            duration: duration,
-            mastered_count: masteredCount,
-            not_mastered_count: notMasteredCount,
-            cards: cards.map((card, index) => ({
-                id: card.id,
-                is_mastered: cardHistory[index] ? cardHistory[index].reviewed : false
-            }))
-        };
-
-        fetch('/api/review-records', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(reviewData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success) {
-                console.error('Failed to save review record:', data.message);
-            }
-            window.location.href = "{{ url_for('notebox') }}";
-        })
-        .catch(error => {
-            console.error('Error saving review record:', error);
-            window.location.href = "{{ url_for('notebox') }}";
-        });
     }
 
     document.addEventListener('DOMContentLoaded', loadCards);

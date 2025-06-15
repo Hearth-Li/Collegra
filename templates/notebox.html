@@ -411,7 +411,7 @@
                 if (!data.success) {
                     throw new Error(data.message || '加载笔记失败');
                 }
-                const recentNotes = data.notes.slice(-5).reverse();
+                const recentNotes = data.notes.slice(-3).reverse(); // 只显示最近3条笔记
                 const container = document.getElementById('recent-notes-list');
                 container.innerHTML = recentNotes.map(note => `
                     <div class="note-card">
